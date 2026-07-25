@@ -380,6 +380,30 @@
     transform: rotate(225deg);
     margin-top: 0.25rem;
   }
+
+  /*
+   * Icon-only chrome (Button size icon / icon-sm + IconTooltip triggers).
+   * Hover lift+pop, press squash, aria-pressed on-ring — CSS only; see ui.mdc.
+   * `!important` on transform beats variant hover:-translate utilities (one recipe).
+   */
+  .cp-icon-btn {
+    transform-origin: center;
+  }
+
+  .cp-icon-btn[aria-pressed="true"] {
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px color-mix(in srgb, var(--primary) 65%, transparent),
+      0 3px 0 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
+  }
+
+  .cp-icon-btn[data-variant="ghost"][aria-pressed="true"] {
+    background: color-mix(in srgb, var(--secondary) 28%, var(--muted));
+    color: var(--foreground);
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 3.5px color-mix(in srgb, var(--secondary) 60%, var(--primary));
+  }
 }
 
 @layer utilities {
@@ -425,22 +449,59 @@
     }
   }
 
+  @keyframes cp-icon-on-pulse {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 2px var(--background),
+        0 0 0 4px color-mix(in srgb, var(--primary) 55%, transparent),
+        0 3px 0 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
+    }
+    50% {
+      box-shadow:
+        0 0 0 2px var(--background),
+        0 0 0 5px color-mix(in srgb, var(--secondary) 45%, var(--primary)),
+        0 3px 0 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
+    }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .cp-icon-btn:hover:not(:disabled):not(:active) {
+      transform: translateY(-3px) scale(1.08) !important;
+    }
+
+    .cp-icon-btn:active:not(:disabled) {
+      transform: translateY(2px) scale(0.9, 0.84) !important;
+      transition-duration: 90ms;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cp-icon-btn[aria-pressed="true"] {
+      animation: cp-icon-on-pulse 2.6s ease-in-out infinite;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .cp-option-swap,
-    .cp-select-pop {
+    .cp-select-pop,
+    .cp-icon-btn[aria-pressed="true"] {
       animation: none;
     }
 
     .cp-lobby-card,
     .cp-lobby-tile,
     .cp-lobby-chip,
-    .cp-lobby-challenge {
+    .cp-lobby-challenge,
+    .cp-icon-btn {
       transition: none;
     }
 
     .cp-lobby-card:hover,
-    .cp-lobby-card:active {
-      transform: none;
+    .cp-lobby-card:active,
+    .cp-icon-btn:hover,
+    .cp-icon-btn:active {
+      transform: none !important;
     }
   }
 }

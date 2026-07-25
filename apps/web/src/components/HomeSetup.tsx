@@ -1,6 +1,18 @@
-import { Music, Music2, Volume2, VolumeX } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Droplets,
+  Eye,
+  Music,
+  Music2,
+  Smile,
+  Type,
+  Volume2,
+  VolumeX,
+  Warmth,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { IconTooltip } from "@/components/ui/tooltip";
 import { SegmentGroup } from "@/components/SegmentGroup";
 
@@ -447,7 +459,7 @@ export function HomePlayBar({
             variant="secondary"
             size="icon"
             className="h-12 w-12 shrink-0"
-            aria-pressed={!menuMusic}
+            aria-pressed={menuMusic}
             aria-label={jamLabel}
             onClick={onToggleMenuMusic}
           >
@@ -459,7 +471,7 @@ export function HomePlayBar({
             variant="secondary"
             size="icon"
             className="h-12 w-12 shrink-0"
-            aria-pressed={!sound}
+            aria-pressed={sound}
             aria-label={soundLabel}
             onClick={onToggleSound}
           >

@@ -27,10 +27,18 @@ const buttonVariants = cva(
         default: "min-h-11 h-11 px-5 py-2 text-[0.95rem]",
         sm: "min-h-9 h-9 rounded-xl px-3 text-xs",
         lg: "min-h-12 h-12 rounded-ui px-8 text-base tracking-wide",
-        icon: "h-11 w-11 min-h-11",
-        "icon-sm": "h-9 w-9 min-h-9 rounded-xl",
+        /** Icon-only chrome — hover/active/on motion via `.cp-icon-btn` in index.css */
+        icon: "cp-icon-btn h-11 w-11 min-h-11",
+        "icon-sm": "cp-icon-btn h-9 w-9 min-h-9 rounded-xl",
       },
     },
+    compoundVariants: [
+      {
+        size: ["icon", "icon-sm"],
+        className:
+          "hover:translate-y-0 active:translate-y-0 active:scale-100 motion-reduce:active:scale-100",
+      },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",
@@ -47,7 +55,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        data-variant={variant ?? "default"}
+        ref={ref}
+        {...props}
+      />
     );
   },
 );

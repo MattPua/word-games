@@ -366,7 +366,7 @@ export function PlayPage() {
               variant="ghost"
               size="icon-sm"
               disabled={celebrate}
-              aria-pressed={!sound}
+              aria-pressed={sound}
               aria-label={sound ? "Mute SFX" : "Unmute SFX"}
               onClick={toggleSound}
             >
@@ -508,7 +508,7 @@ export function PlayPage() {
             <Button
               variant="outline"
               className="w-full justify-between"
-              aria-pressed={!sound}
+              aria-pressed={sound}
               onClick={toggleSound}
             >
               <span>{sound ? "Mute SFX" : "Unmute SFX"}</span>
@@ -521,7 +521,7 @@ export function PlayPage() {
             <Button
               variant="outline"
               className="w-full justify-between"
-              aria-pressed={!menuMusic}
+              aria-pressed={menuMusic}
               onClick={toggleMenuMusic}
             >
               <span>{menuMusic ? "Mute lobby jam" : "Lobby jam on"}</span>
