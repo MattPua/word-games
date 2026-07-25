@@ -12,6 +12,8 @@ import {
   type Cell,
 } from "@couch-potato/ui";
 import { getDictionary } from "@couch-potato/dictionary";
+import { Button } from "@/components/ui/button";
+import { IconTooltip } from "@/components/ui/tooltip";
 import {
   createGame,
   generateBoard,
@@ -40,9 +42,14 @@ import {
   setSoundEnabled,
 } from "../storage";
 import { playAcceptedWordSound } from "../wordAcceptSound";
-import { Button } from "@/components/ui/button";
 
 const WIN_FLOURISH_MS = 1300;
+
+const REJECT_FLASH: Record<"short" | "invalid" | "duplicate", string> = {
+  short: "Too short",
+  invalid: "Not a word",
+  duplicate: "Already found",
+};
 
 export function PlayPage() {
   const navigate = useNavigate();
@@ -254,29 +261,30 @@ export function PlayPage() {
           </View>
         )}
         <View className="flex-row items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            disabled={celebrate}
-            aria-pressed={!sound}
-            aria-label={sound ? "Mute sound" : "Unmute sound"}
-            title={sound ? "Mute sound" : "Unmute sound"}
-            onClick={() => {
-              const next = !sound;
-              setSound(next);
-              setSoundEnabled(next);
-              setEnabled(next);
-            }}
-          >
-            {sound ? <Volume2 /> : <VolumeX />}
-          </Button>
+          <IconTooltip label={sound ? "Mute SFX" : "Unmute SFX"}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              disabled={celebrate}
+              aria-pressed={!sound}
+              aria-label={sound ? "Mute SFX" : "Unmute SFX"}
+              onClick={() => {
+                const next = !sound;
+                setSound(next);
+                setSoundEnabled(next);
+                setEnabled(next);
+              }}
+            >
+              {sound ? <Volume2 /> : <VolumeX />}
+            </Button>
+          </IconTooltip>
           <Button
             variant="ghost"
             size="sm"
             disabled={celebrate}
             onClick={() => setState(quitGame(state))}
           >
-            Quit
+            End run
           </Button>
         </View>
       </View>
@@ -325,7 +333,7 @@ export function PlayPage() {
                   setState(next);
                 } else if (result.reason !== "bad_path" && result.reason !== "ended") {
                   play("error");
-                  setFlash(result.reason);
+                  setFlash(REJECT_FLASH[result.reason] ?? result.reason);
                 }
                 window.setTimeout(() => setFlash(""), 700);
               }
@@ -333,28 +341,30 @@ export function PlayPage() {
       />
 
       <div className="mt-4 flex w-full justify-center gap-2">
-        <Button
-          variant="secondary"
-          size="icon"
-          disabled={celebrate || boardTurning}
-          onClick={() => rotate(-1)}
-          aria-label="Rotate board counter-clockwise"
-          title="Rotate left"
-          data-testid="rotate-ccw"
-        >
-          <RotateCcw className="size-5" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          disabled={celebrate || boardTurning}
-          onClick={() => rotate(1)}
-          aria-label="Rotate board clockwise"
-          title="Rotate right"
-          data-testid="rotate-cw"
-        >
-          <RotateCw className="size-5" />
-        </Button>
+        <IconTooltip label="Spin left">
+          <Button
+            variant="secondary"
+            size="icon"
+            disabled={celebrate || boardTurning}
+            onClick={() => rotate(-1)}
+            aria-label="Spin board left"
+            data-testid="rotate-ccw"
+          >
+            <RotateCcw className="size-5" />
+          </Button>
+        </IconTooltip>
+        <IconTooltip label="Spin right">
+          <Button
+            variant="secondary"
+            size="icon"
+            disabled={celebrate || boardTurning}
+            onClick={() => rotate(1)}
+            aria-label="Spin board right"
+            data-testid="rotate-cw"
+          >
+            <RotateCw className="size-5" />
+          </Button>
+        </IconTooltip>
       </div>
     </Shell>
   );

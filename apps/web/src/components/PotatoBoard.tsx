@@ -3,9 +3,9 @@ import { EmptyState } from "@couch-potato/ui";
 import { formatWhen, listHighScores, type GameHistoryEntry, type Profile } from "../storage";
 
 function reasonLabel(r: GameHistoryEntry["reason"]) {
-  if (r === "won") return "won";
-  if (r === "timeout") return "time";
-  return "quit";
+  if (r === "won") return "cleared";
+  if (r === "timeout") return "timed out";
+  return "ended";
 }
 
 function historyLabel(h: GameHistoryEntry) {
@@ -26,12 +26,12 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
     <View className="mb-6">
       <Text className="mb-1 font-display text-xl text-foreground">Potato Board</Text>
       <Text className="mb-3 font-body text-sm text-muted-foreground">
-        How you have done on this couch — local only, no cloud bragging.
+        Your local scoreboard — no cloud bragging.
       </Text>
 
       <View className="mb-4 flex-row gap-3">
         <View className="flex-1 rounded-ui bg-card px-3 py-3">
-          <Text className="font-body text-xs text-muted-foreground">Games</Text>
+          <Text className="font-body text-xs text-muted-foreground">Runs</Text>
           <Text className="font-display text-2xl text-foreground">{profile.gamesPlayed}</Text>
         </View>
         <View className="flex-1 rounded-ui bg-card px-3 py-3">

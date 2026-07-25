@@ -10,6 +10,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - **Container queries = web-only**; shared layout uses flex + max-width
 - **Motion:** meaningful interactivity should show the change (short CSS/NativeWind transitions — segments, presses, score ticks, screen enters). Whimsical + performant; few intentional motions, not noise; respect `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.
 - **UI inspiration:** [TypeUI](https://www.typeui.sh/) principles (tokens first → hierarchy / type rhythm / interaction feedback) + tactile word-game craft (pillow cream tiles, thick sage board frame, path + select rings, word pill + potato score badge). Keep cream/sage/potato — never purple demo clones. See `.cursor/rules/ui.mdc`.
+- **Copy / voice:** prefer **gaming terminology** (Play, lobby, run, haul, SFX, spin) over sterile app/form words (Submit, Settings, Confirm). Whimsical Couch Potato — clear for casual players, not esports jargon. Icon tooltips match. Details: `.cursor/rules/ui.mdc`.
 
 ## Game rules (engine owns these)
 
@@ -22,18 +23,18 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - Scoring: `points = length - 2` (config constant)
 - **Target**: countdown — `remaining` starts at achievable target (board max × Easy/Med/Hard); each accepted word subtracts its points; **win when remaining === 0** (“Clear the couch”). High scores still store **points earned**. Max/target use only words ≥ active min length.
 - **Timed**: fixed board; 30/60/90/120s → results (score accumulates; unchanged)
-- **Quit mid-game** → results with progress so far (`won` | `timeout` | `quit`)
+- **Quit mid-game** (UI: **End run**) → results with progress so far (`won` | `timeout` | `quit`)
 
 ## Product surface
 
 - **Home setup = game lobby** (not a settings form): mode as choice cards; board as visual grid/shape tiles; difficulty/duration as one expressive control; min word length collapsed under “Word length.” Play dominates. See `.cursor/rules/ui.mdc`.
-- Local profiles only (no cloud/export/sync); high scores per profile × grid × **topology** × mode × difficulty/duration
-- **Potato Board** (personal local stats on Profiles): games/words totals, bests with timestamps, recent runs (last 20). Not a cloud leaderboard. (“Alita Board” speech → this.)
+- Local profiles only (no cloud/export/sync); high scores per profile × grid × **topology** × mode × difficulty/duration. UI label: **Couch crew** (route may stay `/profiles`).
+- **Potato Board** (personal local stats on Couch crew): games/words totals, bests with timestamps, recent runs (last 20). Not a cloud leaderboard. (“Alita Board” speech → this.)
 - Web share from results (Web Share API + clipboard fallback)
 - SEO: title/description/OG/Twitter + JSON-LD (`WebApplication` / `VideoGame`)
 - PostHog stub (`VITE_PUBLIC_POSTHOG_KEY`); no-op without key
 - Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** on web only; mute from **home or play HUD** icon toggles (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`
-- **Chrome icons:** lucide for sound / rotate / profiles / share (icon or icon+text); keep lobby mode/challenge as words+tiles — don’t icon-spam settings. Always `aria-label` / `title` on icon-only.
+- **Chrome icons:** lucide for sound / rotate / couch crew / share (icon or icon+text); keep lobby mode/challenge as words+tiles — don’t icon-spam settings. Always `aria-label` on icon-only; web uses shadcn `IconTooltip` (game voice — see `.cursor/rules/ui.mdc`).
 
 ## Stack
 

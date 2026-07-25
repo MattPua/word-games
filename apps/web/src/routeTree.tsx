@@ -6,6 +6,7 @@ import { PlayPage } from "./pages/PlayPage";
 import { ResultsPage } from "./pages/ResultsPage";
 import { ProfilesPage } from "./pages/ProfilesPage";
 import { loadDevicePrefs } from "./storage";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 function RootLayout() {
   useEffect(() => {
@@ -14,9 +15,11 @@ function RootLayout() {
   }, []);
 
   return (
-    <div className="min-h-full bg-background text-foreground">
-      <Outlet />
-    </div>
+    <TooltipProvider delayDuration={400} skipDelayDuration={200}>
+      <div className="min-h-full bg-background text-foreground">
+        <Outlet />
+      </div>
+    </TooltipProvider>
   );
 }
 

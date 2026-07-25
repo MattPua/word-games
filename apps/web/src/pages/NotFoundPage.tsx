@@ -16,7 +16,7 @@ export function NotFoundPage() {
         className="mt-2"
       />
       <Button className="mt-2 w-full" onClick={() => navigate({ to: "/" })}>
-        Back to the couch
+        Back to lobby
       </Button>
     </Shell>
   );

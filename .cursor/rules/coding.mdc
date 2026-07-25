@@ -11,4 +11,5 @@ alwaysApply: true
 - **Format / lint:** `oxfmt` + `oxlint` (root scripts `fmt` / `fmt:check` / `lint` / `check`). Don’t add Prettier or ESLint unless something already requires them.
 - **Vitest** for engine/dictionary.
 - Engine owns adjacency, scoring, targets, gen thresholds, accept/reject. UI displays and wires input.
+- Player-facing copy: game voice (see `ui.mdc` / `AGENTS.md`) — not sterile form labels.
 - Coincidental similar code with different meaning stays separate.

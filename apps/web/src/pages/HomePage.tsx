@@ -13,6 +13,7 @@ import { useState } from "react";
 import { setEnabled } from "cuelume";
 import { track } from "../analytics";
 import { Button } from "@/components/ui/button";
+import { IconTooltip } from "@/components/ui/tooltip";
 import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
 
 export function HomePage() {
@@ -20,7 +21,7 @@ export function HomePage() {
   const profile = getActiveProfile();
   const [mode, setMode] = useState<"target" | "timed">("target");
   const [grid, setGrid] = useState<4 | 5 | 6>(4);
-  const [topology, setTopology] = useState<"square" | "hex">("square");
+  const [topology, setTopology] = useState<"square" | "hex" | "triangle" | "bubbles">("square");
   const [minWordLength, setMinWordLength] = useState<3 | 4 | 5>(3);
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const [duration, setDuration] = useState<30 | 60 | 90 | 120>(60);
@@ -57,17 +58,18 @@ export function HomePage() {
 
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="font-body text-sm font-semibold text-foreground">
-          Playing as {profile.name}
+          Spud: {profile.name}
         </Text>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Profiles"
-          title="Profiles"
-          onClick={() => navigate({ to: "/profiles" })}
-        >
-          <Users />
-        </Button>
+        <IconTooltip label="Couch crew">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Couch crew"
+            onClick={() => navigate({ to: "/profiles" })}
+          >
+            <Users />
+          </Button>
+        </IconTooltip>
       </View>
 
       <HomeSetup

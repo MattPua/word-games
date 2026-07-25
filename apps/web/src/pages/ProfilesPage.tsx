@@ -24,13 +24,13 @@ export function ProfilesPage() {
 
   return (
     <Shell>
-      <Text className="mb-4 font-display text-2xl text-foreground">Profiles</Text>
+      <Text className="mb-4 font-display text-2xl text-foreground">Couch crew</Text>
 
       {store.profiles.length === 0 ? (
         <EmptyState
           showLogo
           title="Nobody on the couch"
-          body="Make a profile so high scores have a home."
+          body="Add a spud so high scores have a home."
           className="mb-4"
         />
       ) : (
@@ -42,10 +42,10 @@ export function ProfilesPage() {
             <View>
               <Text className="font-body text-base font-bold text-foreground">
                 {p.name}
-                {p.id === active.id ? " · active" : ""}
+                {p.id === active.id ? " · on couch" : ""}
               </Text>
               <Text className="font-body text-sm text-muted-foreground">
-                {p.gamesPlayed} games · {p.wordsFound} words
+                {p.gamesPlayed} runs · {p.wordsFound} words
               </Text>
             </View>
             <Button
@@ -57,7 +57,7 @@ export function ProfilesPage() {
                 refresh();
               }}
             >
-              {p.id === active.id ? "Playing" : "Switch"}
+              {p.id === active.id ? "Seated" : "Sit here"}
             </Button>
           </View>
         ))
@@ -68,7 +68,7 @@ export function ProfilesPage() {
       <Input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="New profile name"
+        placeholder="Name your spud"
         className="mb-2"
       />
       <Button
@@ -79,7 +79,7 @@ export function ProfilesPage() {
           refresh();
         }}
       >
-        Create profile
+        Add to crew
       </Button>
       <Button
         variant="secondary"
@@ -91,11 +91,11 @@ export function ProfilesPage() {
           refresh();
         }}
       >
-        Rename active
+        Rename seated
       </Button>
       <Button variant="ghost" className="w-full" onClick={() => navigate({ to: "/" })}>
         <ArrowLeft />
-        Back
+        Lobby
       </Button>
     </Shell>
   );

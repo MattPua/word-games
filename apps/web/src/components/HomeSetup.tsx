@@ -1,14 +1,22 @@
 import { Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { IconTooltip } from "@/components/ui/tooltip";
 import { SegmentGroup } from "@/components/SegmentGroup";
 
 type Mode = "target" | "timed";
-type Topology = "square" | "hex";
+type Topology = "square" | "hex" | "triangle" | "bubbles";
 type Difficulty = "easy" | "medium" | "hard";
 type Grid = 4 | 5 | 6;
 type MinLen = 3 | 4 | 5;
 type Duration = 30 | 60 | 90 | 120;
+
+const TOPOLOGY_LABEL: Record<Topology, string> = {
+  square: "Square",
+  hex: "B-comb",
+  triangle: "Triangle",
+  bubbles: "Bubbles",
+};
 
 export type HomeSetupProps = {
   mode: Mode;
@@ -86,6 +94,58 @@ function HexMini({ n }: { n: number }) {
   );
 }
 
+function TriangleMini({ n }: { n: number }) {
+  const cells = Array.from({ length: Math.min(n, 3) ** 2 }, (_, i) => i);
+  const m = Math.min(n, 3);
+  return (
+    <svg viewBox={`0 0 ${m} ${m}`} className="h-10 w-10" aria-hidden>
+      {cells.map((i) => {
+        const r = Math.floor(i / m);
+        const c = i % m;
+        const up = ((r + c) & 1) === 0;
+        const pts = up
+          ? `${c + 0.5},${r + 0.08} ${c + 0.92},${r + 0.92} ${c + 0.08},${r + 0.92}`
+          : `${c + 0.08},${r + 0.08} ${c + 0.92},${r + 0.08} ${c + 0.5},${r + 0.92}`;
+        return <polygon key={i} points={pts} fill="currentColor" opacity={0.85} />;
+      })}
+    </svg>
+  );
+}
+
+function BubblesMini({ n }: { n: number }) {
+  const cols = Math.min(n, 4);
+  const rows = Math.min(n, 3);
+  const w = 1.05;
+  const h = 0.92;
+  const dots: { cx: number; cy: number; key: string }[] = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const odd = r % 2 === 1;
+      dots.push({
+        key: `${r}-${c}`,
+        cx: c * w + (odd ? w / 2 : 0) + 0.55,
+        cy: r * h + 0.5,
+      });
+    }
+  }
+  const vbW = cols * w + w / 2 + 0.2;
+  const vbH = rows * h + 0.35;
+  return (
+    <svg viewBox={`0 0 ${vbW} ${vbH}`} className="h-10 w-10" aria-hidden>
+      {dots.map((d) => (
+        <circle key={d.key} cx={d.cx} cy={d.cy} r={0.36} fill="currentColor" opacity={0.85} />
+      ))}
+    </svg>
+  );
+}
+
+function TopologyMini({ topology, n }: { topology: Topology; n: number }) {
+  if (topology === "hex") return <HexMini n={n} />;
+  if (topology === "triangle") return <TriangleMini n={n} />;
+  if (topology === "bubbles") return <BubblesMini n={n} />;
+  return <SquareMini n={n} />;
+}
+
 function TargetGlyph() {
   return (
     <svg viewBox="0 0 40 40" className="h-9 w-9" aria-hidden>
@@ -158,7 +218,7 @@ export function HomeSetup({
   return (
     <div className="flex flex-col gap-5">
       {/* Mode — two big choice cards */}
-      <div role="group" aria-label="Mode" className="grid grid-cols-2 gap-2.5">
+      <div role="group" aria-label="Game mode" className="grid grid-cols-2 gap-2.5">
         {(
           [
             {
@@ -206,7 +266,7 @@ export function HomeSetup({
         <div className="mb-3 flex items-end justify-between gap-2">
           <h2 className="font-display text-base font-bold text-foreground">Your board</h2>
           <p className="font-body text-xs text-muted-foreground">
-            {grid}×{grid} · {topology === "square" ? "Square" : "B-comb"}
+            {grid}×{grid} · {TOPOLOGY_LABEL[topology]}
           </p>
         </div>
 
@@ -231,7 +291,7 @@ export function HomeSetup({
                     active && "text-foreground",
                   )}
                 >
-                  {topology === "square" ? <SquareMini n={n} /> : <HexMini n={n} />}
+                  <TopologyMini topology={topology} n={n} />
                 </span>
                 <span className="font-display text-sm font-bold tabular-nums">
                   {n}×{n}
@@ -241,7 +301,7 @@ export function HomeSetup({
           })}
         </div>
 
-        <div role="group" aria-label="Shape" className="grid grid-cols-2 gap-2">
+        <div role="group" aria-label="Shape" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {(
             [
               {
@@ -253,6 +313,16 @@ export function HomeSetup({
                 value: "hex" as const,
                 label: "B-comb",
                 Icon: () => <HexMini n={3} />,
+              },
+              {
+                value: "triangle" as const,
+                label: "Triangle",
+                Icon: () => <TriangleMini n={3} />,
+              },
+              {
+                value: "bubbles" as const,
+                label: "Bubbles",
+                Icon: () => <BubblesMini n={3} />,
               },
             ] as const
           ).map(({ value, label, Icon }) => {
@@ -281,7 +351,7 @@ export function HomeSetup({
       {/* Challenge — difficulty or duration */}
       <section
         key={mode}
-        aria-label={mode === "target" ? "Difficulty" : "Duration"}
+        aria-label={mode === "target" ? "Challenge" : "Sprint"}
         className="cp-lobby-panel cp-option-swap"
       >
         <div className="mb-3 flex items-end justify-between gap-2">
@@ -296,7 +366,7 @@ export function HomeSetup({
         </div>
 
         {mode === "target" ? (
-          <div role="group" aria-label="Difficulty" className="grid grid-cols-3 gap-2">
+          <div role="group" aria-label="Challenge" className="grid grid-cols-3 gap-2">
             {DIFFICULTY.map(({ value, label, hint }) => {
               const active = difficulty === value;
               return (
@@ -321,7 +391,7 @@ export function HomeSetup({
             })}
           </div>
         ) : (
-          <div role="group" aria-label="Duration" className="grid grid-cols-4 gap-2">
+          <div role="group" aria-label="Sprint length" className="grid grid-cols-4 gap-2">
             {DURATIONS.map((s) => {
               const active = duration === s;
               return (
@@ -375,24 +445,25 @@ export function HomePlayBar({
   sound: boolean;
   onToggleSound: () => void;
 }) {
-  const soundLabel = sound ? "Mute sound" : "Unmute sound";
+  const soundLabel = sound ? "Mute SFX" : "Unmute SFX";
   return (
     <div className="cp-lobby-play sticky bottom-0 z-10 -mx-4 mt-6 bg-gradient-to-t from-[color-mix(in_srgb,var(--background)_92%,transparent)] via-[color-mix(in_srgb,var(--background)_85%,transparent)] to-transparent px-4 pb-1 pt-4">
       <div className="flex items-center gap-2">
         <Button size="lg" className="flex-1 text-lg" onClick={onPlay}>
           Play
         </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          className="h-12 w-12 shrink-0"
-          aria-pressed={!sound}
-          aria-label={soundLabel}
-          title={soundLabel}
-          onClick={onToggleSound}
-        >
-          {sound ? <Volume2 /> : <VolumeX />}
-        </Button>
+        <IconTooltip label={soundLabel}>
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-12 w-12 shrink-0"
+            aria-pressed={!sound}
+            aria-label={soundLabel}
+            onClick={onToggleSound}
+          >
+            {sound ? <Volume2 /> : <VolumeX />}
+          </Button>
+        </IconTooltip>
       </div>
     </div>
   );

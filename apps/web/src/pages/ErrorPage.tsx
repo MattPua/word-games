@@ -32,7 +32,7 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
         Try again
       </Button>
       <Button variant="secondary" className="w-full" onClick={() => navigate({ to: "/" })}>
-        Back to the couch
+        Back to lobby
       </Button>
     </Shell>
   );
