@@ -19,7 +19,7 @@ in `apps/web` only. **Not used on Expo** (Web Audio).
 
 - `bind()` once at app root (`useEffect`) for optional declarative chrome (`data-cuelume-*`).
 - Prefer imperative `play("success" | "error" | …)` for word accept/reject and game end (reliable with RN-web).
-- Mute → `setEnabled(false)`; persist `soundEnabled` in app storage. Toggle on **home and play HUD** (same flag). When muted, all `play(...)` / `playAcceptedWordSound` / `playBoardClearedSound` calls no-op.
+- Mute → `setEnabled(false)`; persist `soundEnabled` in app storage. Toggle on **home, play HUD, and pause menu** (same flag). When muted, all `play(...)` / `playAcceptedWordSound` / `playBoardClearedSound` calls no-op.
 
 ## Outcomes
 

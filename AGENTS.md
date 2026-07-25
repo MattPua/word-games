@@ -25,6 +25,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - **Target**: countdown — `remaining` starts at achievable target (board max × Easy/Med/Hard); each accepted word subtracts its points; **win when remaining === 0** (“Clear the couch”). High scores still store **points earned**. Max/target use only words ≥ active min length.
 - **Timed**: fixed board; 30/60/90/120s → results (score accumulates; unchanged)
 - **Quit mid-game** (UI: **End run**) → results with progress so far (`won` | `timeout` | `quit`)
+- **Pause menu** (play): Escape or HUD pause → overlay (SFX, words-left scout, End run); pauses timed clock + blocks grid swipe until Resume / second Escape
 
 ## Product surface
 
@@ -34,9 +35,9 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - Web share from results (Web Share API + clipboard fallback)
 - SEO: title/description/OG/Twitter + JSON-LD (`WebApplication` / `VideoGame`)
 - PostHog stub (`VITE_PUBLIC_POSTHOG_KEY`); no-op without key
-- Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** on web only; mute from **home or play HUD** icon toggles (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`
-- **Words left** HUD (`showWordsLeft` device pref, default **off**): unfound valid words on the board (`allWords − found`), not target pts remaining; lobby Scout + play eye toggle
-- **Chrome icons:** lucide for sound / rotate / couch crew / share / words-left eye (icon or icon+text); keep lobby mode/challenge as words+tiles — don’t icon-spam settings. Always `aria-label` on icon-only; web uses shadcn `IconTooltip` (game voice — see `.cursor/rules/ui.mdc`).
+- Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** on web only; mute from **home, play HUD, or pause menu** (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`
+- **Words left** HUD (`showWordsLeft` device pref, default **off**): unfound valid words on the board (`allWords − found`), not target pts remaining; lobby Scout + play HUD / pause menu toggles
+- **Chrome icons:** lucide for sound / pause / rotate / couch crew / share / words-left eye (icon or icon+text); keep lobby mode/challenge as words+tiles — don’t icon-spam settings. Always `aria-label` on icon-only; web uses shadcn `IconTooltip` (game voice — see `.cursor/rules/ui.mdc`).
 
 ## Stack
 

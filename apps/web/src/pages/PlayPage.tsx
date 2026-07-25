@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
+import { Eye, EyeOff, Pause, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
 import {
   ConfettiBurst,
   LetterGrid,
@@ -13,6 +13,13 @@ import {
 } from "@couch-potato/ui";
 import { getDictionary } from "@couch-potato/dictionary";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { IconTooltip } from "@/components/ui/tooltip";
 import {
   createGame,
@@ -70,6 +77,8 @@ export function PlayPage() {
   const prefs = useMemo(() => loadDevicePrefs(), []);
   const [sound, setSound] = useState(prefs.soundEnabled);
   const [showWordsLeft, setShowWordsLeftState] = useState(prefs.showWordsLeft);
+  const [paused, setPaused] = useState(false);
+  const [confirmEnd, setConfirmEnd] = useState(false);
   const [boardTurnDeg, setBoardTurnDeg] = useState(0);
   const [boardTurning, setBoardTurning] = useState(false);
   const finished = useRef(false);
@@ -77,6 +86,30 @@ export function PlayPage() {
   const rotatingRef = useRef(false);
   const rotateFallbackRef = useRef<number | null>(null);
   const rotateStepsRef = useRef<1 | -1>(1);
+
+  const openPause = () => {
+    setPath([]);
+    setConfirmEnd(false);
+    setPaused(true);
+  };
+
+  const closePause = () => {
+    setConfirmEnd(false);
+    setPaused(false);
+  };
+
+  const toggleSound = () => {
+    const next = !sound;
+    setSound(next);
+    setSoundEnabled(next);
+    setEnabled(next);
+  };
+
+  const toggleWordsLeft = () => {
+    const next = !showWordsLeft;
+    setShowWordsLeftState(next);
+    setShowWordsLeft(next);
+  };
 
   const celebrateBoardClear = () => {
     if (boardClearedRef.current) return;
@@ -142,12 +175,26 @@ export function PlayPage() {
   }, []);
 
   useEffect(() => {
-    if (!state || state.config.mode !== "timed" || state.ended) return;
+    if (!state || state.config.mode !== "timed" || state.ended || paused) return;
     const id = window.setInterval(() => {
       setState((s) => (s ? tickTimer(s, 250) : s));
     }, 250);
     return () => window.clearInterval(id);
-  }, [state?.config.mode, state?.ended]);
+  }, [state?.config.mode, state?.ended, paused]);
+
+  useEffect(() => {
+    if (celebrate || !state || state.ended) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (paused) closePause();
+      else openPause();
+    };
+    // Capture so we own Escape (open + close) before Radix dismiss.
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [paused, celebrate, state?.ended, state == null]);
 
   useEffect(() => {
     if (!state?.ended || finished.current) return;
@@ -223,6 +270,7 @@ export function PlayPage() {
   const wordsLeft = state.board.allWords.length - state.found.length;
   const secs = state.remainingMs != null ? Math.ceil(state.remainingMs / 1000) : null;
   const adjacent = (a: Cell, b: Cell) => isAdjacentCells(a, b, state.board.topology);
+  const boardLocked = celebrate || boardTurning || paused;
 
   const applyRotate = (steps: 1 | -1) => {
     setState((s) => (s ? { ...s, board: rotateBoard(s.board, steps) } : s));
@@ -249,7 +297,7 @@ export function PlayPage() {
   };
 
   const rotate = (dir: 1 | -1) => {
-    if (celebrate || rotatingRef.current) return;
+    if (celebrate || paused || rotatingRef.current) return;
     setPath([]);
     const reduceMotion =
       typeof window !== "undefined" &&
@@ -320,11 +368,7 @@ export function PlayPage() {
               disabled={celebrate}
               aria-pressed={showWordsLeft}
               aria-label={showWordsLeft ? "Hide words left" : "Show words left"}
-              onClick={() => {
-                const next = !showWordsLeft;
-                setShowWordsLeftState(next);
-                setShowWordsLeft(next);
-              }}
+              onClick={toggleWordsLeft}
             >
               {showWordsLeft ? <Eye /> : <EyeOff />}
             </Button>
@@ -336,24 +380,25 @@ export function PlayPage() {
               disabled={celebrate}
               aria-pressed={!sound}
               aria-label={sound ? "Mute SFX" : "Unmute SFX"}
-              onClick={() => {
-                const next = !sound;
-                setSound(next);
-                setSoundEnabled(next);
-                setEnabled(next);
-              }}
+              onClick={toggleSound}
             >
               {sound ? <Volume2 /> : <VolumeX />}
             </Button>
           </IconTooltip>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={celebrate}
-            onClick={() => setState(quitGame(state))}
-          >
-            End run
-          </Button>
+          <IconTooltip label="Pause">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              disabled={celebrate}
+              aria-label="Pause"
+              aria-haspopup="dialog"
+              aria-expanded={paused}
+              onClick={openPause}
+              data-testid="pause-menu"
+            >
+              <Pause />
+            </Button>
+          </IconTooltip>
         </View>
       </View>
 
@@ -376,15 +421,15 @@ export function PlayPage() {
         letters={state.board.letters}
         topology={state.board.topology}
         isAdjacent={adjacent}
-        selected={celebrate || boardTurning ? [] : path}
+        selected={boardLocked ? [] : path}
         dropping={celebrate}
         boardTurnDeg={boardTurnDeg}
         boardTurning={boardTurning}
-        interactive={!celebrate && !boardTurning}
+        interactive={!boardLocked}
         onBoardTurnEnd={finishBoardTurn}
-        onPathChange={celebrate || boardTurning ? undefined : setPath}
+        onPathChange={boardLocked ? undefined : setPath}
         onPathEnd={
-          celebrate || boardTurning
+          boardLocked
             ? undefined
             : (p) => {
                 if (rotatingRef.current) return;
@@ -421,7 +466,7 @@ export function PlayPage() {
           <Button
             variant="secondary"
             size="icon"
-            disabled={celebrate || boardTurning}
+            disabled={celebrate || boardTurning || paused}
             onClick={() => rotate(-1)}
             aria-label="Spin board left"
             data-testid="rotate-ccw"
@@ -433,7 +478,7 @@ export function PlayPage() {
           <Button
             variant="secondary"
             size="icon"
-            disabled={celebrate || boardTurning}
+            disabled={celebrate || boardTurning || paused}
             onClick={() => rotate(1)}
             aria-label="Spin board right"
             data-testid="rotate-cw"
@@ -442,6 +487,95 @@ export function PlayPage() {
           </Button>
         </IconTooltip>
       </div>
+
+      <Dialog
+        open={paused}
+        onOpenChange={(open) => {
+          if (open) openPause();
+          else closePause();
+        }}
+      >
+        <DialogContent
+          className="gap-3"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onOpenAutoFocus={(e) => {
+            const resume = (e.currentTarget as HTMLElement).querySelector<HTMLElement>(
+              "[data-pause-resume]",
+            );
+            if (resume) {
+              e.preventDefault();
+              resume.focus();
+            }
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Couch break</DialogTitle>
+            <DialogDescription>Timer paused. Swipe waits for you.</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-2">
+            <Button data-pause-resume className="w-full justify-start" onClick={closePause}>
+              Resume
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-between"
+              aria-pressed={!sound}
+              onClick={toggleSound}
+            >
+              <span>{sound ? "Mute SFX" : "Unmute SFX"}</span>
+              {sound ? (
+                <Volume2 className="size-4 opacity-70" />
+              ) : (
+                <VolumeX className="size-4 opacity-70" />
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-between"
+              aria-pressed={showWordsLeft}
+              onClick={toggleWordsLeft}
+            >
+              <span>{showWordsLeft ? "Hide words left" : "Show words left"}</span>
+              {showWordsLeft ? (
+                <Eye className="size-4 opacity-70" />
+              ) : (
+                <EyeOff className="size-4 opacity-70" />
+              )}
+            </Button>
+            {confirmEnd ? (
+              <div className="flex flex-col gap-2 rounded-ui border-2 border-border bg-muted/40 p-3">
+                <p className="font-body text-sm text-muted-foreground">
+                  End this run and see your haul?
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setConfirmEnd(false)}>
+                    Keep going
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => {
+                      closePause();
+                      setState(quitGame(state));
+                    }}
+                  >
+                    End run
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => setConfirmEnd(true)}
+              >
+                End run
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Shell>
   );
 }
