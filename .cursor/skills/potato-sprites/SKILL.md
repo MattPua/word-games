@@ -12,11 +12,11 @@ grid-sheet prompting discipline, atlas-over-loose-PNGs, and pre-accept QC gates.
 
 ## Current assets (source of truth, don't re-describe elsewhere)
 
-| File | Size | Use |
-|---|---|---|
-| `packages/ui/src/logo.png` | 256×256 | Chill mascot — brand mark, favicon, lobby `Logo` |
-| `packages/ui/src/logo-celebrate.png` | 256×256 | Mid-celebration — results hero `LogoCelebrate` |
-| `packages/ui/src/logo-sprite.png` + `logo-sprite.json` + `spriteAtlas.ts` | ~1007×512, 2 cols × 1 row | idle/cheer atlas for animated mascot use (404/empty-state) |
+| File                                                                      | Size                                    | Use                                                                                                                    |
+| ------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/logo.png`                                                | 256×256                                 | Chill mascot — brand mark, favicon, lobby `Logo`                                                                       |
+| `packages/ui/src/logo-celebrate.png`                                      | 256×256                                 | Mid-celebration — results hero `LogoCelebrate`                                                                         |
+| `packages/ui/src/logo-sprite.png` + `logo-sprite.json` + `spriteAtlas.ts` | 1012×512, 2 cols × 1 row, 506×512 cells | idle/cheer atlas — `PotatoSprite` pinned `frame` (results win/quit) or interactive hover-poke mascot (404/empty-state) |
 
 All web-served copies live in `apps/web/public/` (same filenames) — copy after every regen, don't hand-diverge.
 `spriteAtlas.ts` is the TS source of truth for frame rects; `logo-sprite.json` is a plain-data mirror for
