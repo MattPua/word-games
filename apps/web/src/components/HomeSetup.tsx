@@ -440,7 +440,7 @@ export function HomeSetup({
           <span className="flex min-w-0 flex-col gap-0.5">
             <span className="font-display text-sm font-bold text-foreground">Words left</span>
             <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
-              Unfound words still on the board
+              How many words you haven't found yet
             </span>
           </span>
         </span>
