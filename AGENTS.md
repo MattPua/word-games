@@ -30,7 +30,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 
 ## Product surface
 
-- **Home setup = game lobby** (not a settings form): mode as choice cards; board as visual grid/shape tiles; difficulty/duration as one expressive control; **Min length** as three choice cards like How hard? (helper: only count words this long or longer; 3+ / 4+ / 5+ with short hints); **Show words left** Switch row (HUD pref). Play dominates. See `.cursor/rules/ui.mdc`.
+- **Home setup = game lobby** (not a settings form): **Primary** — mode cards, board picker (size + Square/Honeycomb), challenge (How hard? / How long?). **Advanced** (quieter fine-tune) — Min length choice cards (helper + 3+/4+/5+ hints), Show words left Switch. Phone: stack primary then advanced. Wide web: primary left | advanced right; cards hug content. Play dominates; sticky Play bar narrows on md+ lobby (centered cluster, not full shell width). See `.cursor/rules/ui.mdc`.
 - Local profiles only (no cloud/export/sync); high scores per profile × grid × **topology** × mode × difficulty/duration. UI label: **Couch crew** (route may stay `/profiles`).
 - **Potato Board** (personal local stats on Couch crew): games/words totals, bests with timestamps, recent runs (last 20). Not a cloud leaderboard. (“Alita Board” speech → this.)
 - Web share from results (Web Share API + clipboard fallback)

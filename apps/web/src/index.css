@@ -533,6 +533,24 @@
       0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary)),
       0 2px 0 0 color-mix(in srgb, var(--secondary) 50%, #2c322e);
   }
+
+  /* Icon toggles (jam/SFX): quiet outline off, potato on — not filled secondary CTAs */
+  .cp-icon-btn[data-variant="outline"]:not([aria-pressed="true"]) {
+    color: var(--muted-foreground);
+    border-color: color-mix(in srgb, var(--border) 72%, transparent);
+    background: color-mix(in srgb, var(--muted) 22%, transparent);
+    box-shadow: none;
+  }
+
+  .cp-icon-btn[data-variant="outline"][aria-pressed="true"] {
+    color: var(--secondary-foreground);
+    border-color: color-mix(in srgb, var(--secondary) 52%, var(--border));
+    background: color-mix(in srgb, var(--secondary) 34%, var(--muted));
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary)),
+      0 2px 0 0 color-mix(in srgb, var(--secondary) 50%, #2c322e);
+  }
 }
 
 @layer utilities {
@@ -768,16 +786,74 @@
     text-align: left;
   }
 
-  .cp-lobby-main,
-  .cp-lobby-extras {
+  /* Primary (left) | Advanced (right) — cards hug content, no stretch */
+  .cp-lobby-columns {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
     gap: 1.25rem;
-    align-items: stretch;
+    align-items: start;
   }
+}
 
-  .cp-lobby-extras .cp-lobby-more {
-    height: 100%;
-    align-self: stretch;
+/* Advanced column: quieter fine-tune prefs (not a settings form) */
+.cp-lobby-advanced-label {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--muted-foreground) 88%, transparent);
+}
+
+.cp-lobby-advanced .cp-lobby-panel {
+  background: color-mix(in srgb, var(--card) 58%, transparent);
+  border-color: color-mix(in srgb, var(--border) 48%, transparent);
+  box-shadow: none;
+}
+
+.cp-lobby-advanced .cp-lobby-panel h2 {
+  font-size: 0.9375rem;
+}
+
+.cp-lobby-advanced .cp-lobby-more {
+  border-color: color-mix(in srgb, var(--border) 72%, transparent);
+  background: color-mix(in srgb, var(--muted) 32%, transparent);
+}
+
+/* Lobby sticky Play — owns bottom safe-area + shadow room (Shell lobby uses pb-0) */
+.cp-lobby-play {
+  padding-top: 0.75rem;
+  /* 1rem base + safe-area; extra px for toy button drop shadows */
+  padding-bottom: max(1.25rem, calc(1rem + env(safe-area-inset-bottom, 0px)));
+}
+
+.cp-shell.cp-shell-lobby {
+  padding-bottom: 0;
+}
+
+/* Icon toggles (jam/SFX): quiet outline off, potato ring+fill on */
+.cp-icon-btn[data-variant="outline"]:not([aria-pressed="true"]) {
+  color: var(--muted-foreground);
+  border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  background: color-mix(in srgb, var(--muted) 22%, transparent);
+  box-shadow: none;
+}
+
+.cp-icon-btn[data-variant="outline"][aria-pressed="true"] {
+  background: color-mix(in srgb, var(--secondary) 34%, var(--muted));
+  color: color-mix(in srgb, var(--secondary) 55%, var(--foreground));
+  border-color: color-mix(in srgb, var(--secondary) 45%, var(--border));
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary)),
+    0 2px 0 0 color-mix(in srgb, var(--secondary) 50%, #2c322e);
+}
+
+/* Lobby Play bar: full width on phone; narrower centered cluster on md+ lobby */
+@media (min-width: 768px) {
+  .cp-shell.cp-shell-lobby .cp-lobby-play-inner {
+    max-width: 28rem;
+    margin-inline: auto;
   }
 }

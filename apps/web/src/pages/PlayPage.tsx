@@ -102,9 +102,7 @@ function PausePrefRow({
           : "border-border bg-card/80 hover:border-primary/40",
       )}
     >
-      <span
-        className={cn("flex min-w-0 gap-2.5", description ? "items-start" : "items-center")}
-      >
+      <span className={cn("flex min-w-0 gap-2.5", description ? "items-start" : "items-center")}>
         {Icon ? (
           <Icon
             className={cn(
@@ -474,7 +472,7 @@ export function PlayPage() {
         <View className="shrink-0 flex-row items-center gap-0.5">
           <IconTooltip label={sound ? "SFX on" : "SFX off"}>
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon-sm"
               disabled={celebrate}
               aria-pressed={sound}

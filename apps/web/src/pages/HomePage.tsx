@@ -63,7 +63,7 @@ export function HomePage() {
   };
 
   return (
-    <Shell className="cp-shell-lobby overflow-hidden pb-0 cp-fade-up">
+    <Shell className="cp-shell-lobby min-h-0 cp-fade-up">
       <div className="cp-shell-scroll cp-lobby min-h-0 flex-1 overflow-y-auto overscroll-contain scrollbar-gutter-stable">
         <header className="cp-lobby-brand mb-4">
           <View className="cp-logo-float shrink-0">
@@ -108,8 +108,8 @@ export function HomePage() {
           onDuration={setDuration}
           onShowWordsLeft={toggleWordsLeft}
         />
-        {/* Spacer so last cards clear the fade above Play */}
-        <div className="h-3" aria-hidden />
+        {/* Spacer so last cards clear the play bar border */}
+        <div className="h-4" aria-hidden />
       </div>
 
       <HomePlayBar
