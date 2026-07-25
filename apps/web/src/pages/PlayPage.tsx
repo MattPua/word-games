@@ -2,9 +2,11 @@ import { Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  CirclePlay,
   CircleStop,
   Eye,
   Moon,
+  Music2,
   Pause,
   RotateCcw,
   RotateCw,
@@ -661,13 +663,25 @@ export function PlayPage() {
           </DialogHeader>
 
           <div className="flex flex-col gap-2">
-            <Button data-pause-resume className="w-full justify-start" onClick={closePause}>
+            <Button
+              data-pause-resume
+              className="w-full justify-start gap-2.5"
+              onClick={closePause}
+            >
+              <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
               Resume
             </Button>
-            <PausePrefRow id="pause-sfx" label="SFX" checked={sound} onCheckedChange={setSoundOn} />
+            <PausePrefRow
+              id="pause-sfx"
+              label="SFX"
+              Icon={Volume2}
+              checked={sound}
+              onCheckedChange={setSoundOn}
+            />
             <PausePrefRow
               id="pause-background-music"
               label="Background music"
+              Icon={Music2}
               checked={menuMusic}
               onCheckedChange={setMenuMusicOn}
             />
