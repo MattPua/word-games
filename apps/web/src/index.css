@@ -23,15 +23,176 @@
 
   body {
     font-family: Lexend, system-ui, sans-serif;
-    background: var(--background);
+    font-size: 1rem;
+    line-height: 1.55;
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
+    background-color: var(--background);
+    /* Atmospheric living-room wash — cream + sage + potato (not flat void / not purple) */
+    background-image:
+      radial-gradient(
+        ellipse 90% 55% at 50% -10%,
+        color-mix(in srgb, var(--potato) 38%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        ellipse 55% 45% at 0% 100%,
+        color-mix(in srgb, var(--accent) 32%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 50% 40% at 100% 80%,
+        color-mix(in srgb, var(--primary) 22%, transparent),
+        transparent 55%
+      ),
+      repeating-linear-gradient(
+        -18deg,
+        transparent,
+        transparent 11px,
+        color-mix(in srgb, var(--primary) 4%, transparent) 11px,
+        color-mix(in srgb, var(--primary) 4%, transparent) 12px
+      ),
+      linear-gradient(168deg, #f7f2e6 0%, var(--background) 48%, #eef2ee 100%);
+    background-attachment: fixed;
   }
 
   h1,
   h2,
   .font-display {
     font-family: Grandstander, system-ui, sans-serif;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* TypeUI-ish hierarchy: steep display → quiet labels */
+  .cp-display {
+    @apply font-display text-4xl font-bold tracking-tight text-foreground;
+  }
+
+  .cp-section-label {
+    @apply mb-2 font-display text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground;
+  }
+
+  .cp-hud-bubble {
+    @apply inline-flex min-h-11 items-center justify-center rounded-full px-4 py-2 font-display text-lg font-bold text-foreground shadow-sm backdrop-blur-sm;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    background: var(--hud-bubble);
+  }
+
+  .cp-board-frame {
+    border-radius: calc(var(--radius) + 0.55rem);
+    padding: 0.7rem;
+    background:
+      linear-gradient(
+        160deg,
+        color-mix(in srgb, var(--board-rim) 55%, #fff) 0%,
+        var(--board-frame) 45%,
+        color-mix(in srgb, var(--board-frame) 80%, #000) 100%
+      );
+    box-shadow:
+      0 14px 28px color-mix(in srgb, var(--board-frame) 35%, transparent),
+      inset 0 1px 0 color-mix(in srgb, #fff 25%, transparent);
+  }
+
+  .cp-board-well {
+    border-radius: var(--radius);
+    background: var(--board-well);
+    box-shadow: inset 0 3px 10px color-mix(in srgb, #000 28%, transparent);
+    padding: 0.45rem;
+  }
+
+  .cp-tile {
+    position: relative;
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    margin: 0.2rem;
+    border-radius: calc(var(--radius) - 0.15rem);
+    border: 1.5px solid color-mix(in srgb, var(--tile-edge) 80%, #000);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, #fff 55%, var(--tile)) 0%,
+        var(--tile) 42%,
+        color-mix(in srgb, var(--tile-edge) 55%, var(--tile)) 100%
+      );
+    box-shadow:
+      0 3px 0 color-mix(in srgb, var(--tile-edge) 90%, #2c322e),
+      0 6px 12px color-mix(in srgb, #2c322e 16%, transparent),
+      inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent);
+    color: var(--tile-ink);
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease,
+      background 0.18s ease;
+  }
+
+  .cp-tile-letter {
+    pointer-events: none;
+    font-family: Lexend, system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.35rem, 6.5vw, 1.85rem);
+    line-height: 1;
+    letter-spacing: 0.02em;
+  }
+
+  .cp-tile-active {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--path) 28%, #fff) 0%,
+        color-mix(in srgb, var(--path) 18%, var(--tile)) 100%
+      );
+    border-color: var(--path);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--path) 35%, transparent),
+      0 2px 0 color-mix(in srgb, var(--path) 70%, #2c322e),
+      inset 0 1px 0 color-mix(in srgb, #fff 50%, transparent);
+    transform: scale(1.02);
+  }
+
+  .cp-word-pill {
+    position: relative;
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--primary) 88%, #fff),
+      var(--primary)
+    );
+    box-shadow:
+      0 4px 0 color-mix(in srgb, var(--primary) 65%, #2c322e),
+      0 10px 20px color-mix(in srgb, var(--primary) 25%, transparent);
+  }
+
+  .cp-word-pill-empty {
+    background: color-mix(in srgb, var(--card) 75%, transparent);
+    box-shadow: inset 0 0 0 1.5px var(--border);
+  }
+
+  .cp-score-badge {
+    position: absolute;
+    top: -0.4rem;
+    right: 0.35rem;
+    display: flex;
+    min-width: 1.75rem;
+    height: 1.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--potato);
+    color: var(--foreground);
+    font-family: Grandstander, system-ui, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--potato) 55%, #2c322e);
   }
 }
 

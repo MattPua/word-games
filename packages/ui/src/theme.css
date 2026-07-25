@@ -1,10 +1,10 @@
 /* Sage Garden (tweakcn) tweaked — light-first Couch Potato */
 :root {
-  --background: #f8f7f4;
+  --background: #f3f0e8;
   --foreground: #2c322e;
-  --card: #ffffff;
+  --card: #fffcf5;
   --card-foreground: #2c322e;
-  --popover: #ffffff;
+  --popover: #fffcf5;
   --popover-foreground: #2c322e;
   --primary: #7c9082;
   --primary-foreground: #f8f7f4;
@@ -21,7 +21,15 @@
   --ring: #7c9082;
   --path: #5f9e6e;
   --potato: #e0b070;
-  --radius: 1rem;
+  --radius: 1.15rem;
+  /* Tactile board (cream/sage — not purple clones) */
+  --tile: #fff8eb;
+  --tile-edge: #e5d9c4;
+  --tile-ink: #1f2923;
+  --board-well: #5f7366;
+  --board-frame: #3d4a41;
+  --board-rim: #9aaf9e;
+  --hud-bubble: color-mix(in srgb, var(--card) 88%, transparent);
 }
 
 .dark {
@@ -46,7 +54,14 @@
   --ring: #9aaf9e;
   --path: #7cbf88;
   --potato: #e0b070;
-  --radius: 1rem;
+  --radius: 1.15rem;
+  --tile: #3a403b;
+  --tile-edge: #2a2f2b;
+  --tile-ink: #eef1ec;
+  --board-well: #232826;
+  --board-frame: #1a1e1b;
+  --board-rim: #5f7366;
+  --hud-bubble: color-mix(in srgb, var(--card) 80%, transparent);
 }
 
 @keyframes cp-tile-drop {
@@ -92,4 +107,29 @@
 
 .cp-fade-up {
   animation: cp-fade-up 0.45s ease-out both;
+}
+
+@keyframes cp-tile-select {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1.02);
+  }
+}
+
+.cp-tile-selected {
+  animation: cp-tile-select 0.28s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-logo-float,
+  .cp-fade-up,
+  .cp-tile-selected,
+  .cp-tile-drop {
+    animation: none;
+  }
 }

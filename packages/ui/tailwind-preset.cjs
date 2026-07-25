@@ -38,6 +38,9 @@ module.exports = {
         ring: "var(--ring)",
         path: "var(--path)",
         potato: "var(--potato)",
+        tile: "var(--tile)",
+        "board-well": "var(--board-well)",
+        "board-frame": "var(--board-frame)",
       },
       fontFamily: {
         display: ["Grandstander", "system-ui", "sans-serif"],

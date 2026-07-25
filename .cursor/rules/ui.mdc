@@ -6,10 +6,13 @@ alwaysApply: false
 
 # UI
 
-- Whimsical light-first (+ soft dark); **Grandstander** + **Lexend**; Sage Garden tokens from `packages/ui` theme.
+- Whimsical light-first (+ soft dark); **Grandstander** + **Lexend**; Sage Garden tokens from `packages/ui` theme (cream / sage / potato gold — **never** purple/indigo clones).
+- **UI inspiration (steal craft, keep brand):**
+  - [TypeUI](https://www.typeui.sh/) thinking: design-system tokens first, then hierarchy / spacing rhythm / type leading / interaction feedback as the reasoning layer. Steep display→label contrast; motion for entrance, feedback, transition only; depth via luminance + surface — not flat robot UI.
+  - Tactile word-game refs (user CleanShot set): pillow cream tiles, thick rounded board frame, circular select + juicy path stroke, word pill + score badge, atmospheric background. No Scrabble TW/TL multipliers.
 - **Motion:** any meaningful interactivity should show the change — short CSS/NativeWind transitions/feedback (segment pill slide, select pop, Target↔Timed swap, button press, path/score ticks, screen enter). Keep whimsical, light, performant. Prefer CSS; don’t animate everything mindlessly; honor `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.
-- **Web chrome:** shadcn/ui (Radix + Tailwind) is the preferred base for Button/input/dialog/toast — customize, don’t hand-roll duplicates. Game board (`LetterGrid`, path, tile drop, confetti) stays custom.
-- `packages/ui` RN Button = Expo/RN path; web app chrome → shadcn once initialized. Don’t maintain two competing web Buttons.
+- **Web chrome:** shadcn/ui (Radix + Tailwind) is the preferred base for Button/input/dialog/toast — customize (toy press shadows), don’t hand-roll duplicates. Game board (`LetterGrid`, path, tile drop, confetti) stays custom + tactile.
+- `packages/ui` RN Button = Expo/RN path; web app chrome → shadcn. Don’t maintain two competing web Buttons.
 - Mobile-first; minimize one-off Tailwind in routes.
 - **Container queries = web-only.** Cross-platform layout: flex + max-width. No `@container` in pure RN views.
 - UI changes require interactive verify (pointer swipe for play) — see `.cursor/skills/verify-ui`.

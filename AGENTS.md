@@ -9,6 +9,7 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 - Mobile-first; desktop = centered narrow play column
 - **Container queries = web-only**; shared layout uses flex + max-width
 - **Motion:** meaningful interactivity should show the change (short CSS/NativeWind transitions — segments, presses, score ticks, screen enters). Whimsical + performant; few intentional motions, not noise; respect `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.
+- **UI inspiration:** [TypeUI](https://www.typeui.sh/) principles (tokens first → hierarchy / type rhythm / interaction feedback) + tactile word-game craft (pillow cream tiles, thick sage board frame, path + select rings, word pill + potato score badge). Keep cream/sage/potato — never purple demo clones. See `.cursor/rules/ui.mdc`.
 
 ## Game rules (engine owns these)
 
