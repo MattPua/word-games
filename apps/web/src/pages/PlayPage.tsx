@@ -36,6 +36,7 @@ import {
   recordFinishedRun,
   saveLastRun,
 } from "../storage";
+import { playAcceptedWordSound } from "../wordAcceptSound";
 import { Button } from "@/components/ui/button";
 
 const WIN_FLOURISH_MS = 1300;
@@ -259,7 +260,7 @@ export function PlayPage() {
                     word: result.word,
                     points: result.points,
                   });
-                  play(firstWord ? "sparkle" : "success");
+                  playAcceptedWordSound(result.word.length, { firstWord });
                   setFirstWord(false);
                   setFlash(result.word.toUpperCase());
                   setState(next);
