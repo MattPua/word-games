@@ -1,7 +1,4 @@
-import {
-  isAdjacentCells,
-  type GridTopology,
-} from "./topology";
+import { isAdjacentCells, type GridTopology } from "./topology";
 
 export type Cell = { row: number; col: number };
 
@@ -31,5 +28,8 @@ export function isValidPath(
 }
 
 export function wordFromPath(letters: string[][], path: Cell[]): string {
-  return path.map((c) => letters[c.row]![c.col]!).join("").toLowerCase();
+  return path
+    .map((c) => letters[c.row]![c.col]!)
+    .join("")
+    .toLowerCase();
 }

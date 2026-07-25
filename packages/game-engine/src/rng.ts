@@ -11,10 +11,7 @@ export function createSeededRng(seed: number): Rng {
   };
 }
 
-export function pickWeighted(
-  weights: Record<string, number>,
-  rng: Rng,
-): string {
+export function pickWeighted(weights: Record<string, number>, rng: Rng): string {
   let total = 0;
   for (const w of Object.values(weights)) total += w;
   let r = rng() * total;

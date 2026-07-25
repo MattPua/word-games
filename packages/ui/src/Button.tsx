@@ -1,10 +1,4 @@
-import {
-  Pressable,
-  Text,
-  type PressableProps,
-  type StyleProp,
-  type ViewStyle,
-} from "react-native";
+import { Pressable, Text, type PressableProps, type StyleProp, type ViewStyle } from "react-native";
 
 type Variant = "primary" | "secondary" | "ghost";
 
@@ -43,11 +37,7 @@ export function Button({
       } ${className}`}
       {...rest}
     >
-      <Text
-        className={`font-body text-base font-bold ${labelClass[variant]}`}
-      >
-        {label}
-      </Text>
+      <Text className={`font-body text-base font-bold ${labelClass[variant]}`}>{label}</Text>
     </Pressable>
   );
 }

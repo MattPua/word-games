@@ -22,11 +22,7 @@ export type ConfettiBurstProps = {
 };
 
 /** Lightweight brand-colored confetti — sage, potato gold, cream. */
-export function ConfettiBurst({
-  active,
-  durationMs = 1400,
-  className = "",
-}: ConfettiBurstProps) {
+export function ConfettiBurst({ active, durationMs = 1400, className = "" }: ConfettiBurstProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {

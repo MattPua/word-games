@@ -7,10 +7,7 @@ export function isValidWordToken(word: string): boolean {
   return /^[a-z]+$/.test(word) && word.length >= 3;
 }
 
-export function applyBlocklist(
-  words: Iterable<string>,
-  blocklist: Set<string>,
-): string[] {
+export function applyBlocklist(words: Iterable<string>, blocklist: Set<string>): string[] {
   const out: string[] = [];
   for (const raw of words) {
     const w = normalizeWord(raw);

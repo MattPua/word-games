@@ -32,10 +32,10 @@ Confirm the app launches (Expo Go or dev client). Limited automation — visual/
 
 ## When to use which
 
-| Goal | Path |
-|------|------|
+| Goal                     | Path                      |
+| ------------------------ | ------------------------- |
 | Agent daily mobile smoke | **Expo web** + Playwright |
-| Shared UI play / swipe | `apps/web` + `verify-ui` |
-| Native boot regression | iOS Simulator (optional) |
+| Shared UI play / swipe   | `apps/web` + `verify-ui`  |
+| Native boot regression   | iOS Simulator (optional)  |
 
 NativeWind-styled Expo UI and Detox/Maestro: deferred until play ships on mobile.

@@ -28,11 +28,7 @@ export function isAdjacentHex(a: Cell, b: Cell): boolean {
   return false;
 }
 
-export function isAdjacentCells(
-  a: Cell,
-  b: Cell,
-  topology: GridTopology,
-): boolean {
+export function isAdjacentCells(a: Cell, b: Cell, topology: GridTopology): boolean {
   return topology === "hex" ? isAdjacentHex(a, b) : isAdjacent8(a, b);
 }
 

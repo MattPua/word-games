@@ -14,9 +14,7 @@ export function LoadingPotato({
   return (
     <View className={`flex-1 items-center justify-center px-6 py-12 ${className}`}>
       <Logo size={88} />
-      <Text className="mt-4 text-center font-display text-xl text-foreground">
-        {message}
-      </Text>
+      <Text className="mt-4 text-center font-display text-xl text-foreground">{message}</Text>
       <Text className="mt-1 text-center font-body text-sm text-muted-foreground">
         Soft cushions. Soft letters. Almost there.
       </Text>

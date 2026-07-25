@@ -56,6 +56,30 @@ procs:
     groups:
       layer: Tools
 
+  fmt:
+    shell: bun run fmt
+    autostart: false
+    groups:
+      layer: Tools
+
+  fmt-check:
+    shell: bun run fmt:check
+    autostart: false
+    groups:
+      layer: Tools
+
+  lint:
+    shell: bun run lint
+    autostart: false
+    groups:
+      layer: Tools
+
+  check:
+    shell: bun run check
+    autostart: false
+    groups:
+      layer: Tools
+
 default_group: layer
 
 group_order:

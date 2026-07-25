@@ -35,9 +35,7 @@ export function findAllWords(
   // Casual play: only popular — obscure enable1-only words never drive targets/missed.
   const trie = buildTrie(dict.popular);
   const found = new Set<string>();
-  const visited = Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => false),
-  );
+  const visited = Array.from({ length: size }, () => Array.from({ length: size }, () => false));
 
   function dfs(row: number, col: number, node: TrieNode, prefix: string) {
     const ch = letters[row]![col]!.toLowerCase();

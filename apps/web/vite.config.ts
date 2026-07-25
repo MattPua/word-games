@@ -37,14 +37,8 @@ export default defineConfig({
       "react-native": rnWebRoot,
       nativewind: nativewindRoot,
       "@couch-potato/ui": path.resolve(__dirname, "../../packages/ui/src"),
-      "@couch-potato/game-engine": path.resolve(
-        __dirname,
-        "../../packages/game-engine/src",
-      ),
-      "@couch-potato/dictionary": path.resolve(
-        __dirname,
-        "../../packages/dictionary/src",
-      ),
+      "@couch-potato/game-engine": path.resolve(__dirname, "../../packages/game-engine/src"),
+      "@couch-potato/dictionary": path.resolve(__dirname, "../../packages/dictionary/src"),
     },
     dedupe: ["react", "react-dom"],
     extensions: [".web.tsx", ".web.ts", ".tsx", ".ts", ".web.js", ".js"],

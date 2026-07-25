@@ -1,9 +1,5 @@
 import { Text } from "react-native";
-import {
-  useNavigate,
-  useRouter,
-  type ErrorComponentProps,
-} from "@tanstack/react-router";
+import { useNavigate, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
 import { EmptyState, Logo, Shell } from "@couch-potato/ui";
 import { Button } from "@/components/ui/button";
 
@@ -35,11 +31,7 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
       >
         Try again
       </Button>
-      <Button
-        variant="secondary"
-        className="w-full"
-        onClick={() => navigate({ to: "/" })}
-      >
+      <Button variant="secondary" className="w-full" onClick={() => navigate({ to: "/" })}>
         Back to the couch
       </Button>
     </Shell>

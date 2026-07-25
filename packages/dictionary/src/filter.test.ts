@@ -2,12 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  applyBlocklist,
-  isValidWordToken,
-  normalizeWord,
-  parseWordList,
-} from "./filter";
+import { applyBlocklist, isValidWordToken, normalizeWord, parseWordList } from "./filter";
 import { createDictionary } from "./index";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -30,23 +25,11 @@ describe("dictionary filter", () => {
     const blocklist = new Set(
       parseWordList(readFileSync(join(root, "data/blocklist.txt"), "utf8")),
     );
-    const nsfw = [
-      "fuck",
-      "cunt",
-      "porn",
-      "blowjob",
-      "nigger",
-      "pedophile",
-      "dildo",
-      "orgasm",
-    ];
+    const nsfw = ["fuck", "cunt", "porn", "blowjob", "nigger", "pedophile", "dildo", "orgasm"];
     for (const w of nsfw) {
       expect(blocklist.has(w), `blocklist missing ${w}`).toBe(true);
     }
-    const kept = applyBlocklist(
-      ["cat", "tree", ...nsfw, "potato"],
-      blocklist,
-    );
+    const kept = applyBlocklist(["cat", "tree", ...nsfw, "potato"], blocklist);
     expect(kept).toEqual(["cat", "tree", "potato"]);
   });
 

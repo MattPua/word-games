@@ -102,9 +102,7 @@ export function loadStore(): StoredBlob {
     const parsed = JSON.parse(raw) as StoredBlob;
     return {
       prefs: parsed.prefs,
-      profiles: (parsed.profiles ?? []).map((p) =>
-        normalizeProfile(p as Profile),
-      ),
+      profiles: (parsed.profiles ?? []).map((p) => normalizeProfile(p as Profile)),
     };
   } catch {
     return defaultBlob();
@@ -121,17 +119,13 @@ export function loadDevicePrefs(): DevicePrefs {
 
 export function getActiveProfile(): Profile {
   const store = loadStore();
-  const p =
-    store.profiles.find((x) => x.id === store.prefs.activeProfileId) ??
-    store.profiles[0]!;
+  const p = store.profiles.find((x) => x.id === store.prefs.activeProfileId) ?? store.profiles[0]!;
   return normalizeProfile(p);
 }
 
 export function upsertHighScore(scoreKey: string, score: number): boolean {
   const store = loadStore();
-  const profile = store.profiles.find(
-    (p) => p.id === store.prefs.activeProfileId,
-  );
+  const profile = store.profiles.find((p) => p.id === store.prefs.activeProfileId);
   if (!profile) return false;
   const highs = normalizeHighScores(profile.highScores);
   const prev = highs[scoreKey]?.score ?? 0;
@@ -148,9 +142,7 @@ export function upsertHighScore(scoreKey: string, score: number): boolean {
 
 export function recordGameStats(wordsFound: number) {
   const store = loadStore();
-  const profile = store.profiles.find(
-    (p) => p.id === store.prefs.activeProfileId,
-  );
+  const profile = store.profiles.find((p) => p.id === store.prefs.activeProfileId);
   if (!profile) return;
   profile.gamesPlayed += 1;
   profile.wordsFound += wordsFound;
@@ -172,9 +164,7 @@ export function recordFinishedRun(input: {
   const isHighScore = upsertHighScore(input.scoreKey, input.score);
   recordGameStats(input.wordsFound);
   const store = loadStore();
-  const profile = store.profiles.find(
-    (p) => p.id === store.prefs.activeProfileId,
-  );
+  const profile = store.profiles.find((p) => p.id === store.prefs.activeProfileId);
   if (!profile) return { isHighScore };
   const entry: GameHistoryEntry = {
     id: runId(),
@@ -292,7 +282,7 @@ export function loadLaunch(): PlayLaunch {
 export function formatHighScoreLabel(scoreKey: string): string {
   const parts = scoreKey.split(":");
   // profileId:size:topology:target:difficulty:minN  OR  …:timed:duration:minN
-  // Legacy (no topology): profileId:size:target:… 
+  // Legacy (no topology): profileId:size:target:…
   if (parts.length >= 6) {
     const [, size, topology, mode, detail, minPart] = parts;
     const min = (minPart ?? "").replace(/^min/, "") || "?";

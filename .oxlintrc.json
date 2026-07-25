@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react", "vitest"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "react-hooks/exhaustive-deps": "off"
+  },
+  "env": {
+    "builtin": true
+  },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/.expo/**",
+    "**/coverage/**",
+    "**/.turbo/**",
+    "**/.playwright-mcp/**",
+    "packages/dictionary/src/generated/**",
+    "packages/dictionary/data/**"
+  ],
+  "overrides": [
+    {
+      "files": ["apps/web/**/*.{ts,tsx}", "packages/ui/**/*.{ts,tsx}"],
+      "env": {
+        "browser": true
+      }
+    },
+    {
+      "files": ["apps/mobile/**/*.{ts,tsx}"],
+      "env": {
+        "builtin": true
+      }
+    },
+    {
+      "files": ["**/*.{test,spec}.{ts,tsx}", "**/scripts/**/*.{ts,js,mjs}"],
+      "rules": {
+        "unicorn/no-process-exit": "off"
+      }
+    }
+  ]
+}

@@ -10,10 +10,7 @@ import { play } from "cuelume";
  * | 4–5    | `bloom` (first word: `sparkle`) |
  * | 6+     | `sparkle` + delayed `tick` |
  */
-export function playAcceptedWordSound(
-  length: number,
-  options: { firstWord?: boolean } = {},
-): void {
+export function playAcceptedWordSound(length: number, options: { firstWord?: boolean } = {}): void {
   const { firstWord = false } = options;
 
   if (length >= 6) {

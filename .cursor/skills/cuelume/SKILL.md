@@ -23,9 +23,9 @@ in `apps/web` only. **Not used on Expo** (Web Audio).
 
 ## Outcomes
 
-| Event | Sound |
-|-------|--------|
-| Word accepted | `playAcceptedWordSound(length, { firstWord })` in `apps/web/src/wordAcceptSound.ts` — length escalates: 3 → `success`, 4–5 → `bloom`, 6+ → `sparkle`+`tick`; first word of run upgrades short/mid to `sparkle` |
-| Invalid / duplicate | `error` |
-| Game end | `bloom` or `ready` |
-| Share / copy ok | `success` |
+| Event               | Sound                                                                                                                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Word accepted       | `playAcceptedWordSound(length, { firstWord })` in `apps/web/src/wordAcceptSound.ts` — length escalates: 3 → `success`, 4–5 → `bloom`, 6+ → `sparkle`+`tick`; first word of run upgrades short/mid to `sparkle` |
+| Invalid / duplicate | `error`                                                                                                                                                                                                        |
+| Game end            | `bloom` or `ready`                                                                                                                                                                                             |
+| Share / copy ok     | `success`                                                                                                                                                                                                      |

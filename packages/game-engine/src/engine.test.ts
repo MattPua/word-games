@@ -1,29 +1,13 @@
 import { createDictionary } from "@couch-potato/dictionary";
 import { describe, expect, it } from "vitest";
-import {
-  GEN_RETRY_CAP,
-  computeTargets,
-  scoreWord,
-} from "./config";
+import { GEN_RETRY_CAP, computeTargets, scoreWord } from "./config";
 import { buildBoard, generateBoard } from "./generate";
-import {
-  createGame,
-  highScoreKey,
-  quitGame,
-  submitPath,
-} from "./game";
+import { createGame, highScoreKey, quitGame, submitPath } from "./game";
 import { isValidPath, wordFromPath } from "./path";
 import { createSeededRng } from "./rng";
 import { rotateBoard, rotateLettersCW } from "./rotate";
-import {
-  isAdjacent8,
-  isAdjacentHex,
-  isAdjacentCells,
-} from "./topology";
-import {
-  groupWordsByLength,
-  sortWordsByLengthThenAlpha,
-} from "./wordLists";
+import { isAdjacent8, isAdjacentHex, isAdjacentCells } from "./topology";
+import { groupWordsByLength, sortWordsByLengthThenAlpha } from "./wordLists";
 
 const miniDict = createDictionary(
   [
@@ -166,15 +150,9 @@ describe("highScoreKey", () => {
       difficulty: "easy" as const,
       minWordLength: 3 as const,
     };
-    expect(highScoreKey("p1", 4, cfg, "square")).toBe(
-      "p1:4:square:target:easy:min3",
-    );
-    expect(highScoreKey("p1", 4, cfg, "hex")).toBe(
-      "p1:4:hex:target:easy:min3",
-    );
-    expect(highScoreKey("p1", 4, cfg, "square")).not.toBe(
-      highScoreKey("p1", 4, cfg, "hex"),
-    );
+    expect(highScoreKey("p1", 4, cfg, "square")).toBe("p1:4:square:target:easy:min3");
+    expect(highScoreKey("p1", 4, cfg, "hex")).toBe("p1:4:hex:target:easy:min3");
+    expect(highScoreKey("p1", 4, cfg, "square")).not.toBe(highScoreKey("p1", 4, cfg, "hex"));
   });
 });
 
@@ -360,10 +338,7 @@ describe("generateBoard", () => {
       ["X", "X", "X", "X"],
       ["X", "X", "X", "X"],
     ];
-    const dict = createDictionary(
-      ["aalii", "cat", "act", "ail"],
-      ["cat", "act"],
-    );
+    const dict = createDictionary(["aalii", "cat", "act", "ail"], ["cat", "act"]);
     const board = buildBoard(letters, dict, 3);
     expect(board.allWords).not.toContain("aalii");
     expect(board.allWords.every((w) => dict.isPopular(w))).toBe(true);
@@ -401,12 +376,86 @@ describe("generateBoard", () => {
 
   it("gen-within-retry-cap with richer word list", () => {
     const words = [
-      "the","and","for","are","but","not","you","all","can","had","her","was","one","our","out",
-      "day","get","has","him","his","how","man","new","now","old","see","way","who","boy","did",
-      "its","let","put","say","she","too","use","dad","mom","car","run","sun","fun","red","big",
-      "eat","tea","sea","set","sat","cat","bat","hat","mat","rat","pat","ear","era","art",
-      "tar","ate","seat","east","teas","eats","star","rats","tars","arts",
-      "beat","bear","bare","rate","tare","tear","rest","nest","sent","nets","tens",
+      "the",
+      "and",
+      "for",
+      "are",
+      "but",
+      "not",
+      "you",
+      "all",
+      "can",
+      "had",
+      "her",
+      "was",
+      "one",
+      "our",
+      "out",
+      "day",
+      "get",
+      "has",
+      "him",
+      "his",
+      "how",
+      "man",
+      "new",
+      "now",
+      "old",
+      "see",
+      "way",
+      "who",
+      "boy",
+      "did",
+      "its",
+      "let",
+      "put",
+      "say",
+      "she",
+      "too",
+      "use",
+      "dad",
+      "mom",
+      "car",
+      "run",
+      "sun",
+      "fun",
+      "red",
+      "big",
+      "eat",
+      "tea",
+      "sea",
+      "set",
+      "sat",
+      "cat",
+      "bat",
+      "hat",
+      "mat",
+      "rat",
+      "pat",
+      "ear",
+      "era",
+      "art",
+      "tar",
+      "ate",
+      "seat",
+      "east",
+      "teas",
+      "eats",
+      "star",
+      "rats",
+      "tars",
+      "arts",
+      "beat",
+      "bear",
+      "bare",
+      "rate",
+      "tare",
+      "tear",
+      "rest",
+      "nest",
+      "sent",
+      "nets",
+      "tens",
     ];
     const unique = [...new Set(words)];
     const dict = createDictionary(unique, unique);

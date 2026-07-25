@@ -42,11 +42,7 @@ function countByLength(words: string[]): WordCountThresholds {
   return { ge3, ge4, ge5, ge6, total: words.length };
 }
 
-function meetsThresholds(
-  counts: WordCountThresholds,
-  t: WordCountThresholds,
-  scale = 1,
-): boolean {
+function meetsThresholds(counts: WordCountThresholds, t: WordCountThresholds, scale = 1): boolean {
   return (
     counts.ge3 >= Math.floor(t.ge3 * scale) &&
     counts.ge4 >= Math.floor(t.ge4 * scale) &&
@@ -58,9 +54,7 @@ function meetsThresholds(
 
 function randomBoard(size: GridSize, rng: Rng): string[][] {
   return Array.from({ length: size }, () =>
-    Array.from({ length: size }, () =>
-      pickWeighted(LETTER_WEIGHTS, rng).toUpperCase(),
-    ),
+    Array.from({ length: size }, () => pickWeighted(LETTER_WEIGHTS, rng).toUpperCase()),
   );
 }
 
@@ -79,9 +73,7 @@ export function buildBoard(
 ): Board {
   const size = letters.length as GridSize;
   // allWords = popular-only (via findAllWords) ≥ minWordLength
-  const allWords = findAllWords(letters, dict, topology).filter(
-    (w) => w.length >= minWordLength,
-  );
+  const allWords = findAllWords(letters, dict, topology).filter((w) => w.length >= minWordLength);
   const maxScore = allWords.reduce((s, w) => s + scoreWord(w.length), 0);
   const targets = computeTargets(maxScore);
   return {
@@ -114,10 +106,7 @@ export function generateBoard(opts: GenerateOptions): Board {
   const topology = opts.topology ?? "square";
   const rng = opts.rng ?? createSeededRng(opts.seed ?? Date.now());
   const cap = opts.retryCap ?? GEN_RETRY_CAP;
-  const thresholds = thresholdsForMinLength(
-    BOARD_THRESHOLDS[topology][opts.size],
-    minWordLength,
-  );
+  const thresholds = thresholdsForMinLength(BOARD_THRESHOLDS[topology][opts.size], minWordLength);
 
   let best: Board | null = null;
   let bestScore = -1;
@@ -129,12 +118,8 @@ export function generateBoard(opts: GenerateOptions): Board {
     // allWords is popular-only; ratio stays as a sanity signal for gen quality
     const popular = popularRatio(board.allWords, opts.dict);
     const hardOk = board.targets.hard <= board.maxScore && board.maxScore > 0;
-    const floorOk =
-      board.maxScore >= HARD_TARGET_FLOOR || minWordLength > 3;
-    const quality =
-      board.allWords.length * 0.5 +
-      popular * 100 +
-      (hardOk && floorOk ? 20 : 0);
+    const floorOk = board.maxScore >= HARD_TARGET_FLOOR || minWordLength > 3;
+    const quality = board.allWords.length * 0.5 + popular * 100 + (hardOk && floorOk ? 20 : 0);
 
     if (quality > bestScore) {
       bestScore = quality;

@@ -29,10 +29,7 @@ export function SegmentGroup<T extends string | number>({
   return (
     <div
       role="group"
-      className={cn(
-        "relative mb-4 grid gap-0 rounded-ui bg-secondary/80 p-1",
-        className,
-      )}
+      className={cn("relative mb-4 grid gap-0 rounded-ui bg-secondary/80 p-1", className)}
       style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
     >
       <div

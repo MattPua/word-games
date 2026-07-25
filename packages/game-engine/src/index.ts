@@ -16,12 +16,7 @@ export {
   type MinWordLength,
 } from "./config";
 
-export {
-  isValidPath,
-  wordFromPath,
-  cellsEqual,
-  type Cell,
-} from "./path";
+export { isValidPath, wordFromPath, cellsEqual, type Cell } from "./path";
 
 export {
   isAdjacent8,
@@ -36,12 +31,7 @@ export { rotateLettersCW, rotateBoard } from "./rotate";
 
 export { createSeededRng, pickWeighted, type Rng } from "./rng";
 export { findAllWords } from "./findWords";
-export {
-  generateBoard,
-  buildBoard,
-  type Board,
-  type GenerateOptions,
-} from "./generate";
+export { generateBoard, buildBoard, type Board, type GenerateOptions } from "./generate";
 export {
   createGame,
   submitPath,

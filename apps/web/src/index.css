@@ -99,13 +99,12 @@
   .cp-board-frame {
     border-radius: calc(var(--radius) + 0.55rem);
     padding: 0.7rem;
-    background:
-      linear-gradient(
-        160deg,
-        color-mix(in srgb, var(--board-rim) 55%, #fff) 0%,
-        var(--board-frame) 45%,
-        color-mix(in srgb, var(--board-frame) 80%, #000) 100%
-      );
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--board-rim) 55%, #fff) 0%,
+      var(--board-frame) 45%,
+      color-mix(in srgb, var(--board-frame) 80%, #000) 100%
+    );
     box-shadow:
       0 14px 28px color-mix(in srgb, var(--board-frame) 35%, transparent),
       inset 0 1px 0 color-mix(in srgb, #fff 25%, transparent);
@@ -153,13 +152,12 @@
     border-radius: calc(var(--radius) - 0.15rem);
     cursor: inherit;
     border: 1.5px solid color-mix(in srgb, var(--tile-edge) 80%, #000);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, #fff 55%, var(--tile)) 0%,
-        var(--tile) 42%,
-        color-mix(in srgb, var(--tile-edge) 55%, var(--tile)) 100%
-      );
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, #fff 55%, var(--tile)) 0%,
+      var(--tile) 42%,
+      color-mix(in srgb, var(--tile-edge) 55%, var(--tile)) 100%
+    );
     box-shadow:
       0 3px 0 color-mix(in srgb, var(--tile-edge) 90%, #2c322e),
       0 6px 12px color-mix(in srgb, #2c322e 16%, transparent),
@@ -181,12 +179,11 @@
   }
 
   .cp-tile-active {
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--path) 28%, #fff) 0%,
-        color-mix(in srgb, var(--path) 18%, var(--tile)) 100%
-      );
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--path) 28%, #fff) 0%,
+      color-mix(in srgb, var(--path) 18%, var(--tile)) 100%
+    );
     border-color: var(--path);
     box-shadow:
       0 0 0 3px color-mix(in srgb, var(--path) 35%, transparent),

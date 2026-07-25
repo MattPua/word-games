@@ -17,9 +17,7 @@ export default function App() {
       <Text style={styles.title}>Couch Potato</Text>
       <Text style={styles.line}>Expo smoke OK</Text>
       <Text style={styles.line}>scoreWord(5) = {scoreWord(5)}</Text>
-      <Text style={styles.line}>
-        dict.has(&quot;potato&quot;) = {String(dict.has("potato"))}
-      </Text>
+      <Text style={styles.line}>dict.has(&quot;potato&quot;) = {String(dict.has("potato"))}</Text>
       <Text style={styles.line}>applyPathCell = {path?.length ?? 0} cell</Text>
       <StatusBar style="dark" />
     </View>

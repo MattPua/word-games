@@ -40,10 +40,7 @@ export type WordCountThresholds = {
  * Min-word thresholds by topology + grid size (default min length 3).
  * Hex is leaner — 6 neighbors vs 8 → fewer paths.
  */
-export const BOARD_THRESHOLDS: Record<
-  GridTopology,
-  Record<GridSize, WordCountThresholds>
-> = {
+export const BOARD_THRESHOLDS: Record<GridTopology, Record<GridSize, WordCountThresholds>> = {
   square: {
     4: { ge3: 40, ge4: 15, ge5: 4, ge6: 1, total: 50 },
     5: { ge3: 80, ge4: 35, ge5: 12, ge6: 4, total: 100 },
@@ -72,9 +69,7 @@ export function computeTargets(maxScore: number): {
   return {
     easy: clamp(Math.ceil(maxScore * TARGET_RATIOS.easy)),
     medium: clamp(Math.ceil(maxScore * TARGET_RATIOS.medium)),
-    hard: clamp(
-      Math.max(HARD_TARGET_FLOOR, Math.ceil(maxScore * TARGET_RATIOS.hard)),
-    ),
+    hard: clamp(Math.max(HARD_TARGET_FLOOR, Math.ceil(maxScore * TARGET_RATIOS.hard))),
   };
 }
 

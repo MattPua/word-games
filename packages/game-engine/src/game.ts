@@ -43,13 +43,8 @@ export type GameState = {
 
 export function createGame(board: Board, config: GameConfig): GameState {
   const minWordLength = config.minWordLength ?? MIN_WORD_LENGTH;
-  const target =
-    config.mode === "target" ? board.targets[config.difficulty] : null;
-  if (
-    config.mode === "target" &&
-    target != null &&
-    target > board.maxScore
-  ) {
+  const target = config.mode === "target" ? board.targets[config.difficulty] : null;
+  if (config.mode === "target" && target != null && target > board.maxScore) {
     throw new Error("Target exceeds board maxScore — gen/filter bug");
   }
   const remainingMs = config.mode === "timed" ? config.duration * 1000 : null;
@@ -90,10 +85,7 @@ export function submitPath(
   const points = scoreWord(word.length);
   const score = state.score + points;
   const found = [...state.found, word];
-  const remaining =
-    state.remaining != null
-      ? Math.max(0, state.remaining - points)
-      : null;
+  const remaining = state.remaining != null ? Math.max(0, state.remaining - points) : null;
   let ended: EndReason | null = null;
   if (remaining === 0) ended = "won";
   const next: GameState = { ...state, score, found, remaining, ended };
@@ -118,11 +110,7 @@ export function quitGame(state: GameState): GameState {
 }
 
 /** Missed longs: common words on the filtered board, longest first. */
-export function missedLongWords(
-  state: GameState,
-  dict: Dictionary,
-  limit = 8,
-): string[] {
+export function missedLongWords(state: GameState, dict: Dictionary, limit = 8): string[] {
   const found = new Set(state.found);
   const floor = Math.max(5, state.config.minWordLength);
   return state.board.allWords

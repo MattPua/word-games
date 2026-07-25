@@ -7,10 +7,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dataDir = join(root, "data");
 const outDir = join(root, "src", "generated");
 
-const ENABLE_URL =
-  "https://raw.githubusercontent.com/dolph/dictionary/master/enable1.txt";
-const POPULAR_URL =
-  "https://raw.githubusercontent.com/dolph/dictionary/master/popular.txt";
+const ENABLE_URL = "https://raw.githubusercontent.com/dolph/dictionary/master/enable1.txt";
+const POPULAR_URL = "https://raw.githubusercontent.com/dolph/dictionary/master/popular.txt";
 
 async function fetchText(url: string): Promise<string> {
   const res = await fetch(url);
@@ -31,9 +29,7 @@ async function main() {
   mkdirSync(outDir, { recursive: true });
   mkdirSync(dataDir, { recursive: true });
 
-  const blocklist = new Set(
-    parseWordList(readFileSync(join(dataDir, "blocklist.txt"), "utf8")),
-  );
+  const blocklist = new Set(parseWordList(readFileSync(join(dataDir, "blocklist.txt"), "utf8")));
 
   const enableRaw = await loadOrFetch("enable1.txt", ENABLE_URL);
   const popularRaw = await loadOrFetch("popular.txt", POPULAR_URL);
@@ -48,10 +44,7 @@ async function main() {
     popular: popularInEnable,
   };
 
-  writeFileSync(
-    join(outDir, "words.json"),
-    JSON.stringify(artifact),
-  );
+  writeFileSync(join(outDir, "words.json"), JSON.stringify(artifact));
   writeFileSync(
     join(outDir, "meta.json"),
     JSON.stringify(
@@ -69,9 +62,7 @@ async function main() {
       2,
     ),
   );
-  console.log(
-    `Built dictionary: enable=${enable.length} popular=${popularInEnable.length}`,
-  );
+  console.log(`Built dictionary: enable=${enable.length} popular=${popularInEnable.length}`);
 }
 
 main().catch((err) => {

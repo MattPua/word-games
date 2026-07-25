@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/.expo/**",
+    "**/coverage/**",
+    "**/.turbo/**",
+    "**/.playwright-mcp/**",
+    "**/node_modules/**",
+    "packages/dictionary/src/generated/**",
+    "packages/dictionary/data/**",
+    "bun.lock"
+  ]
+}

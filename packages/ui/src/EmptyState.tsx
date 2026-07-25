@@ -23,16 +23,12 @@ export function EmptyState({
     <View className={`items-center px-4 py-6 ${className}`}>
       {showLogo ? <Logo size={72} /> : null}
       <Text
-        className={`text-center font-display text-xl text-foreground ${
-          showLogo ? "mt-3" : ""
-        }`}
+        className={`text-center font-display text-xl text-foreground ${showLogo ? "mt-3" : ""}`}
       >
         {title}
       </Text>
       {body ? (
-        <Text className="mt-1 text-center font-body text-muted-foreground">
-          {body}
-        </Text>
+        <Text className="mt-1 text-center font-body text-muted-foreground">{body}</Text>
       ) : null}
       {children ? <View className="mt-4 w-full">{children}</View> : null}
     </View>
