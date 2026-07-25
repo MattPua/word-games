@@ -2,6 +2,8 @@ import type { Dictionary } from "@couch-potato/dictionary";
 import {
   MIN_WORD_LENGTH,
   scoreWord,
+  survivalBonusSeconds,
+  SURVIVAL_START_SECONDS,
   type Difficulty,
   type MinWordLength,
   type TimedDuration,
@@ -11,17 +13,26 @@ import { isValidPath, wordFromPath, type Cell } from "./path";
 import type { GridTopology } from "./topology";
 import { compareWordsByLengthThenAlpha } from "./wordLists";
 
-export type GameMode = "target" | "timed";
+export type GameMode = "target" | "timed" | "survival";
 export type EndReason = "won" | "timeout" | "quit";
 
 type ConfigBase = { minWordLength: MinWordLength };
 
 export type GameConfig =
   | (ConfigBase & { mode: "target"; difficulty: Difficulty })
-  | (ConfigBase & { mode: "timed"; duration: TimedDuration });
+  | (ConfigBase & { mode: "timed"; duration: TimedDuration })
+  | (ConfigBase & { mode: "survival"; difficulty: Difficulty });
 
 export type SubmitResult =
-  | { ok: true; word: string; points: number; score: number; ended?: EndReason }
+  | {
+      ok: true;
+      word: string;
+      points: number;
+      score: number;
+      ended?: EndReason;
+      /** Survival only — seconds just refilled onto the clock for this word. */
+      bonusSeconds?: number;
+    }
   | { ok: false; reason: "short" | "invalid" | "duplicate" | "bad_path" | "ended" };
 
 export type GameState = {
@@ -30,13 +41,18 @@ export type GameState = {
   /** Points earned this run (high scores / results). */
   score: number;
   found: string[];
-  /** Initial target points (target mode); null in timed. */
+  /** Initial target points (target mode); null in timed/survival. */
   target: number | null;
   /**
    * Target mode: points left to clear (starts at `target`, floors at 0).
-   * Win when remaining === 0. Timed: unused (null).
+   * Win when remaining === 0. Timed/survival: unused (null).
    */
   remaining: number | null;
+  /**
+   * Countdown clock, shared by timed (fixed) and survival (refills on
+   * accept). `tickTimer` ends the run with "timeout" for either once it
+   * hits 0; null in target mode.
+   */
   remainingMs: number | null;
   ended: EndReason | null;
 };
@@ -47,7 +63,12 @@ export function createGame(board: Board, config: GameConfig): GameState {
   if (config.mode === "target" && target != null && target > board.maxScore) {
     throw new Error("Target exceeds board maxScore — gen/filter bug");
   }
-  const remainingMs = config.mode === "timed" ? config.duration * 1000 : null;
+  const remainingMs =
+    config.mode === "timed"
+      ? config.duration * 1000
+      : config.mode === "survival"
+        ? SURVIVAL_START_SECONDS[config.difficulty] * 1000
+        : null;
   return {
     board,
     config: { ...config, minWordLength },
@@ -86,12 +107,18 @@ export function submitPath(
   const score = state.score + points;
   const found = [...state.found, word];
   const remaining = state.remaining != null ? Math.max(0, state.remaining - points) : null;
+  let bonusSeconds: number | undefined;
+  let remainingMs = state.remainingMs;
+  if (state.config.mode === "survival" && remainingMs != null) {
+    bonusSeconds = survivalBonusSeconds(points, state.config.difficulty);
+    remainingMs = remainingMs + bonusSeconds * 1000;
+  }
   let ended: EndReason | null = null;
   if (remaining === 0) ended = "won";
-  const next: GameState = { ...state, score, found, remaining, ended };
+  const next: GameState = { ...state, score, found, remaining, remainingMs, ended };
   return {
     state: next,
-    result: { ok: true, word, points, score, ended: ended ?? undefined },
+    result: { ok: true, word, points, score, ended: ended ?? undefined, bonusSeconds },
   };
 }
 
@@ -128,6 +155,9 @@ export function highScoreKey(
   const min = config.minWordLength;
   if (config.mode === "target") {
     return `${profileId}:${size}:${topology}:target:${config.difficulty}:min${min}`;
+  }
+  if (config.mode === "survival") {
+    return `${profileId}:${size}:${topology}:survival:${config.difficulty}:min${min}`;
   }
   return `${profileId}:${size}:${topology}:timed:${config.duration}:min${min}`;
 }

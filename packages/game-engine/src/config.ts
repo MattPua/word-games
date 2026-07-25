@@ -25,6 +25,39 @@ export type Difficulty = keyof typeof TARGET_RATIOS;
 export const TIMED_DURATIONS = [30, 60, 90, 120] as const;
 export type TimedDuration = (typeof TIMED_DURATIONS)[number];
 
+/**
+ * Survival mode: countdown clock, each accepted word refills it. Starting
+ * time is generous on Easy, stingy on Hard (players lean on refills sooner).
+ */
+export const SURVIVAL_START_SECONDS: Record<Difficulty, number> = {
+  easy: 45,
+  medium: 30,
+  hard: 20,
+};
+
+/** Seconds of clock refilled per point, before difficulty scaling. */
+export const SURVIVAL_SECONDS_PER_POINT = 3;
+
+/** Refill multiplier by difficulty — Hard is stingier with time back. */
+export const SURVIVAL_BONUS_MULTIPLIER: Record<Difficulty, number> = {
+  easy: 1.2,
+  medium: 1,
+  hard: 0.7,
+};
+
+/** Every accepted word refills at least this much, even a bare min-length word. */
+export const SURVIVAL_MIN_BONUS_SECONDS = 1;
+
+/**
+ * Bonus seconds for an accepted word: points (length - 2) scaled by
+ * `SURVIVAL_SECONDS_PER_POINT` and the difficulty multiplier, rounded,
+ * floored at `SURVIVAL_MIN_BONUS_SECONDS` so nothing ever refills for 0.
+ */
+export function survivalBonusSeconds(points: number, difficulty: Difficulty): number {
+  const raw = points * SURVIVAL_SECONDS_PER_POINT * SURVIVAL_BONUS_MULTIPLIER[difficulty];
+  return Math.max(SURVIVAL_MIN_BONUS_SECONDS, Math.round(raw));
+}
+
 export const GRID_SIZES = [4, 5, 6] as const;
 export type GridSize = (typeof GRID_SIZES)[number];
 

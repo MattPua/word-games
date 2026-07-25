@@ -1,8 +1,15 @@
 import { createDictionary } from "@couch-potato/dictionary";
 import { describe, expect, it } from "vitest";
-import { GEN_RETRY_CAP, computeTargets, letterMixWeights, scoreWord } from "./config";
+import {
+  GEN_RETRY_CAP,
+  SURVIVAL_START_SECONDS,
+  computeTargets,
+  letterMixWeights,
+  scoreWord,
+  survivalBonusSeconds,
+} from "./config";
 import { buildBoard, generateBoard } from "./generate";
-import { createGame, highScoreKey, quitGame, submitPath } from "./game";
+import { createGame, highScoreKey, quitGame, submitPath, tickTimer } from "./game";
 import { isValidPath, wordFromPath } from "./path";
 import { createSeededRng } from "./rng";
 import { rotateBoard, rotateLettersCW } from "./rotate";
@@ -127,7 +134,8 @@ describe("rotate", () => {
       rotateBoard(
         {
           letters,
-          size: 2,
+          // rotateBoard only reads letters/topology; size stubbed to satisfy Board's GridSize.
+          size: 4,
           topology: "square",
           allWords: [],
           maxScore: 0,
@@ -153,6 +161,108 @@ describe("highScoreKey", () => {
     expect(highScoreKey("p1", 4, cfg, "square")).toBe("p1:4:square:target:easy:min3");
     expect(highScoreKey("p1", 4, cfg, "hex")).toBe("p1:4:hex:target:easy:min3");
     expect(highScoreKey("p1", 4, cfg, "square")).not.toBe(highScoreKey("p1", 4, cfg, "hex"));
+  });
+
+  it("keys survival by difficulty, distinct from target", () => {
+    const survivalCfg = {
+      mode: "survival" as const,
+      difficulty: "hard" as const,
+      minWordLength: 3 as const,
+    };
+    const targetCfg = {
+      mode: "target" as const,
+      difficulty: "hard" as const,
+      minWordLength: 3 as const,
+    };
+    expect(highScoreKey("p1", 4, survivalCfg, "square")).toBe("p1:4:square:survival:hard:min3");
+    expect(highScoreKey("p1", 4, survivalCfg, "square")).not.toBe(
+      highScoreKey("p1", 4, targetCfg, "square"),
+    );
+  });
+});
+
+describe("survivalBonusSeconds", () => {
+  it("scales with points and rounds", () => {
+    expect(survivalBonusSeconds(1, "medium")).toBe(3); // 1 * 3 * 1
+    expect(survivalBonusSeconds(3, "medium")).toBe(9); // 3 * 3 * 1
+  });
+
+  it("easy is more generous than medium, hard is stingier", () => {
+    const points = 3;
+    expect(survivalBonusSeconds(points, "easy")).toBeGreaterThan(
+      survivalBonusSeconds(points, "medium"),
+    );
+    expect(survivalBonusSeconds(points, "hard")).toBeLessThan(
+      survivalBonusSeconds(points, "medium"),
+    );
+  });
+
+  it("never refills for 0 seconds, even at minimum points", () => {
+    for (const difficulty of ["easy", "medium", "hard"] as const) {
+      expect(survivalBonusSeconds(1, difficulty)).toBeGreaterThanOrEqual(1);
+    }
+  });
+});
+
+describe("survival mode", () => {
+  const letters = [
+    ["C", "A", "T", "S"],
+    ["X", "X", "X", "X"],
+    ["X", "X", "X", "X"],
+    ["X", "X", "X", "X"],
+  ];
+  const board = {
+    letters,
+    size: 4 as const,
+    topology: "square" as const,
+    allWords: ["cat", "cats", "act"],
+    maxScore: 6,
+    targets: { easy: 2, medium: 3, hard: 5 },
+    minWordLength: 3 as const,
+  };
+  const catPath = [
+    { row: 0, col: 0 },
+    { row: 0, col: 1 },
+    { row: 0, col: 2 },
+  ];
+
+  it("starts the clock from SURVIVAL_START_SECONDS by difficulty, no points target", () => {
+    for (const difficulty of ["easy", "medium", "hard"] as const) {
+      const state = createGame(board, { mode: "survival", difficulty, minWordLength: 3 });
+      expect(state.remainingMs).toBe(SURVIVAL_START_SECONDS[difficulty] * 1000);
+      expect(state.target).toBeNull();
+      expect(state.remaining).toBeNull();
+    }
+  });
+
+  it("accepting a word refills the clock and still scores points", () => {
+    let state = createGame(board, { mode: "survival", difficulty: "medium", minWordLength: 3 });
+    const startMs = state.remainingMs!;
+    const sub = submitPath(state, catPath, miniDict);
+    expect(sub.result.ok).toBe(true);
+    if (!sub.result.ok) throw new Error("expected ok");
+    expect(sub.result.points).toBe(1); // "cat" length 3 -> points 1
+    expect(sub.result.bonusSeconds).toBe(survivalBonusSeconds(1, "medium"));
+    state = sub.state;
+    expect(state.score).toBe(1);
+    expect(state.remainingMs).toBe(startMs + sub.result.bonusSeconds! * 1000);
+  });
+
+  it("ends with timeout when the clock ticks to 0", () => {
+    let state = createGame(board, { mode: "survival", difficulty: "hard", minWordLength: 3 });
+    state = tickTimer(state, SURVIVAL_START_SECONDS.hard * 1000 - 1);
+    expect(state.ended).toBeNull();
+    state = tickTimer(state, 1);
+    expect(state.remainingMs).toBe(0);
+    expect(state.ended).toBe("timeout");
+  });
+
+  it("quit mid-run still ends with results so far", () => {
+    let state = createGame(board, { mode: "survival", difficulty: "easy", minWordLength: 3 });
+    state = submitPath(state, catPath, miniDict).state;
+    state = quitGame(state);
+    expect(state.ended).toBe("quit");
+    expect(state.found).toEqual(["cat"]);
   });
 });
 
