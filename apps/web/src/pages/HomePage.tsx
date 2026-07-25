@@ -76,14 +76,18 @@ export function HomePage() {
           </div>
         </header>
 
-        <View className="mb-3 flex-row items-center justify-between">
-          <Text className="font-body text-sm font-semibold text-foreground">
+        <View className="mb-3 flex-row items-center justify-between gap-2">
+          <Text
+            className="min-w-0 flex-shrink font-body text-sm font-semibold text-foreground"
+            numberOfLines={1}
+          >
             Spud: {profile.name}
           </Text>
           <IconTooltip label="Couch crew">
             <Button
               variant="ghost"
               size="icon-sm"
+              className="shrink-0"
               aria-label="Couch crew"
               onClick={() => navigate({ to: "/profiles" })}
             >

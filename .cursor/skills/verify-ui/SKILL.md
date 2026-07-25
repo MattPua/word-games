@@ -37,7 +37,7 @@ evidence instead of guessing from screenshots alone:
 
 - `resize_page` across the actual widths in play (e.g. 390 / 768 / 1024 / 1280), then
   `evaluate_script` to read `getBoundingClientRect()` / `scrollWidth` vs `innerWidth`
-  on the suspect elements (root, `Shell`, scroller, sticky footer) — confirms *where*
+  on the suspect elements (root, `Shell`, scroller, sticky footer) — confirms _where_
   the overflow or clipped box actually is, not just that a screenshot looks off.
 - Check computed `overflow` up the ancestor chain (root `h-dvh overflow-hidden`,
   `Shell`, scroll region) — a clip can live on a parent, not the element you edited.
