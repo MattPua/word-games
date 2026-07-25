@@ -36,13 +36,14 @@ const DIRS: Cell[] = [
   { row: 1, col: 1 },
 ];
 
-/** Find all unique dictionary words on the board (8-way, no reuse). */
+/** Find all unique *playable* (popular) words on the board (8-way, no reuse). */
 export function findAllWords(
   letters: string[][],
   dict: Dictionary,
 ): string[] {
   const size = letters.length;
-  const trie = buildTrie(dict.enable);
+  // Casual play: only popular — obscure enable1-only words never drive targets/missed.
+  const trie = buildTrie(dict.popular);
   const found = new Set<string>();
   const visited = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => false),

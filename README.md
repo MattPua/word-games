@@ -12,7 +12,12 @@ Casual swipe-to-spell word game. Bun monorepo.
 
 ## Dictionary attribution
 
-Word lists from [dolph/dictionary](https://github.com/dolph/dictionary). ENABLE is public domain.
+Word lists from [dolph/dictionary](https://github.com/dolph/dictionary).
+
+- **`enable1.txt`** — ENABLE Scrabble word list (public domain); large, includes obscure terms.
+- **`popular.txt`** — common subset: enable1 ∩ [Wiktionary English frequency lists](http://en.wiktionary.org/wiki/Wiktionary:Frequency_lists#English) derived from TV/movie script samples (~25k words people know). Membership only — dolph does not ship a frequency CSV.
+- **v1 policy:** accept / board scoring words / missed reveals use **popular only**. Obscure enable1-only words are rejected and never surface in targets or results. A fuller enable1 “dictionary mode” may come later.
+- Local **offensive/NSFW blocklist** applied at build time to both lists.
 
 ## Develop
 

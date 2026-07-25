@@ -16,7 +16,7 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 - Tiles stay for the round (reusable across words)
 - Min word length: global floor **3**; per-game setup may raise to **4** or **5**
 - No duplicate words per round
-- Dictionary: [dolph/dictionary](https://github.com/dolph/dictionary) `enable1.txt` + `popular.txt` + **offensive/NSFW blocklist** (ENABLE public domain — attribute in README). Blocked tokens must not appear in validation, board gen, or missed-words.
+- Dictionary: [dolph/dictionary](https://github.com/dolph/dictionary) — **v1 play lexicon = `popular.txt`** (enable1 ∩ Wiktionary TV/movie frequency lists ≈ 25k common words; not a frequency CSV). Full `enable1` kept in the build artifact for a future “dictionary mode” but **does not** drive accept, board `allWords`, targets, or missed reveals. Plus **offensive/NSFW blocklist** (ENABLE public domain — attribute in README). Blocked tokens must not appear in validation, board gen, or missed-words.
 - Scoring: `points = length - 2` (config constant)
 - **Target**: `% of board max` × Easy/Med/Hard → end immediately on reach. Max/target use **only words ≥ active min length** (targets always ≤ maxScore — never require shorter words the player can’t submit)
 - **Timed**: fixed board; 30/60/90/120s → results

@@ -11,3 +11,4 @@ alwaysApply: false
 - Single authoritative thresholds/scoring config object; loosen there if gen flakes — never ad-hoc in UI.
 - `minWordLength` on `GameConfig`: maxScore/targets/allWords/missed filter to ≥ N; targets always ≤ maxScore.
 - Dictionary: enable1 + popular + blocklist → build artifact; load once at app start.
+- **v1 play:** `dict.has` / board `allWords` / targets / missed = **popular only** (casual words). Enable kept in artifact for a future full-dictionary mode.

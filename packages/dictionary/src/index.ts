@@ -1,10 +1,17 @@
 import enableArtifact from "./generated/words.json";
 
 export type Dictionary = {
-  /** Full validation set (enable1 − blocklist). */
+  /**
+   * Full ENABLE − blocklist (kept for a future “full dictionary” mode).
+   * v1 play does **not** accept or surface these unless also in `popular`.
+   */
   enable: Set<string>;
-  /** Common words for board bias + missed ranking. */
+  /**
+   * Casual play lexicon: enable1 ∩ Wiktionary TV/movie frequency (dolph popular.txt),
+   * minus blocklist. Primary set for accept, board allWords, targets, missed.
+   */
   popular: Set<string>;
+  /** v1: true only for popular (common) words. */
   has(word: string): boolean;
   isPopular(word: string): boolean;
 };
@@ -20,7 +27,7 @@ export function createDictionary(
   return {
     enable,
     popular,
-    has: (word) => enable.has(word.toLowerCase()),
+    has: (word) => popular.has(word.toLowerCase()),
     isPopular: (word) => popular.has(word.toLowerCase()),
   };
 }

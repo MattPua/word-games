@@ -206,6 +206,25 @@ describe("game", () => {
 });
 
 describe("generateBoard", () => {
+  it("excludes obscure enable1-only words from allWords", () => {
+    // Board spells AALII (obscure) and CAT (popular) — only CAT counts.
+    const letters = [
+      ["A", "A", "L", "I"],
+      ["I", "C", "A", "T"],
+      ["X", "X", "X", "X"],
+      ["X", "X", "X", "X"],
+    ];
+    const dict = createDictionary(
+      ["aalii", "cat", "act", "ail"],
+      ["cat", "act"],
+    );
+    const board = buildBoard(letters, dict, 3);
+    expect(board.allWords).not.toContain("aalii");
+    expect(board.allWords.every((w) => dict.isPopular(w))).toBe(true);
+    expect(dict.has("aalii")).toBe(false);
+    expect(dict.has("cat")).toBe(true);
+  });
+
   it("succeeds within retry cap on seeded RNG", () => {
     const rng = createSeededRng(42);
     const board = generateBoard({

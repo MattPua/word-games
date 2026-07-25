@@ -57,4 +57,16 @@ describe("dictionary filter", () => {
     }
     expect(dict.has("potato") || dict.has("cat")).toBe(true);
   });
+
+  it("v1 accepts popular only — obscure enable1-only words rejected", () => {
+    const dict = createDictionary();
+    // enable1 Scrabble oddities that are not in dolph popular.txt
+    expect(dict.enable.has("aalii")).toBe(true);
+    expect(dict.isPopular("aalii")).toBe(false);
+    expect(dict.has("aalii")).toBe(false);
+    expect(dict.enable.has("aahed")).toBe(true);
+    expect(dict.has("aahed")).toBe(false);
+    expect(dict.has("potato")).toBe(true);
+    expect(dict.has("cat")).toBe(true);
+  });
 });

@@ -75,6 +75,7 @@ export function buildBoard(
   minWordLength: MinWordLength = MIN_WORD_LENGTH,
 ): Board {
   const size = letters.length as GridSize;
+  // allWords = popular-only (via findAllWords) ≥ minWordLength
   const allWords = findAllWords(letters, dict).filter(
     (w) => w.length >= minWordLength,
   );
@@ -112,6 +113,7 @@ export function generateBoard(opts: GenerateOptions): Board {
     const letters = randomBoard(opts.size, rng);
     const board = buildBoard(letters, opts.dict, minWordLength);
     const counts = countByLength(board.allWords);
+    // allWords is popular-only; ratio stays as a sanity signal for gen quality
     const popular = popularRatio(board.allWords, opts.dict);
     const hardOk = board.targets.hard <= board.maxScore && board.maxScore > 0;
     const floorOk =
@@ -131,7 +133,7 @@ export function generateBoard(opts: GenerateOptions): Board {
       hardOk &&
       meetsThresholds(counts, thresholds, scale) &&
       (floorOk || attempt > cap * 0.6) &&
-      popular >= 0.25
+      popular >= 0.99
     ) {
       return board;
     }

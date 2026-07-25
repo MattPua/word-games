@@ -60,6 +60,10 @@ async function main() {
         popularCount: popularInEnable.length,
         source: "https://github.com/dolph/dictionary",
         attribution: "ENABLE word list is public domain",
+        popularProvenance:
+          "popular.txt = enable1 ∩ Wiktionary TV/movie script frequency lists (~25k common words). Not a CSV of scores — membership is the commonness signal.",
+        playPolicy:
+          "v1 accepts and scores popular only; enable kept for a future full-dictionary mode",
       },
       null,
       2,
