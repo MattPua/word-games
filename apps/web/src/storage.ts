@@ -34,7 +34,7 @@ export type ThemePreference = "light" | "dark" | "system";
 
 export type DevicePrefs = {
   soundEnabled: boolean;
-  /** Looping background music (home / couch crew / quiet on play). Separate from SFX. Default on. */
+  /** Looping background music (home / couch crew / quiet on play). Separate from SFX. Default off. */
   menuMusicEnabled: boolean;
   /** Unfound valid words on the board (not target pts remaining). Default off = discovery. */
   showWordsLeft: boolean;
@@ -46,7 +46,7 @@ export type DevicePrefs = {
 function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string }): DevicePrefs {
   return {
     soundEnabled: prefs.soundEnabled ?? true,
-    menuMusicEnabled: prefs.menuMusicEnabled ?? true,
+    menuMusicEnabled: prefs.menuMusicEnabled ?? false,
     showWordsLeft: prefs.showWordsLeft ?? false,
     themePreference: prefs.themePreference ?? "system",
     activeProfileId: prefs.activeProfileId ?? "",
@@ -108,7 +108,7 @@ export function defaultBlob(): StoredBlob {
     ],
     prefs: {
       soundEnabled: true,
-      menuMusicEnabled: true,
+      menuMusicEnabled: false,
       showWordsLeft: false,
       themePreference: "system",
       activeProfileId: id,
