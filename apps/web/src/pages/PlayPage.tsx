@@ -91,6 +91,15 @@ function hudHeatTier(progress: number): 0 | 1 | 2 | 3 {
   return 0;
 }
 
+/** Timed HUD urgency: 0 calm → 1 warn → 2 critical (destructive). */
+function hudTimerUrgency(secs: number, durationSec: number): 0 | 1 | 2 {
+  const criticalThreshold = Math.min(10, durationSec * 0.15);
+  const warnThreshold = Math.min(20, durationSec * 0.3);
+  if (secs <= criticalThreshold) return 2;
+  if (secs <= warnThreshold) return 1;
+  return 0;
+}
+
 /** Couch break pref row: feature name + Switch (on = secondary). */
 function PausePrefRow({
   id,
@@ -175,6 +184,7 @@ export function PlayPage() {
   const rotateFallbackRef = useRef<number | null>(null);
   const rotateStepsRef = useRef<1 | -1>(1);
   const hudSignalRef = useRef<{ remaining: number | null; score: number } | null>(null);
+  const timerUrgencyRef = useRef<0 | 1 | 2>(0);
 
   const openPause = () => {
     setPath([]);
@@ -249,6 +259,7 @@ export function PlayPage() {
       __cpForceWin?: () => void;
       __cpForceBoardClear?: () => void;
       __cpSetRemaining?: (remaining: number) => void;
+      __cpSetRemainingMs?: (remainingMs: number) => void;
     };
     w.__cpForceWin = () => {
       setState((s) =>
@@ -273,6 +284,13 @@ export function PlayPage() {
           : s,
       );
     };
+    w.__cpSetRemainingMs = (remainingMs: number) => {
+      setState((s) =>
+        s && s.remainingMs != null
+          ? { ...s, remainingMs: Math.max(0, Math.floor(remainingMs)) }
+          : s,
+      );
+    };
     w.__cpForceBoardClear = () => {
       setState((s) => {
         if (!s || s.board.allWords.length === 0) return s;
@@ -283,6 +301,7 @@ export function PlayPage() {
     return () => {
       delete w.__cpForceWin;
       delete w.__cpSetRemaining;
+      delete w.__cpSetRemainingMs;
       delete w.__cpForceBoardClear;
     };
   }, []);
@@ -308,6 +327,18 @@ export function PlayPage() {
     const id = window.setTimeout(() => setHudPulse(false), 420);
     return () => window.clearTimeout(id);
   }, [state?.remaining, state?.score]);
+
+  useEffect(() => {
+    if (!state || state.config.mode !== "timed" || state.remainingMs == null) return;
+    const secs = Math.ceil(state.remainingMs / 1000);
+    const urgency = hudTimerUrgency(secs, state.config.duration);
+    const prev = timerUrgencyRef.current;
+    timerUrgencyRef.current = urgency;
+    if (urgency <= prev || urgency === 0) return;
+    setHudPulse(true);
+    const id = window.setTimeout(() => setHudPulse(false), 420);
+    return () => window.clearTimeout(id);
+  }, [state?.remainingMs, state?.config]);
 
   useEffect(() => {
     if (celebrate || !state || state.ended) return;
@@ -399,15 +430,17 @@ export function PlayPage() {
   const adjacent = (a: Cell, b: Cell) => isAdjacentCells(a, b, state.board.topology);
   const boardLocked = celebrate || boardTurning || paused;
   const heatProgress =
-    remaining != null && target > 0
-      ? Math.min(1, Math.max(0, 1 - remaining / target))
-      : state.board.maxScore > 0
-        ? Math.min(1, state.score / state.board.maxScore)
-        : 0;
-  const heatTier = hudHeatTier(heatProgress);
+    remaining != null && target > 0 ? Math.min(1, Math.max(0, 1 - remaining / target)) : 0;
+  const heatTier = remaining != null ? hudHeatTier(heatProgress) : 0;
+  const timerUrgency =
+    secs != null && state.config.mode === "timed"
+      ? hudTimerUrgency(secs, state.config.duration)
+      : 0;
   const hudBubbleClass = [
     "cp-hud-bubble",
     heatTier > 0 ? `cp-hud-heat-${heatTier}` : "",
+    timerUrgency === 1 ? "cp-hud-timer-warn" : "",
+    timerUrgency === 2 ? "cp-hud-timer-critical" : "",
     hudPulse ? "is-pulsing" : "",
   ]
     .filter(Boolean)

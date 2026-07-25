@@ -132,6 +132,20 @@
     box-shadow: 0 2px 14px color-mix(in srgb, var(--secondary) 28%, transparent);
   }
 
+  /* Timed HUD urgency — destructive terracotta when clock runs low */
+  .cp-hud-bubble.cp-hud-timer-warn {
+    background: color-mix(in srgb, var(--destructive) 12%, var(--hud-bubble));
+    border-color: color-mix(in srgb, var(--destructive) 32%, var(--border));
+    color: var(--destructive);
+  }
+
+  .cp-hud-bubble.cp-hud-timer-critical {
+    background: color-mix(in srgb, var(--destructive) 22%, var(--card));
+    border-color: color-mix(in srgb, var(--destructive) 50%, var(--border));
+    color: var(--destructive);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--destructive) 24%, transparent);
+  }
+
   @keyframes cp-hud-pulse {
     0%,
     100% {
