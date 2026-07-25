@@ -3,10 +3,14 @@ import {
   ALargeSmall,
   Droplets,
   Eye,
+  Gauge,
+  LayoutGrid,
   Music,
   Music2,
+  Ruler,
   Sofa,
   Sun,
+  Timer,
   Type,
   Volume2,
   VolumeX,
@@ -183,6 +187,23 @@ const DIFFICULTY: {
 
 const DURATIONS: Duration[] = [30, 60, 90, 120];
 
+const LOBBY_SECTION_ICON = "cp-lobby-glyph size-4 shrink-0 text-muted-foreground";
+
+function LobbySectionTitle({
+  icon: Icon,
+  children,
+}: {
+  icon: LucideIcon;
+  children: React.ReactNode;
+}) {
+  return (
+    <h2 className="flex items-center gap-2 font-display text-base font-bold text-foreground">
+      <Icon className={LOBBY_SECTION_ICON} strokeWidth={2.25} aria-hidden />
+      {children}
+    </h2>
+  );
+}
+
 /** Toy lobby setup: cards + mini boards, not labeled form rows. */
 export function HomeSetup({
   mode,
@@ -201,74 +222,37 @@ export function HomeSetup({
   onShowWordsLeft,
 }: HomeSetupProps) {
   return (
-    <div className="cp-lobby-setup flex flex-col gap-5">
-      {/* Mode: two big choice cards (full width) */}
-      <div role="group" aria-label="Game mode" className="grid grid-cols-2 gap-2.5">
-        {(
-          [
-            {
-              value: "target" as const,
-              title: "Goal",
-              blurb: "Clear the couch",
-              Glyph: TargetGlyph,
-            },
-            {
-              value: "timed" as const,
-              title: "Timed",
-              blurb: "Beat the clock",
-              Glyph: TimedGlyph,
-            },
-          ] as const
-        ).map(({ value, title, blurb, Glyph }) => {
-          const active = mode === value;
-          return (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onMode(value)}
-              className={cn(
-                "cp-lobby-card group flex flex-col items-start gap-2 p-3.5 text-left",
-                active && "cp-lobby-card-active cp-select-pop",
-              )}
-            >
-              <span
-                className={cn("cp-lobby-glyph text-muted-foreground", active && "text-secondary")}
-              >
-                <Glyph />
-              </span>
-              <span className="font-display text-lg font-bold leading-none text-foreground">
-                {title}
-              </span>
-              <span className="font-body text-xs leading-snug text-muted-foreground">{blurb}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Board + challenge: stack on phone, 2-col when lobby container is wide */}
-      <div className="cp-lobby-main flex flex-col gap-5">
-        <section aria-label="Board" className="cp-lobby-panel">
-          <div className="mb-3 flex items-end justify-between gap-2">
-            <h2 className="font-display text-base font-bold text-foreground">Your board</h2>
-            <p className="font-body text-xs text-muted-foreground">
-              {grid}×{grid} · {topology === "square" ? "Square" : "Honeycomb"}
-            </p>
-          </div>
-
-          <div role="group" aria-label="Grid size" className="mb-3 grid grid-cols-3 gap-2">
-            {([4, 5, 6] as const).map((n) => {
-              const active = grid === n;
+    <div className="cp-lobby-setup">
+      <div className="cp-lobby-columns flex flex-col gap-5">
+        {/* Primary: what am I playing (left / first on wide) */}
+        <div className="cp-lobby-primary flex flex-col gap-5">
+          <div role="group" aria-label="Game mode" className="grid grid-cols-2 gap-2.5">
+            {(
+              [
+                {
+                  value: "target" as const,
+                  title: "Goal",
+                  blurb: "Clear the couch",
+                  Glyph: TargetGlyph,
+                },
+                {
+                  value: "timed" as const,
+                  title: "Timed",
+                  blurb: "Beat the clock",
+                  Glyph: TimedGlyph,
+                },
+              ] as const
+            ).map(({ value, title, blurb, Glyph }) => {
+              const active = mode === value;
               return (
                 <button
-                  key={n}
+                  key={value}
                   type="button"
                   aria-pressed={active}
-                  aria-label={`${n} by ${n}`}
-                  onClick={() => onGrid(n)}
+                  onClick={() => onMode(value)}
                   className={cn(
-                    "cp-lobby-tile flex flex-col items-center gap-1.5 py-3",
-                    active && "cp-lobby-tile-active cp-select-pop",
+                    "cp-lobby-card group flex flex-col items-start gap-2 p-3.5 text-left",
+                    active && "cp-lobby-card-active cp-select-pop",
                   )}
                 >
                   <span
@@ -277,95 +261,209 @@ export function HomeSetup({
                       active && "text-secondary",
                     )}
                   >
-                    {topology === "square" ? <SquareMini n={n} /> : <HexMini n={n} />}
+                    <Glyph />
                   </span>
-                  <span className="font-display text-sm font-bold tabular-nums">
-                    {n}×{n}
+                  <span className="font-display text-lg font-bold leading-none text-foreground">
+                    {title}
+                  </span>
+                  <span className="font-body text-xs leading-snug text-muted-foreground">
+                    {blurb}
                   </span>
                 </button>
               );
             })}
           </div>
 
-          <div role="group" aria-label="Shape" className="grid grid-cols-2 gap-2">
-            {(
-              [
-                {
-                  value: "square" as const,
-                  label: "Square",
-                  Icon: () => <SquareMini n={3} />,
-                },
-                {
-                  value: "hex" as const,
-                  label: "Honeycomb",
-                  Icon: () => <HexMini n={3} />,
-                },
-              ] as const
-            ).map(({ value, label, Icon }) => {
-              const active = topology === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => onTopology(value)}
-                  className={cn(
-                    "cp-lobby-chip flex items-center justify-center gap-2 py-2.5",
-                    active && "cp-lobby-chip-active cp-select-pop",
-                  )}
-                >
-                  <span
+          <section aria-label="Board" className="cp-lobby-panel">
+            <div className="mb-3 flex items-end justify-between gap-2">
+              <LobbySectionTitle icon={LayoutGrid}>Your board</LobbySectionTitle>
+              <p className="font-body text-xs text-muted-foreground">
+                {grid}×{grid} · {topology === "square" ? "Square" : "Honeycomb"}
+              </p>
+            </div>
+
+            <div role="group" aria-label="Grid size" className="mb-3 grid grid-cols-3 gap-2">
+              {([4, 5, 6] as const).map((n) => {
+                const active = grid === n;
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    aria-pressed={active}
+                    aria-label={`${n} by ${n}`}
+                    onClick={() => onGrid(n)}
                     className={cn(
-                      "cp-lobby-glyph scale-75 text-muted-foreground",
-                      active && "text-secondary",
+                      "cp-lobby-tile flex flex-col items-center gap-1.5 py-3",
+                      active && "cp-lobby-tile-active cp-select-pop",
                     )}
                   >
-                    <Icon />
-                  </span>
-                  <span className="font-display text-sm font-bold">{label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+                    <span
+                      className={cn(
+                        "cp-lobby-glyph text-muted-foreground",
+                        active && "text-secondary",
+                      )}
+                    >
+                      {topology === "square" ? <SquareMini n={n} /> : <HexMini n={n} />}
+                    </span>
+                    <span className="font-display text-sm font-bold tabular-nums">
+                      {n}×{n}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-        {/* Challenge: difficulty or duration */}
-        <section
-          key={mode}
-          aria-label={mode === "target" ? "Challenge" : "Sprint"}
-          className="cp-lobby-panel cp-option-swap"
-        >
-          <div className="mb-3 flex items-end justify-between gap-2">
-            <h2 className="font-display text-base font-bold text-foreground">
-              {mode === "target" ? "How hard?" : "How long?"}
-            </h2>
-            {mode === "timed" ? (
-              <p className="font-body text-xs text-muted-foreground">{duration}s sprint</p>
-            ) : null}
-          </div>
+            <div role="group" aria-label="Shape" className="grid grid-cols-2 gap-2">
+              {(
+                [
+                  {
+                    value: "square" as const,
+                    label: "Square",
+                    Icon: () => <SquareMini n={3} />,
+                  },
+                  {
+                    value: "hex" as const,
+                    label: "Honeycomb",
+                    Icon: () => <HexMini n={3} />,
+                  },
+                ] as const
+              ).map(({ value, label, Icon }) => {
+                const active = topology === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => onTopology(value)}
+                    className={cn(
+                      "cp-lobby-chip flex items-center justify-center gap-2 py-2.5",
+                      active && "cp-lobby-chip-active cp-select-pop",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "cp-lobby-glyph scale-75 text-muted-foreground",
+                        active && "text-secondary",
+                      )}
+                    >
+                      <Icon />
+                    </span>
+                    <span className="font-display text-sm font-bold">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
 
-          {mode === "target" ? (
-            <div role="group" aria-label="Challenge" className="grid grid-cols-3 gap-2">
-              {DIFFICULTY.map(({ value, label, hint, Icon }) => {
-                const active = difficulty === value;
+          {/* Challenge: difficulty or duration */}
+          <section
+            key={mode}
+            aria-label={mode === "target" ? "Challenge" : "Sprint"}
+            className="cp-lobby-panel cp-option-swap"
+          >
+            <div className="mb-3 flex items-end justify-between gap-2">
+              <LobbySectionTitle icon={mode === "target" ? Gauge : Timer}>
+                {mode === "target" ? "How hard?" : "How long?"}
+              </LobbySectionTitle>
+              {mode === "timed" ? (
+                <p className="font-body text-xs text-muted-foreground">{duration}s sprint</p>
+              ) : null}
+            </div>
+
+            {mode === "target" ? (
+              <div role="group" aria-label="Challenge" className="grid grid-cols-3 gap-2">
+                {DIFFICULTY.map(({ value, label, hint, Icon }) => {
+                  const active = difficulty === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={active}
+                      aria-label={`${label}: ${hint}`}
+                      onClick={() => onDifficulty(value)}
+                      className={cn(
+                        "cp-lobby-challenge flex flex-col items-center gap-1 px-1 py-2.5",
+                        active && "cp-lobby-challenge-active cp-select-pop",
+                        active && value === "hard" && "cp-lobby-challenge-hard",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "cp-lobby-glyph text-muted-foreground",
+                          active &&
+                            (value === "hard" ? "text-secondary-foreground" : "text-secondary"),
+                        )}
+                        aria-hidden
+                      >
+                        <Icon
+                          className="size-5"
+                          strokeWidth={2.25}
+                          fill={active ? "currentColor" : "none"}
+                          fillOpacity={active ? 0.22 : 0}
+                        />
+                      </span>
+                      <span className="font-display text-sm font-bold">{label}</span>
+                      <span className="font-body text-[0.65rem] leading-tight text-muted-foreground">
+                        {hint}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div role="group" aria-label="Sprint length" className="grid grid-cols-4 gap-2">
+                {DURATIONS.map((s) => {
+                  const active = duration === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => onDuration(s)}
+                      className={cn(
+                        "cp-lobby-challenge py-3 font-display text-sm font-bold tabular-nums",
+                        active && "cp-lobby-challenge-active cp-select-pop",
+                      )}
+                    >
+                      {s}s
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* Advanced: fine-tune prefs (right / after primary on wide; quieter) */}
+        <aside className="cp-lobby-advanced flex flex-col gap-5" aria-label="Fine-tune">
+          <p className="cp-lobby-advanced-label">Fine-tune</p>
+
+          <section aria-label="Min length" className="cp-lobby-panel">
+            <div className="mb-3 flex flex-col gap-0.5">
+              <LobbySectionTitle icon={Ruler}>Min length</LobbySectionTitle>
+              <p className="font-body text-xs text-muted-foreground">
+                Only count words this long or longer
+              </p>
+            </div>
+            <div role="group" aria-label="Min length" className="grid grid-cols-3 gap-2">
+              {MIN_LENGTH.map(({ value, label, hint, Icon }) => {
+                const active = minWordLength === value;
                 return (
                   <button
                     key={value}
                     type="button"
                     aria-pressed={active}
                     aria-label={`${label}: ${hint}`}
-                    onClick={() => onDifficulty(value)}
+                    onClick={() => onMinWordLength(value)}
                     className={cn(
                       "cp-lobby-challenge flex flex-col items-center gap-1 px-1 py-2.5",
                       active && "cp-lobby-challenge-active cp-select-pop",
-                      active && value === "hard" && "cp-lobby-challenge-hard",
                     )}
                   >
                     <span
                       className={cn(
                         "cp-lobby-glyph text-muted-foreground",
-                        active &&
-                          (value === "hard" ? "text-secondary-foreground" : "text-secondary"),
+                        active && "text-secondary",
                       )}
                       aria-hidden
                     >
@@ -376,120 +474,51 @@ export function HomeSetup({
                         fillOpacity={active ? 0.22 : 0}
                       />
                     </span>
-                    <span className="font-display text-sm font-bold">{label}</span>
-                    <span className="font-body text-[0.65rem] leading-tight text-muted-foreground">
+                    <span className="font-display text-sm font-bold tabular-nums">{label}</span>
+                    <span className="font-body text-[0.65rem] leading-tight text-muted-foreground text-center">
                       {hint}
                     </span>
                   </button>
                 );
               })}
             </div>
-          ) : (
-            <div role="group" aria-label="Sprint length" className="grid grid-cols-4 gap-2">
-              {DURATIONS.map((s) => {
-                const active = duration === s;
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => onDuration(s)}
-                    className={cn(
-                      "cp-lobby-challenge py-3 font-display text-sm font-bold tabular-nums",
-                      active && "cp-lobby-challenge-active cp-select-pop",
-                    )}
-                  >
-                    {s}s
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      </div>
+          </section>
 
-      {/* Min length + words left: stack on phone, side-by-side when wide */}
-      <div className="cp-lobby-extras flex flex-col gap-5">
-        {/* Min length: same pattern as How hard? */}
-        <section aria-label="Min length" className="cp-lobby-panel">
-          <div className="mb-3 flex flex-col gap-0.5">
-            <h2 className="font-display text-base font-bold text-foreground">Min length</h2>
-            <p className="font-body text-xs text-muted-foreground">
-              Only count words this long or longer
-            </p>
-          </div>
-          <div role="group" aria-label="Min length" className="grid grid-cols-3 gap-2">
-            {MIN_LENGTH.map(({ value, label, hint, Icon }) => {
-              const active = minWordLength === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={active}
-                  aria-label={`${label}: ${hint}`}
-                  onClick={() => onMinWordLength(value)}
-                  className={cn(
-                    "cp-lobby-challenge flex flex-col items-center gap-1 px-1 py-2.5",
-                    active && "cp-lobby-challenge-active cp-select-pop",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "cp-lobby-glyph text-muted-foreground",
-                      active && "text-secondary",
-                    )}
-                    aria-hidden
-                  >
-                    <Icon
-                      className="size-5"
-                      strokeWidth={2.25}
-                      fill={active ? "currentColor" : "none"}
-                      fillOpacity={active ? 0.22 : 0}
-                    />
-                  </span>
-                  <span className="font-display text-sm font-bold tabular-nums">{label}</span>
-                  <span className="font-body text-[0.65rem] leading-tight text-muted-foreground text-center">
-                    {hint}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Words left HUD (default off) */}
-        <label
-          htmlFor="lobby-words-left"
-          className={cn(
-            "cp-lobby-more flex cursor-pointer items-center justify-between gap-3 transition-[border-color,background-color,box-shadow] duration-200",
-            showWordsLeft && "cp-lobby-more-on cp-select-pop",
-          )}
-        >
-          <span className="flex min-w-0 items-start gap-2.5">
-            <Eye
-              className={cn(
-                "cp-lobby-glyph mt-0.5 size-4 shrink-0",
-                showWordsLeft ? "text-secondary-foreground" : "text-muted-foreground",
-              )}
-              strokeWidth={2.25}
-              aria-hidden
-            />
-            <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="font-display text-sm font-bold text-foreground">
-                Show words left
-              </span>
-              <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
-                During play, show a running count of words still to find
+          {/* Words left HUD (default off) */}
+          <label
+            htmlFor="lobby-words-left"
+            className={cn(
+              "cp-lobby-more flex cursor-pointer items-center justify-between gap-3 transition-[border-color,background-color,box-shadow] duration-200",
+              showWordsLeft && "cp-lobby-more-on cp-select-pop",
+            )}
+          >
+            <span className="flex min-w-0 items-start gap-2.5">
+              <Eye
+                className={cn(
+                  LOBBY_SECTION_ICON,
+                  "mt-0.5",
+                  showWordsLeft && "text-secondary-foreground",
+                )}
+                strokeWidth={2.25}
+                aria-hidden
+              />
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="font-display text-sm font-bold text-foreground">
+                  Show words left
+                </span>
+                <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
+                  During play, show a running count of words still to find
+                </span>
               </span>
             </span>
-          </span>
-          <Switch
-            id="lobby-words-left"
-            checked={showWordsLeft}
-            onCheckedChange={onShowWordsLeft}
-            aria-label={`Show words left ${showWordsLeft ? "on" : "off"}`}
-          />
-        </label>
+            <Switch
+              id="lobby-words-left"
+              checked={showWordsLeft}
+              onCheckedChange={onShowWordsLeft}
+              aria-label={`Show words left ${showWordsLeft ? "on" : "off"}`}
+            />
+          </label>
+        </aside>
       </div>
     </div>
   );
@@ -511,36 +540,33 @@ export function HomePlayBar({
   const soundLabel = sound ? "SFX on" : "SFX off";
   const jamLabel = menuMusic ? "Lobby jam on" : "Lobby jam off";
   return (
-    <div
-      className="cp-lobby-play shrink-0 -mx-4 border-t border-border/40 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] px-4 pt-3 backdrop-blur-sm"
-      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))" }}
-    >
-      <div className="flex items-center gap-2">
+    <div className="cp-lobby-play shrink-0 -mx-4 border-t border-border/40 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] px-4 backdrop-blur-sm">
+      <div className="cp-lobby-play-inner flex items-center gap-2">
         <Button size="lg" className="flex-1 text-lg" onClick={onPlay}>
           Play
         </Button>
         <IconTooltip label={jamLabel}>
           <Button
-            variant="secondary"
+            variant="outline"
             size="icon"
             className="h-12 w-12 shrink-0"
             aria-pressed={menuMusic}
             aria-label={jamLabel}
             onClick={onToggleMenuMusic}
           >
-            {menuMusic ? <Music2 /> : <Music className="opacity-40" />}
+            {menuMusic ? <Music2 /> : <Music />}
           </Button>
         </IconTooltip>
         <IconTooltip label={soundLabel}>
           <Button
-            variant="secondary"
+            variant="outline"
             size="icon"
             className="h-12 w-12 shrink-0"
             aria-pressed={sound}
             aria-label={soundLabel}
             onClick={onToggleSound}
           >
-            {sound ? <Volume2 /> : <VolumeX className="opacity-40" />}
+            {sound ? <Volume2 /> : <VolumeX />}
           </Button>
         </IconTooltip>
       </div>
