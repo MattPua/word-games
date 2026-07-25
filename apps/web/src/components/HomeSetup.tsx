@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ALargeSmall,
+  CirclePlay,
   Droplets,
   Eye,
   Gauge,
@@ -579,8 +580,9 @@ export function HomePlayBar({
   const musicLabel = menuMusic ? "Music on" : "Music off";
   return (
     <div className="cp-lobby-play shrink-0 -mx-4 border-t border-border/40 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] px-4 backdrop-blur-sm">
-      <div className="cp-lobby-play-inner flex items-center gap-2">
-        <Button size="lg" className="flex-1 text-lg" onClick={onPlay}>
+      <div className="cp-lobby-play-inner flex items-center gap-4">
+        <Button size="lg" className="flex-1 gap-2.5 text-lg" onClick={onPlay}>
+          <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
           Play
         </Button>
         <IconTooltip label={musicLabel}>
