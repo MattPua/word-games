@@ -14,7 +14,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 ## Game rules (engine owns these)
 
 - Grids 4×4 / 5×5 / 6×6; topology **square** (8-way) or **hex / B-comb** (6-way odd-r); **no tile reuse in one swipe**
-- **Rotate:** same letters, new view — square **90° CW**; hex rect **180°** (lattice-preserving). Physical CSS board spin (~420ms) then remap; clears path + blocks input mid-spin. Glyphs counter-rotate so they stay upright.
+- **Rotate:** same letters, new view — **90°** CW or CCW (separate controls). Physical CSS board spin (~420ms) then remap; clears path + blocks input mid-spin. Glyphs counter-rotate so they stay upright.
 - Tiles stay for the round (reusable across words)
 - Min word length: global floor **3**; per-game setup may raise to **4** or **5**
 - No duplicate words per round
@@ -31,7 +31,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - Web share from results (Web Share API + clipboard fallback)
 - SEO: title/description/OG/Twitter + JSON-LD (`WebApplication` / `VideoGame`)
 - PostHog stub (`VITE_PUBLIC_POSTHOG_KEY`); no-op without key
-- Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** on web only — see `.cursor/skills/cuelume`
+- Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** on web only; mute from **home or play HUD** (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`
 
 ## Stack
 

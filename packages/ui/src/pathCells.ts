@@ -14,7 +14,7 @@ export type LetterGridProps = {
   /** Prefer engine `isAdjacentCells` bound to topology. Defaults to square 8-way. */
   isAdjacent?: (a: Cell, b: Cell) => boolean;
   /**
-   * Visual CW board turn in degrees (square 90, hex 180).
+   * Visual board turn in degrees (±90 per step).
    * Glyphs counter-rotate so letters stay upright.
    */
   boardTurnDeg?: number;

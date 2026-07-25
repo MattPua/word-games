@@ -28,13 +28,15 @@ import {
   type GridTopology,
   type MinWordLength,
 } from "@couch-potato/game-engine";
-import { play } from "cuelume";
+import { play, setEnabled } from "cuelume";
 import { track } from "../analytics";
 import {
   getActiveProfile,
+  loadDevicePrefs,
   loadLaunch,
   recordFinishedRun,
   saveLastRun,
+  setSoundEnabled,
 } from "../storage";
 import { playAcceptedWordSound } from "../wordAcceptSound";
 import { Button } from "@/components/ui/button";
@@ -51,11 +53,13 @@ export function PlayPage() {
   const [flash, setFlash] = useState("");
   const [firstWord, setFirstWord] = useState(true);
   const [celebrate, setCelebrate] = useState(false);
+  const [sound, setSound] = useState(loadDevicePrefs().soundEnabled);
   const [boardTurnDeg, setBoardTurnDeg] = useState(0);
   const [boardTurning, setBoardTurning] = useState(false);
   const finished = useRef(false);
   const rotatingRef = useRef(false);
   const rotateFallbackRef = useRef<number | null>(null);
+  const rotateStepsRef = useRef<1 | -1>(1);
 
   useEffect(() => {
     const minWordLength = (launch.minWordLength ?? 3) as MinWordLength;
@@ -183,8 +187,8 @@ export function PlayPage() {
   const adjacent = (a: Cell, b: Cell) =>
     isAdjacentCells(a, b, state.board.topology);
 
-  const applyRotate = () => {
-    setState((s) => (s ? { ...s, board: rotateBoard(s.board, 1) } : s));
+  const applyRotate = (steps: 1 | -1) => {
+    setState((s) => (s ? { ...s, board: rotateBoard(s.board, steps) } : s));
     play("ready");
   };
 
@@ -196,29 +200,32 @@ export function PlayPage() {
 
   const finishBoardTurn = () => {
     if (!rotatingRef.current) return;
+    const steps = rotateStepsRef.current;
     clearRotateFallback();
-    applyRotate();
+    applyRotate(steps);
     rotatingRef.current = false;
+    rotateStepsRef.current = 1;
     setBoardTurning(false);
     setBoardTurnDeg(0);
   };
 
-  const rotate = () => {
+  const rotate = (dir: 1 | -1) => {
     if (celebrate || rotatingRef.current) return;
     setPath([]);
-    const step = topology === "hex" ? 180 : 90;
+    const stepDeg = dir * 90;
     const reduceMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) {
-      applyRotate();
+      applyRotate(dir);
       return;
     }
     rotatingRef.current = true;
+    rotateStepsRef.current = dir;
     setBoardTurning(true);
     // Ensure the browser applies `is-turning` before the angle changes.
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => setBoardTurnDeg(step));
+      requestAnimationFrame(() => setBoardTurnDeg(stepDeg));
     });
     // Fallback if transitionend is skipped (tab background, etc.).
     clearRotateFallback();
@@ -258,14 +265,31 @@ export function PlayPage() {
             </Text>
           </View>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={celebrate}
-          onClick={() => setState(quitGame(state))}
-        >
-          Quit
-        </Button>
+        <View className="flex-row items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={celebrate}
+            aria-pressed={!sound}
+            aria-label={sound ? "Mute sound" : "Unmute sound"}
+            onClick={() => {
+              const next = !sound;
+              setSound(next);
+              setSoundEnabled(next);
+              setEnabled(next);
+            }}
+          >
+            {sound ? "Sound" : "Muted"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={celebrate}
+            onClick={() => setState(quitGame(state))}
+          >
+            Quit
+          </Button>
+        </View>
       </View>
 
       {remaining != null && target > 0 && (
@@ -322,14 +346,28 @@ export function PlayPage() {
         }
       />
 
-      <Button
-        variant="secondary"
-        className="mt-4 w-full"
-        disabled={celebrate || boardTurning}
-        onClick={rotate}
-      >
-        Rotate board
-      </Button>
+      <div className="mt-4 flex w-full gap-2">
+        <Button
+          variant="secondary"
+          className="flex-1"
+          disabled={celebrate || boardTurning}
+          onClick={() => rotate(-1)}
+          aria-label="Rotate board counter-clockwise"
+          data-testid="rotate-ccw"
+        >
+          Rotate left
+        </Button>
+        <Button
+          variant="secondary"
+          className="flex-1"
+          disabled={celebrate || boardTurning}
+          onClick={() => rotate(1)}
+          aria-label="Rotate board clockwise"
+          data-testid="rotate-cw"
+        >
+          Rotate right
+        </Button>
+      </div>
     </Shell>
   );
 }

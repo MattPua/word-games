@@ -14,7 +14,7 @@ import {
 } from "./game";
 import { isValidPath, wordFromPath } from "./path";
 import { createSeededRng } from "./rng";
-import { rotateLettersCW } from "./rotate";
+import { rotateBoard, rotateLettersCW } from "./rotate";
 import {
   isAdjacent8,
   isAdjacentHex,
@@ -123,14 +123,38 @@ describe("rotate", () => {
     ]);
   });
 
-  it("hex natural step is 180°", () => {
+  it("hex uses the same 90° CW map as square", () => {
     const letters = [
       ["A", "B"],
       ["C", "D"],
     ];
     expect(rotateLettersCW(letters, "hex")).toEqual([
-      ["D", "C"],
-      ["B", "A"],
+      ["C", "A"],
+      ["D", "B"],
+    ]);
+  });
+
+  it("rotateBoard(-1) is 90° CCW", () => {
+    const letters = [
+      ["A", "B"],
+      ["C", "D"],
+    ];
+    expect(
+      rotateBoard(
+        {
+          letters,
+          size: 2,
+          topology: "square",
+          allWords: [],
+          maxScore: 0,
+          targets: { easy: 0, medium: 0, hard: 0 },
+          minWordLength: 3,
+        },
+        -1,
+      ).letters,
+    ).toEqual([
+      ["B", "D"],
+      ["A", "C"],
     ]);
   });
 });

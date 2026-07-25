@@ -10,5 +10,6 @@ apps/mobile/.expo/
 apps/mobile/dist/
 coverage/
 .turbo/
+.playwright-mcp/
 packages/dictionary/data/enable1.txt
 packages/dictionary/data/popular.txt
