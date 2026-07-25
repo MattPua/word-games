@@ -40,14 +40,14 @@ export type HomeSetupProps = {
   onShowWordsLeft: (v: boolean) => void;
 };
 
-/** Growth rings vs 4×4 base: mid = potato gold, outer = sage. */
+/** Growth rings vs 4×4 base: mid = potato gold, outer = soft sage accent. */
 const SIZE_BASE = 4;
 
 function sizeCellFill(r: number, c: number): { fill: string; opacity: number } {
   const ring = Math.max(r, c);
   if (ring < SIZE_BASE) return { fill: "currentColor", opacity: 0.85 };
   if (ring === SIZE_BASE) return { fill: "var(--secondary)", opacity: 1 };
-  return { fill: "var(--primary)", opacity: 1 };
+  return { fill: "var(--accent)", opacity: 1 };
 }
 
 function SquareMini({ n }: { n: number }) {

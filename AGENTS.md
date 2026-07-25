@@ -12,7 +12,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - **Viewport shell:** root `h-dvh` + `Shell` column; scroll in `flex-1 min-h-0 overflow-y-auto cp-shell-scroll` (stable gutter — cards clear the bar); sticky actions (lobby Play) outside the scroller — see `.cursor/rules/ui.mdc`
 - **Motion:** meaningful interactivity should show the change (short CSS/NativeWind transitions — segments, presses, score ticks, screen enters). Whimsical + performant; few intentional motions, not noise; respect `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.
 - **UI inspiration:** [TypeUI](https://www.typeui.sh/) principles (tokens first → hierarchy / type rhythm / interaction feedback) + tactile word-game craft (pillow cream tiles, thick sage board frame, path + select rings, word pill + potato score badge). Keep cream/sage/potato — never purple demo clones. See `.cursor/rules/ui.mdc`.
-- **Copy / voice:** prefer **gaming terminology** (Play, lobby, run, haul, SFX, spin) over sterile app/form words (Submit, Settings, Confirm). Whimsical Couch Potato — clear for casual players, not esports jargon. Icon tooltips match. Details: `.cursor/rules/ui.mdc`.
+- **Copy / voice:** prefer **gaming terminology** (Play, lobby, run, haul, SFX, spin) over sterile app/form words (Submit, Settings, Confirm). Whimsical Couch Potato: clear for casual players, not esports jargon. **No em dashes** in player-facing copy (see `.cursor/rules/ui.mdc`). Icon tooltips match.
 
 ## Game rules (engine owns these)
 
@@ -37,6 +37,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - SEO: title/description/OG/Twitter + JSON-LD (`WebApplication` / `VideoGame`)
 - PostHog stub (`VITE_PUBLIC_POSTHOG_KEY`); no-op without key
 - Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** SFX on web only; mute from **home, play HUD, or pause menu** (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`. **Lobby jam** (`public/audio/menu-bgm.mp3`, `menuMusicEnabled`) loops on home / couch crew / play (quieter bed under SFX on `/play`; fades out on results); Couch break mute/unmute mid-run; separate toggle from SFX
+- **Status pill heat:** primary pts/timer pill escalates muted → sage/`path` → potato `secondary` as Goal clear progress (`1 − remaining/target`) or timed haul (`score/maxScore`); brief pulse on clear/haul; `prefers-reduced-motion` = color only. See `.cursor/rules/ui.mdc` Play HUD.
 - **Words left** HUD (`showWordsLeft` device pref, default **off**): unfound valid words on the board (`allWords − found`), not target pts remaining; toggle in lobby + Couch break only — play HUD shows muted “N left” readout when on (no eye in the HUD cluster)
 - **Chrome icons:** lucide for sound / lobby jam / pause / rotate / couch crew / share (icon or icon+text); words-left eye lives in Couch break + lobby Words left row — not the play HUD cluster. Lobby challenge / word length / words left also get toy lucide glyphs. Always `aria-label` on icon-only; web uses shadcn `IconTooltip` (game voice — see `.cursor/rules/ui.mdc`). Icon-only sizes share `.cp-icon-btn` hover/press/on motion (ui.mdc).
 
