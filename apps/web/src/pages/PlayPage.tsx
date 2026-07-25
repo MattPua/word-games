@@ -41,6 +41,7 @@ import {
   type MinWordLength,
 } from "@couch-potato/game-engine";
 import { play, setEnabled } from "cuelume";
+import { isRejectedWordSubmit, playRejectedWordSound } from "../wordRejectSound";
 import { toast } from "sonner";
 import { track } from "../analytics";
 import { playBoardClearedSound } from "../boardClearSound";
@@ -549,8 +550,8 @@ export function PlayPage() {
                   }
                   setFirstWord(false);
                   setState(next);
-                } else if (result.reason !== "bad_path" && result.reason !== "ended") {
-                  play("error");
+                } else if (isRejectedWordSubmit(result.reason)) {
+                  playRejectedWordSound();
                   setFlash(REJECT_FLASH[result.reason] ?? result.reason);
                   window.setTimeout(() => setFlash(""), 700);
                 }
