@@ -537,7 +537,7 @@ export function HomePlayBar({
   const soundLabel = sound ? "SFX on" : "SFX off";
   const musicLabel = menuMusic ? "Music on" : "Music off";
   return (
-    <div className="cp-lobby-play shrink-0 -mx-4 border-t border-border/40 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] px-4 backdrop-blur-sm">
+    <div className="cp-lobby-play shrink-0 -mx-4 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] px-4 backdrop-blur-sm">
       <div className="cp-lobby-play-inner flex items-center gap-4">
         <Button size="lg" className="flex-1 gap-2.5 text-lg" onClick={onPlay}>
           <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />

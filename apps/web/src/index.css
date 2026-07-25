@@ -1031,9 +1031,30 @@
 
 /* Lobby sticky Play — owns bottom safe-area + shadow room (Shell lobby uses pb-0) */
 .cp-lobby-play {
+  position: relative;
   padding-top: 0.75rem;
   /* 1rem base + safe-area; extra px for toy button drop shadows */
   padding-bottom: max(1.25rem, calc(1rem + env(safe-area-inset-bottom, 0px)));
+}
+
+/* Full-bleed hairline — not tied to the centered inner cluster */
+.cp-lobby-play::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -1rem;
+  right: -1rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .cp-shell.cp-shell-lobby .cp-lobby-play::before {
+    left: 50%;
+    right: auto;
+    width: 100vw;
+    transform: translateX(-50%);
+  }
 }
 
 .cp-shell.cp-shell-lobby {
@@ -1057,8 +1078,14 @@
     0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary));
 }
 
-/* Lobby Play bar: full width on phone; narrower centered cluster on md+ lobby */
+/* Lobby Play bar: full width on phone; full-viewport strip + narrow cluster on md+ lobby */
 @media (min-width: 768px) {
+  .cp-shell.cp-shell-lobby .cp-lobby-play {
+    width: 100vw;
+    max-width: 100vw;
+    margin-inline: calc(50% - 50vw);
+  }
+
   .cp-shell.cp-shell-lobby .cp-lobby-play-inner {
     max-width: 28rem;
     margin-inline: auto;
