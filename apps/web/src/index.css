@@ -501,6 +501,39 @@
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--secondary) 22%, transparent);
   }
 
+  /* Couch break End run — soft chrome, terracotta; quieter than Resume CTA */
+  .cp-end-run-btn {
+    justify-content: flex-start;
+    gap: 0.625rem;
+    min-height: auto;
+    height: auto;
+    padding: 0.65rem 0.85rem;
+    border-radius: calc(var(--radius) - 0.1rem);
+    border: 1.5px solid color-mix(in srgb, var(--destructive) 30%, var(--border));
+    background: color-mix(in srgb, var(--destructive) 6%, var(--muted) 28%);
+    color: var(--destructive);
+    box-shadow: none;
+    font-weight: 700;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.18s ease;
+  }
+
+  .cp-end-run-btn:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--destructive) 48%, var(--border));
+    background: color-mix(in srgb, var(--destructive) 14%, var(--card));
+    color: var(--destructive);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--destructive) 18%, transparent);
+    transform: translateY(-1px);
+  }
+
+  .cp-end-run-btn:active:not(:disabled) {
+    transform: scale(0.98) translateY(0);
+    box-shadow: none;
+  }
+
   .cp-lobby-glyph {
     transition:
       transform 0.18s ease,
@@ -509,6 +542,7 @@
 
   .cp-lobby-challenge:hover .cp-lobby-glyph,
   .cp-pref-row:hover .cp-lobby-glyph,
+  .cp-end-run-btn:hover:not(:disabled) .cp-lobby-glyph,
   .cp-lobby-more:hover .cp-lobby-glyph,
   .cp-lobby-more-summary:hover .cp-lobby-glyph {
     transform: translateY(-1px) scale(1.12);
@@ -516,6 +550,7 @@
 
   .cp-lobby-challenge:active .cp-lobby-glyph,
   .cp-pref-row:active .cp-lobby-glyph,
+  .cp-end-run-btn:active:not(:disabled) .cp-lobby-glyph,
   .cp-lobby-more:active .cp-lobby-glyph {
     transform: scale(0.92);
   }
@@ -798,6 +833,7 @@
     .cp-lobby-chip,
     .cp-lobby-challenge,
     .cp-lobby-glyph,
+    .cp-end-run-btn,
     .cp-lobby-more-panel,
     .cp-lobby-more-summary::after,
     .cp-icon-btn {
@@ -808,6 +844,10 @@
     .cp-lobby-card:active,
     .cp-lobby-challenge:hover .cp-lobby-glyph,
     .cp-pref-row:hover .cp-lobby-glyph,
+    .cp-end-run-btn:hover:not(:disabled),
+    .cp-end-run-btn:active:not(:disabled),
+    .cp-end-run-btn:hover:not(:disabled) .cp-lobby-glyph,
+    .cp-end-run-btn:active:not(:disabled) .cp-lobby-glyph,
     .cp-lobby-more:hover .cp-lobby-glyph,
     .cp-lobby-more-summary:hover .cp-lobby-glyph,
     .cp-icon-btn:hover,

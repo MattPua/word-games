@@ -2,6 +2,7 @@ import { Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  CircleStop,
   Eye,
   Moon,
   Pause,
@@ -687,12 +688,14 @@ export function PlayPage() {
             />
             <Button
               variant="ghost"
-              className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="cp-end-run-btn w-full"
+              data-testid="end-run"
               onClick={() => {
                 closePause();
                 setState(quitGame(state));
               }}
             >
+              <CircleStop className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
               End run
             </Button>
           </div>
