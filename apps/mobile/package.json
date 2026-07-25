@@ -13,10 +13,13 @@
     "@couch-potato/dictionary": "workspace:*",
     "@couch-potato/game-engine": "workspace:*",
     "@couch-potato/ui": "workspace:*",
+    "@expo/metro-runtime": "~6.1.2",
     "expo": "~54.0.0",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
-    "react-native": "0.76.9"
+    "react-dom": "19.1.0",
+    "react-native": "0.76.9",
+    "react-native-web": "^0.21.0"
   },
   "devDependencies": {
     "@types/react": "~19.0.10",
