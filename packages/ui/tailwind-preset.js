@@ -45,7 +45,7 @@ export default {
         "board-frame": "var(--board-frame)",
       },
       fontFamily: {
-        display: ["Grandstander", "system-ui", "sans-serif"],
+        display: ["Pixelify Sans", "system-ui", "sans-serif"],
         body: ["Lexend", "system-ui", "sans-serif"],
       },
       borderRadius: {
