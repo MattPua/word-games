@@ -1,23 +1,18 @@
 import { Text, View } from "react-native";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Moon } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { EmptyState, Shell } from "@couch-potato/ui";
 import { PotatoBoard } from "../components/PotatoBoard";
 import {
   createProfile,
   getActiveProfile,
-  loadDevicePrefs,
   loadStore,
   renameProfile,
   setActiveProfile,
-  setThemePreference,
 } from "../storage";
-import { applyTheme, resolveTheme } from "../theme";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 
 export function ProfilesPage() {
   const navigate = useNavigate();
@@ -26,16 +21,6 @@ export function ProfilesPage() {
   const store = loadStore();
   const active = getActiveProfile();
   const [name, setName] = useState("");
-  const prefs = loadDevicePrefs();
-  const [themePref, setThemePref] = useState(prefs.themePreference);
-  const darkMode = resolveTheme(themePref) === "dark";
-
-  const setDarkModeOn = (next: boolean) => {
-    const pref = next ? "dark" : "light";
-    setThemePref(pref);
-    setThemePreference(pref);
-    applyTheme(pref);
-  };
 
   return (
     <Shell className="cp-shell-scroll overflow-y-auto">
@@ -79,37 +64,6 @@ export function ProfilesPage() {
       )}
 
       <PotatoBoard profile={active} />
-
-      <label
-        htmlFor="crew-dark-mode"
-        className={cn(
-          "cp-pref-row mb-4 flex cursor-pointer items-center justify-between gap-3",
-          darkMode && "cp-pref-row-on cp-select-pop",
-        )}
-      >
-        <span className="flex min-w-0 items-start gap-2.5">
-          <Moon
-            className={cn(
-              "cp-lobby-glyph mt-0.5 size-4 shrink-0",
-              darkMode ? "text-secondary-foreground" : "text-muted-foreground",
-            )}
-            strokeWidth={2.25}
-            aria-hidden
-          />
-          <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="font-display text-sm font-bold text-foreground">Dark mode</span>
-            <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
-              Easier on the eyes for late-night sessions
-            </span>
-          </span>
-        </span>
-        <Switch
-          id="crew-dark-mode"
-          checked={darkMode}
-          onCheckedChange={setDarkModeOn}
-          aria-label={`Dark mode ${darkMode ? "on" : "off"}`}
-        />
-      </label>
 
       <Input
         value={name}
