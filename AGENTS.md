@@ -7,7 +7,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - Name: **Couch Potato** — pixel potato-on-couch PNG (`packages/ui/src/logo.png`; web `/logo.png`)
 - Whimsical **light-first** (+ soft dark); Sage Garden tokens (tweaked); **Grandstander** (display) + **Lexend** (body/tiles)
 - **Color roles:** `primary` = sage (actions, path); `secondary` = potato gold (badges, selected lobby cards, secondary buttons); `accent` = soft sage wash; `muted` = soft sage-gray surfaces. Prefer `bg-secondary` / `text-secondary` over ad-hoc potato hex. See `.cursor/rules/ui.mdc`.
-- Mobile-first; desktop = centered narrow play column
+- Mobile-first; play/results = centered narrow `max-w-md` column; **web lobby** widens on md+ (`cp-shell-lobby` — see `.cursor/rules/ui.mdc`)
 - **Container queries = web-only**; shared layout uses flex + max-width
 - **Viewport shell:** root `h-dvh` + `Shell` column; scroll in `flex-1 min-h-0 overflow-y-auto cp-shell-scroll` (stable gutter — cards clear the bar); sticky actions (lobby Play) outside the scroller — see `.cursor/rules/ui.mdc`
 - **Motion:** meaningful interactivity should show the change (short CSS/NativeWind transitions — segments, presses, score ticks, screen enters). Whimsical + performant; few intentional motions, not noise; respect `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.

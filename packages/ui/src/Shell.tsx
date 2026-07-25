@@ -6,8 +6,9 @@ export type ShellProps = ViewProps & {
 
 /**
  * Mobile-first max-width play column — fills the viewport shell (root `h-dvh`).
- * Lobby: `overflow-hidden` + scrollable main (`flex-1 min-h-0 overflow-y-auto cp-shell-scroll`) +
- * shrink-0 footer. Long pages: pass `overflow-y-auto cp-shell-scroll` (gutter in `theme.css`).
+ * Default `max-w-md` (play / results stay narrow). Web lobby: add `cp-shell-lobby`
+ * (wider md/lg via media in `apps/web` `index.css`) + scroll main + shrink-0 Play.
+ * Long pages: pass `overflow-y-auto cp-shell-scroll` (gutter in `theme.css`).
  */
 export function Shell({ className = "", children, ...rest }: ShellProps) {
   return (

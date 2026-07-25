@@ -63,17 +63,20 @@ export function HomePage() {
   };
 
   return (
-    <Shell className="overflow-hidden pb-0 cp-fade-up">
-      <div className="cp-shell-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain scrollbar-gutter-stable">
-        <View className="mb-4 items-center">
-          <View className="cp-logo-float">
+    <Shell className="cp-shell-lobby overflow-hidden pb-0 cp-fade-up">
+      <div className="cp-shell-scroll cp-lobby min-h-0 flex-1 overflow-y-auto overscroll-contain scrollbar-gutter-stable">
+        <header className="cp-lobby-brand mb-4">
+          <View className="cp-logo-float shrink-0">
             <Logo size={72} />
           </View>
-          <Text className="cp-display mt-2">Couch Potato</Text>
-          <Text className="mt-1 max-w-[18rem] text-center font-body text-sm leading-relaxed text-muted-foreground">
-            Swipe letters. Find words. Stay on the couch.
-          </Text>
-        </View>
+          {/* Native h1/p — RN Text is inline on web and can mash title+tagline */}
+          <div className="cp-lobby-brand-copy">
+            <h1 className="cp-display">Couch Potato</h1>
+            <p className="cp-lobby-tagline">
+              Swipe letters. Find words. Stay on the couch.
+            </p>
+          </div>
+        </header>
 
         <View className="mb-3 flex-row items-center justify-between">
           <Text className="font-body text-sm font-semibold text-foreground">

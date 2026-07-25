@@ -304,6 +304,16 @@
     box-shadow: 0 2px 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
   }
 
+  /* Home lobby tagline — always under wordmark (see unlayered `.cp-lobby-brand`) */
+  .cp-lobby-tagline {
+    margin-top: 0.25rem;
+    max-width: 22rem;
+    font-family: Lexend, system-ui, sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.625;
+    color: var(--muted-foreground);
+  }
+
   /* Home lobby — toy cards / tiles, not form label rows */
   .cp-lobby-card {
     border-radius: var(--radius);
@@ -685,4 +695,83 @@
 /* Long pages scroll the Shell itself — keep left `px-4`, bump right past thumb */
 .cp-shell.cp-shell-scroll {
   padding-inline-end: calc(1rem + 1rem);
+}
+
+/*
+ * Web lobby wide layout (Home only). Shell stays max-w-md by default (play/results).
+ * `.cp-shell-lobby` widens via media; `.cp-lobby` is a container for 2-col setup.
+ */
+@media (min-width: 768px) {
+  .cp-shell.cp-shell-lobby {
+    max-width: 42rem; /* 3xl */
+  }
+}
+
+@media (min-width: 1024px) {
+  .cp-shell.cp-shell-lobby {
+    max-width: 56rem; /* 4xl */
+  }
+}
+
+@media (min-width: 1280px) {
+  .cp-shell.cp-shell-lobby {
+    max-width: 64rem; /* 5xl */
+  }
+}
+
+.cp-lobby {
+  container-type: inline-size;
+  container-name: lobby;
+}
+
+.cp-lobby-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.cp-lobby-brand-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cp-lobby-brand-copy .cp-display {
+  margin-top: 0.5rem;
+}
+
+@container lobby (min-width: 36rem) {
+  .cp-lobby-brand {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1.25rem;
+    text-align: left;
+  }
+
+  .cp-lobby-brand-copy {
+    align-items: flex-start;
+  }
+
+  .cp-lobby-brand-copy .cp-display {
+    margin-top: 0;
+  }
+
+  .cp-lobby-tagline {
+    text-align: left;
+  }
+
+  .cp-lobby-main,
+  .cp-lobby-extras {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: stretch;
+  }
+
+  .cp-lobby-extras .cp-lobby-more {
+    height: 100%;
+    align-self: stretch;
+  }
 }

@@ -26,7 +26,7 @@ type Duration = 30 | 60 | 90 | 120;
 
 const MIN_LENGTH: { value: MinLen; label: string; hint: string; Icon: LucideIcon }[] = [
   { value: 3, label: "3+", hint: "Short words count", Icon: Type },
-  { value: 4, label: "4+", hint: "Mid and up", Icon: WholeWord },
+  { value: 4, label: "4+", hint: "Medium words only", Icon: WholeWord },
   { value: 5, label: "5+", hint: "Longer words only", Icon: ALargeSmall },
 ];
 
