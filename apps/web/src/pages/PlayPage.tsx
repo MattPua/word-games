@@ -121,7 +121,7 @@ function PausePrefRow({
             className={cn(
               "cp-lobby-glyph size-4 shrink-0",
               description && "mt-0.5",
-              checked ? "text-secondary-foreground" : "text-muted-foreground",
+              checked ? "text-secondary" : "text-icon-muted-foreground",
             )}
             strokeWidth={2.25}
             aria-hidden
@@ -472,12 +472,15 @@ export function PlayPage() {
       <View className="mb-3 flex-row items-center justify-between gap-3">
         <View className="min-w-0 flex-1 flex-row items-center gap-3">
           {remaining != null ? (
-            <View className={hudBubbleClass} accessibilityLabel={`${remaining} points to clear`}>
+            <View
+              className={hudBubbleClass}
+              accessibilityLabel={`${remaining} points left to clear`}
+            >
               <Text
                 className="font-display text-lg font-bold leading-none"
                 style={{ color: "inherit" }}
               >
-                {remaining} pts
+                {remaining} pts left
               </Text>
             </View>
           ) : secs != null ? (
@@ -663,11 +666,7 @@ export function PlayPage() {
           </DialogHeader>
 
           <div className="flex flex-col gap-2">
-            <Button
-              data-pause-resume
-              className="w-full justify-start gap-2.5"
-              onClick={closePause}
-            >
+            <Button data-pause-resume className="w-full justify-start gap-2.5" onClick={closePause}>
               <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
               Resume
             </Button>

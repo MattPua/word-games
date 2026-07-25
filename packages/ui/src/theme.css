@@ -11,6 +11,7 @@
  *   secondary = potato gold — warm brand accent (badges, selected lobby cards, secondary buttons)
  *   accent    = soft sage — hover/soft highlight wash (not a second brand)
  *   muted     = soft sage-gray surfaces (chips, segment track, ghost hover)
+ *   --icon-muted-foreground = decorative lobby section/pref glyphs (dark: lifted vs helper muted)
  *   --potato  = alias of secondary (prefer bg-secondary / text-secondary in new code)
  */
 :root {
@@ -26,6 +27,8 @@
   --secondary-foreground: #2c322e;
   --muted: #e8eee6;
   --muted-foreground: #6b756a;
+  /* Decorative section/pref glyphs — same as helper muted in light */
+  --icon-muted-foreground: var(--muted-foreground);
   --accent: #b5c5a0;
   --accent-foreground: #2c322e;
   --destructive: #c45c4a;
@@ -63,6 +66,8 @@
   --secondary-foreground: #1c1f1d;
   --muted: #343a34;
   --muted-foreground: #a8b0a4;
+  /* Section/pref icons sit on darker charcoal panels — lift without washing helper copy */
+  --icon-muted-foreground: color-mix(in srgb, var(--foreground) 72%, var(--muted-foreground));
   --accent: #6a735d;
   --accent-foreground: #eef1ec;
   --destructive: #e07a6a;
@@ -166,6 +171,47 @@
   animation: cp-fade-up 0.45s ease-out both;
 }
 
+.text-icon-muted-foreground {
+  color: var(--icon-muted-foreground);
+}
+
+/* Stagger helpers — pair with `.cp-fade-up` for sequenced screen-enter motion
+   (e.g. results title -> score -> haul -> missed -> CTAs). */
+.cp-stagger-1 {
+  animation-delay: 70ms;
+}
+.cp-stagger-2 {
+  animation-delay: 150ms;
+}
+.cp-stagger-3 {
+  animation-delay: 230ms;
+}
+.cp-stagger-4 {
+  animation-delay: 310ms;
+}
+.cp-stagger-5 {
+  animation-delay: 390ms;
+}
+
+/* Springy scale-pop — score reveal beat; distinct from fade-up (no travel, just a bounce). */
+@keyframes cp-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.cp-pop-in {
+  animation: cp-pop-in 0.5s cubic-bezier(0.34, 1.5, 0.64, 1) both;
+}
+
 @keyframes cp-tile-select {
   0% {
     transform: scale(1);
@@ -185,6 +231,7 @@
 @media (prefers-reduced-motion: reduce) {
   .cp-logo-float,
   .cp-fade-up,
+  .cp-pop-in,
   .cp-tile-selected,
   .cp-tile-drop {
     animation: none;

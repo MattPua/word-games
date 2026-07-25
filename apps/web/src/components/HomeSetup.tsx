@@ -188,7 +188,7 @@ const DIFFICULTY: {
 
 const DURATIONS: Duration[] = [30, 60, 90, 120];
 
-const LOBBY_SECTION_ICON = "cp-lobby-glyph size-4 shrink-0 text-muted-foreground";
+const LOBBY_SECTION_ICON = "cp-lobby-glyph size-4 shrink-0 text-icon-muted-foreground";
 
 function LobbySectionTitle({
   icon: Icon,
@@ -495,11 +495,7 @@ export function HomeSetup({
           >
             <span className="flex min-w-0 items-start gap-2.5">
               <Eye
-                className={cn(
-                  LOBBY_SECTION_ICON,
-                  "mt-0.5",
-                  showWordsLeft && "text-secondary-foreground",
-                )}
+                className={cn(LOBBY_SECTION_ICON, "mt-0.5", showWordsLeft && "text-secondary")}
                 strokeWidth={2.25}
                 aria-hidden
               />

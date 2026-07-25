@@ -91,7 +91,7 @@ export function ProfilesPage() {
           <Moon
             className={cn(
               "cp-lobby-glyph mt-0.5 size-4 shrink-0",
-              darkMode ? "text-secondary-foreground" : "text-muted-foreground",
+              darkMode ? "text-secondary" : "text-icon-muted-foreground",
             )}
             strokeWidth={2.25}
             aria-hidden
