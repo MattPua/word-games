@@ -21,7 +21,7 @@ export function HomePage() {
   const profile = getActiveProfile();
   const [mode, setMode] = useState<"target" | "timed">("target");
   const [grid, setGrid] = useState<4 | 5 | 6>(4);
-  const [topology, setTopology] = useState<"square" | "hex" | "triangle" | "bubbles">("square");
+  const [topology, setTopology] = useState<"square" | "hex">("square");
   const [minWordLength, setMinWordLength] = useState<3 | 4 | 5>(3);
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const [duration, setDuration] = useState<30 | 60 | 90 | 120>(60);
