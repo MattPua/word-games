@@ -1,4 +1,11 @@
-import { useCallback, useRef, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type TransitionEvent as ReactTransitionEvent,
+} from "react";
 import {
   applyPathCell,
   cellKey,
@@ -48,15 +55,29 @@ export function LetterGrid({
   className = "",
   topology = "square",
   isAdjacent: adjacentFn = isAdjacent,
+  boardTurnDeg = 0,
+  boardTurning = false,
+  interactive = true,
+  onBoardTurnEnd,
 }: LetterGridProps) {
   const dragging = useRef(false);
   const pathRef = useRef<Cell[]>([]);
   const pointerId = useRef<number | null>(null);
+  const interactiveRef = useRef(interactive);
+  interactiveRef.current = interactive;
   const selectedSet = new Set(selected.map(cellKey));
   const hex = topology === "hex";
 
+  useEffect(() => {
+    if (interactive) return;
+    dragging.current = false;
+    pointerId.current = null;
+    pathRef.current = [];
+  }, [interactive]);
+
   const touch = useCallback(
     (cell: Cell) => {
+      if (!interactiveRef.current) return;
       const next = applyPathCell(pathRef.current, cell, adjacentFn);
       if (!next) return;
       pathRef.current = next;
@@ -79,6 +100,7 @@ export function LetterGrid({
   }, []);
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!interactiveRef.current) return;
     if (e.button !== 0 && e.pointerType === "mouse") return;
     e.preventDefault();
     dragging.current = true;
@@ -106,9 +128,24 @@ export function LetterGrid({
     } catch {
       /* already released */
     }
+    if (!interactiveRef.current) {
+      pathRef.current = [];
+      return;
+    }
     onPathEnd?.(pathRef.current);
     pathRef.current = [];
   };
+
+  const onSpinTransitionEnd = (e: ReactTransitionEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.propertyName !== "transform") return;
+    if (!boardTurning) return;
+    onBoardTurnEnd?.();
+  };
+
+  const spinStyle = {
+    "--cp-board-turn": `${boardTurnDeg}deg`,
+  } as CSSProperties;
 
   const n = letters.length;
   const connectors =
@@ -153,14 +190,20 @@ export function LetterGrid({
       : null;
 
   return (
-    <div className={`cp-board-frame w-full ${className}`}>
+    <div
+      className={`cp-board-frame cp-board-spin w-full ${boardTurning ? "is-turning" : ""} ${className}`}
+      style={spinStyle}
+      onTransitionEnd={onSpinTransitionEnd}
+    >
       <div
         role="grid"
         aria-label="Letter grid"
+        aria-busy={boardTurning || undefined}
         className={`cp-board-well relative w-full select-none ${hex ? "" : "aspect-square"}`}
         style={{
           touchAction: "none",
           WebkitUserSelect: "none",
+          pointerEvents: interactive ? undefined : "none",
           ...(hex
             ? { aspectRatio: `${n + 0.5} / ${0.75 * (n - 1) + 1}` }
             : null),

@@ -14,7 +14,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 ## Game rules (engine owns these)
 
 - Grids 4×4 / 5×5 / 6×6; topology **square** (8-way) or **hex / B-comb** (6-way odd-r); **no tile reuse in one swipe**
-- **Rotate:** same letters, new view — square **90° CW**; hex rect **180°** (lattice-preserving). Clears in-progress path. Glyphs stay upright.
+- **Rotate:** same letters, new view — square **90° CW**; hex rect **180°** (lattice-preserving). Physical CSS board spin (~420ms) then remap; clears path + blocks input mid-spin. Glyphs counter-rotate so they stay upright.
 - Tiles stay for the round (reusable across words)
 - Min word length: global floor **3**; per-game setup may raise to **4** or **5**
 - No duplicate words per round
@@ -36,6 +36,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 ## Stack
 
 - Bun workspaces (**catalog** for shared dep versions); Vitest; Vite + TanStack Router → Vercel
+- **Dev procs:** `bun run mprocs` → `mprocs.yaml` (web + optional mobile / vitest / dict-build / typecheck)
 - **Web chrome:** prefer **shadcn/ui** (DOM) for buttons/inputs/toasts — Sage Garden tokens + Grandstander/Lexend. Game board stays custom (`LetterGrid`, path, confetti) in `packages/ui`.
 - `packages/ui`: game + shared presentational (grid, loading/empty, logo); RN Button remains for Expo later — **web screens should not add a second hand-rolled chrome Button** once shadcn is wired.
 - Loading / empty / 404–500 voice live in `packages/ui` (`LoadingPotato`, `EmptyState`) + thin web pages

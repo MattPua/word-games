@@ -132,4 +132,9 @@
   .cp-tile-drop {
     animation: none;
   }
+
+  .cp-board-spin.is-turning,
+  .cp-board-spin.is-turning .cp-tile-letter {
+    transition: none;
+  }
 }

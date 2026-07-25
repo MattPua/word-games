@@ -13,6 +13,17 @@ export type LetterGridProps = {
   topology?: GridTopology;
   /** Prefer engine `isAdjacentCells` bound to topology. Defaults to square 8-way. */
   isAdjacent?: (a: Cell, b: Cell) => boolean;
+  /**
+   * Visual CW board turn in degrees (square 90, hex 180).
+   * Glyphs counter-rotate so letters stay upright.
+   */
+  boardTurnDeg?: number;
+  /** When true, CSS-transition `boardTurnDeg` (physical spin). */
+  boardTurning?: boolean;
+  /** When false, ignore pointer path input (e.g. mid-spin). Default true. */
+  interactive?: boolean;
+  /** Fires when a turning transition on the board container ends. */
+  onBoardTurnEnd?: () => void;
 };
 
 export function cellKey(c: Cell) {

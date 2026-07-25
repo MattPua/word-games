@@ -96,6 +96,26 @@
       inset 0 1px 0 color-mix(in srgb, #fff 25%, transparent);
   }
 
+  /* Physical board turn — container spins; glyphs counter-rotate to stay upright. */
+  .cp-board-spin {
+    --cp-board-turn: 0deg;
+    transform: rotate(var(--cp-board-turn));
+    transform-origin: center center;
+    will-change: transform;
+  }
+
+  .cp-board-spin.is-turning {
+    transition: transform 420ms cubic-bezier(0.33, 1, 0.32, 1);
+  }
+
+  .cp-board-spin .cp-tile-letter {
+    transform: rotate(calc(-1 * var(--cp-board-turn)));
+  }
+
+  .cp-board-spin.is-turning .cp-tile-letter {
+    transition: transform 420ms cubic-bezier(0.33, 1, 0.32, 1);
+  }
+
   .cp-board-well {
     border-radius: var(--radius);
     background: var(--board-well);

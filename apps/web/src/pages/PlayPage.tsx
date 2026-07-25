@@ -51,7 +51,11 @@ export function PlayPage() {
   const [flash, setFlash] = useState("");
   const [firstWord, setFirstWord] = useState(true);
   const [celebrate, setCelebrate] = useState(false);
+  const [boardTurnDeg, setBoardTurnDeg] = useState(0);
+  const [boardTurning, setBoardTurning] = useState(false);
   const finished = useRef(false);
+  const rotatingRef = useRef(false);
+  const rotateFallbackRef = useRef<number | null>(null);
 
   useEffect(() => {
     const minWordLength = (launch.minWordLength ?? 3) as MinWordLength;
@@ -179,11 +183,48 @@ export function PlayPage() {
   const adjacent = (a: Cell, b: Cell) =>
     isAdjacentCells(a, b, state.board.topology);
 
-  const rotate = () => {
-    if (celebrate) return;
-    setPath([]);
+  const applyRotate = () => {
     setState((s) => (s ? { ...s, board: rotateBoard(s.board, 1) } : s));
     play("ready");
+  };
+
+  const clearRotateFallback = () => {
+    if (rotateFallbackRef.current == null) return;
+    window.clearTimeout(rotateFallbackRef.current);
+    rotateFallbackRef.current = null;
+  };
+
+  const finishBoardTurn = () => {
+    if (!rotatingRef.current) return;
+    clearRotateFallback();
+    applyRotate();
+    rotatingRef.current = false;
+    setBoardTurning(false);
+    setBoardTurnDeg(0);
+  };
+
+  const rotate = () => {
+    if (celebrate || rotatingRef.current) return;
+    setPath([]);
+    const step = topology === "hex" ? 180 : 90;
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      applyRotate();
+      return;
+    }
+    rotatingRef.current = true;
+    setBoardTurning(true);
+    // Ensure the browser applies `is-turning` before the angle changes.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setBoardTurnDeg(step));
+    });
+    // Fallback if transitionend is skipped (tab background, etc.).
+    clearRotateFallback();
+    rotateFallbackRef.current = window.setTimeout(() => {
+      if (rotatingRef.current) finishBoardTurn();
+    }, 520);
   };
 
   return (
@@ -246,13 +287,18 @@ export function PlayPage() {
         letters={state.board.letters}
         topology={state.board.topology}
         isAdjacent={adjacent}
-        selected={celebrate ? [] : path}
+        selected={celebrate || boardTurning ? [] : path}
         dropping={celebrate}
-        onPathChange={celebrate ? undefined : setPath}
+        boardTurnDeg={boardTurnDeg}
+        boardTurning={boardTurning}
+        interactive={!celebrate && !boardTurning}
+        onBoardTurnEnd={finishBoardTurn}
+        onPathChange={celebrate || boardTurning ? undefined : setPath}
         onPathEnd={
-          celebrate
+          celebrate || boardTurning
             ? undefined
             : (p) => {
+                if (rotatingRef.current) return;
                 const { state: next, result } = submitPath(state, p, dict);
                 setPath([]);
                 if (result.ok) {
@@ -279,7 +325,7 @@ export function PlayPage() {
       <Button
         variant="secondary"
         className="mt-4 w-full"
-        disabled={celebrate}
+        disabled={celebrate || boardTurning}
         onClick={rotate}
       >
         Rotate board
