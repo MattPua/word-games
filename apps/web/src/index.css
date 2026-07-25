@@ -247,14 +247,15 @@
   .cp-tile-active {
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--path) 28%, #fff) 0%,
-      color-mix(in srgb, var(--path) 18%, var(--tile)) 100%
+      var(--tile-select-top) 0%,
+      var(--tile-select-bottom) 100%
     );
     border-color: var(--path);
+    border-width: 2px;
     box-shadow:
-      0 0 0 3px color-mix(in srgb, var(--path) 35%, transparent),
+      0 0 0 3px var(--tile-select-ring),
       0 2px 0 color-mix(in srgb, var(--path) 70%, #2c322e),
-      inset 0 1px 0 color-mix(in srgb, #fff 50%, transparent);
+      inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
     transform: scale(1.02);
   }
 
@@ -264,12 +265,13 @@
   }
 
   .cp-tile-hex.cp-tile-active {
-    border-color: color-mix(in srgb, var(--path) 55%, var(--tile-edge));
+    border-color: var(--path);
+    border-width: 2px;
     box-shadow:
       0 2px 0 color-mix(in srgb, var(--path) 70%, #2c322e),
-      inset 0 1px 0 color-mix(in srgb, #fff 50%, transparent);
-    filter: drop-shadow(0 0 0.6px var(--path)) drop-shadow(0 0 0.6px var(--path))
-      drop-shadow(0 0 1.2px color-mix(in srgb, var(--path) 55%, transparent));
+      inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
+    filter: drop-shadow(0 0 1px var(--path)) drop-shadow(0 0 1px var(--path))
+      drop-shadow(0 0 2px var(--tile-select-ring));
   }
 
   .cp-word-pill {

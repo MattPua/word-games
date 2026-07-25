@@ -180,9 +180,9 @@ export function LetterGrid({
               cx={c.x}
               cy={c.y}
               r={6.5}
-              fill="color-mix(in srgb, var(--path) 28%, transparent)"
+              fill="var(--tile-select-ring)"
               stroke="var(--path)"
-              strokeWidth="2.5"
+              strokeWidth="2.75"
               vectorEffect="non-scaling-stroke"
               opacity="0.9"
             />

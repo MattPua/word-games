@@ -36,6 +36,10 @@
   --path: #5f9e6e;
   --potato: var(--secondary);
   --radius: 1.15rem;
+  /* Selected tile — deeper sage wash + ring (must read clearly vs cream --tile) */
+  --tile-select-top: color-mix(in srgb, var(--path) 42%, #fff);
+  --tile-select-bottom: color-mix(in srgb, var(--path) 36%, var(--tile));
+  --tile-select-ring: color-mix(in srgb, var(--path) 58%, transparent);
   /* Tactile board (cream/sage — not purple clones) */
   --tile: #fff8eb;
   --tile-edge: #e5d9c4;
@@ -69,6 +73,9 @@
   --path: #7cbf88;
   --potato: var(--secondary);
   --radius: 1.15rem;
+  --tile-select-top: color-mix(in srgb, var(--path) 38%, #fff);
+  --tile-select-bottom: color-mix(in srgb, var(--path) 32%, var(--tile));
+  --tile-select-ring: color-mix(in srgb, var(--path) 52%, transparent);
   --tile: #3a403b;
   --tile-edge: #2a2f2b;
   --tile-ink: #eef1ec;
