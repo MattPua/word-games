@@ -493,7 +493,9 @@
     border-bottom: 2px solid var(--muted-foreground);
     transform: rotate(45deg);
     margin-top: -0.15rem;
-    transition: transform 0.22s ease, margin-top 0.22s ease;
+    transition:
+      transform 0.22s ease,
+      margin-top 0.22s ease;
   }
 
   .cp-lobby-more[data-state="open"] .cp-lobby-more-summary::after {

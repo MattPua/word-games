@@ -72,9 +72,7 @@ export function HomePage() {
           {/* Native h1/p — RN Text is inline on web and can mash title+tagline */}
           <div className="cp-lobby-brand-copy">
             <h1 className="cp-display">Couch Potato</h1>
-            <p className="cp-lobby-tagline">
-              Swipe letters. Find words. Stay on the couch.
-            </p>
+            <p className="cp-lobby-tagline">Swipe letters. Find words. Stay on the couch.</p>
           </div>
         </header>
 
