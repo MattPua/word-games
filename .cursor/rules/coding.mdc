@@ -1,0 +1,12 @@
+---
+description: Coding conventions for Couch Potato monorepo
+alwaysApply: true
+---
+
+# Coding
+
+- **TPP DRY**: one authoritative place per piece of knowledge (game rules in engine, theme in `packages/ui`). Knowledge/intent — not line-dedupe.
+- No over-abstraction, no one-export files, no layers “for later.”
+- **Bun** workspaces; **Vitest** for engine/dictionary.
+- Engine owns adjacency, scoring, targets, gen thresholds, accept/reject. UI displays and wires input.
+- Coincidental similar code with different meaning stays separate.

@@ -1,0 +1,13 @@
+---
+description: Shared UI and web styling conventions
+globs: apps/web/**,packages/ui/**
+alwaysApply: false
+---
+
+# UI
+
+- Whimsical light-first (+ soft dark); Fredoka + Nunito; tokens only from `packages/ui` theme.
+- Mobile-first; screens compose UI primitives — minimize one-off Tailwind in routes.
+- **Container queries = web-only.** Cross-platform layout: flex + max-width. No `@container` in pure RN views.
+- Tailwind theme / repeated recipes live in `packages/ui`, not copy-pasted across apps.
+- UI changes require interactive verify (pointer swipe for play) — see `.cursor/skills/verify-ui`.

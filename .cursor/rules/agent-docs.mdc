@@ -1,0 +1,18 @@
+---
+description: Keep AGENTS.md, rules, and skills current when decisions change
+alwaysApply: true
+---
+
+# Living agent docs
+
+When the user changes product rules, stack, or lasting conventions — update docs **in the same turn**.
+
+| Kind | Where |
+|------|--------|
+| Product / game facts | `AGENTS.md` |
+| How to edit code | `.cursor/rules/*.mdc` |
+| Repeatable how-to | `.cursor/skills/*/SKILL.md` |
+
+Don’t let chat be the only record. Don’t duplicate the same paragraph into AGENTS + every rule — link or one-liner + pointer. Skip docs for trivial one-offs.
+
+Skill checklist: `.cursor/skills/sync-agent-docs/SKILL.md`
