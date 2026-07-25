@@ -102,11 +102,14 @@ function PausePrefRow({
           : "border-border bg-card/80 hover:border-primary/40",
       )}
     >
-      <span className="flex min-w-0 items-start gap-2.5">
+      <span
+        className={cn("flex min-w-0 gap-2.5", description ? "items-start" : "items-center")}
+      >
         {Icon ? (
           <Icon
             className={cn(
-              "cp-lobby-glyph mt-0.5 size-4 shrink-0",
+              "cp-lobby-glyph size-4 shrink-0",
+              description && "mt-0.5",
               checked ? "text-secondary-foreground" : "text-muted-foreground",
             )}
             strokeWidth={2.25}
