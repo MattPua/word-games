@@ -5,7 +5,6 @@ import {
   Eye,
   Gauge,
   LayoutGrid,
-  Music,
   Music2,
   Ruler,
   Sofa,
@@ -20,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { IconTooltip } from "@/components/ui/tooltip";
+import { MusicOff } from "@/icons/MusicOff";
 
 type Mode = "target" | "timed";
 type Topology = "square" | "hex";
@@ -554,7 +554,7 @@ export function HomePlayBar({
             aria-label={jamLabel}
             onClick={onToggleMenuMusic}
           >
-            {menuMusic ? <Music2 /> : <Music />}
+            {menuMusic ? <Music2 /> : <MusicOff />}
           </Button>
         </IconTooltip>
         <IconTooltip label={soundLabel}>
