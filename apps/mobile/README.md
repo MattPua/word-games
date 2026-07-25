@@ -4,7 +4,9 @@ Minimal Expo app that imports `@couch-potato/ui`, `@couch-potato/game-engine`, a
 
 ```sh
 bun install
+bun run mobile:web    # agent default — Playwright smoke
+# or
 cd apps/mobile && bun run start
 ```
 
-NativeWind is not wired on Expo yet — the smoke `Button` may be unstyled. Full shared styling comes later.
+See `.cursor/skills/verify-mobile`. NativeWind on Expo comes later.
