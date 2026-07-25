@@ -32,7 +32,9 @@ import {
   type MinWordLength,
 } from "@couch-potato/game-engine";
 import { play, setEnabled } from "cuelume";
+import { toast } from "sonner";
 import { track } from "../analytics";
+import { playBoardClearedSound } from "../boardClearSound";
 import {
   getActiveProfile,
   loadDevicePrefs,
@@ -45,6 +47,7 @@ import {
 import { playAcceptedWordSound } from "../wordAcceptSound";
 
 const WIN_FLOURISH_MS = 1300;
+const BOARD_CLEAR_FLASH_MS = 1400;
 
 const REJECT_FLASH: Record<"short" | "invalid" | "duplicate", string> = {
   short: "Too short",
@@ -68,9 +71,19 @@ export function PlayPage() {
   const [boardTurnDeg, setBoardTurnDeg] = useState(0);
   const [boardTurning, setBoardTurning] = useState(false);
   const finished = useRef(false);
+  const boardClearedRef = useRef(false);
   const rotatingRef = useRef(false);
   const rotateFallbackRef = useRef<number | null>(null);
   const rotateStepsRef = useRef<1 | -1>(1);
+
+  const celebrateBoardClear = () => {
+    if (boardClearedRef.current) return;
+    boardClearedRef.current = true;
+    playBoardClearedSound();
+    toast.success("Board cleared — every word nabbed!");
+    setFlash("BOARD CLEARED!");
+    window.setTimeout(() => setFlash(""), BOARD_CLEAR_FLASH_MS);
+  };
 
   useEffect(() => {
     const minWordLength = (launch.minWordLength ?? 3) as MinWordLength;
@@ -97,7 +110,11 @@ export function PlayPage() {
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;
-    (window as unknown as { __cpForceWin?: () => void }).__cpForceWin = () => {
+    const w = window as unknown as {
+      __cpForceWin?: () => void;
+      __cpForceBoardClear?: () => void;
+    };
+    w.__cpForceWin = () => {
       setState((s) =>
         s
           ? {
@@ -109,8 +126,16 @@ export function PlayPage() {
           : s,
       );
     };
+    w.__cpForceBoardClear = () => {
+      setState((s) => {
+        if (!s || s.board.allWords.length === 0) return s;
+        return { ...s, found: [...s.board.allWords] };
+      });
+      celebrateBoardClear();
+    };
     return () => {
-      delete (window as unknown as { __cpForceWin?: () => void }).__cpForceWin;
+      delete w.__cpForceWin;
+      delete w.__cpForceBoardClear;
     };
   }, []);
 
@@ -168,8 +193,11 @@ export function PlayPage() {
 
     if (s.ended === "won") {
       setCelebrate(true);
-      play("bloom");
-      window.setTimeout(() => play("sparkle"), 180);
+      // Board-clear SFX already covered sparkle/bloom/ready — keep confetti only.
+      if (!boardClearedRef.current) {
+        play("bloom");
+        window.setTimeout(() => play("sparkle"), 180);
+      }
       await new Promise((r) => window.setTimeout(r, WIN_FLOURISH_MS));
     } else {
       play("ready");
@@ -361,15 +389,23 @@ export function PlayPage() {
                     word: result.word,
                     points: result.points,
                   });
-                  playAcceptedWordSound(result.word.length, { firstWord });
+                  const boardCleared =
+                    next.board.allWords.length > 0 &&
+                    next.found.length === next.board.allWords.length;
+                  if (boardCleared) {
+                    celebrateBoardClear();
+                  } else {
+                    playAcceptedWordSound(result.word.length, { firstWord });
+                    setFlash(result.word.toUpperCase());
+                    window.setTimeout(() => setFlash(""), 700);
+                  }
                   setFirstWord(false);
-                  setFlash(result.word.toUpperCase());
                   setState(next);
                 } else if (result.reason !== "bad_path" && result.reason !== "ended") {
                   play("error");
                   setFlash(REJECT_FLASH[result.reason] ?? result.reason);
+                  window.setTimeout(() => setFlash(""), 700);
                 }
-                window.setTimeout(() => setFlash(""), 700);
               }
         }
       />
