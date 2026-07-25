@@ -13,7 +13,7 @@ export const OG_DESCRIPTION = "Swipe adjacent letters. Short sessions. No hints.
 export const CANONICAL_ORIGIN = "https://couch-potato.app";
 export const CANONICAL_URL = `${CANONICAL_ORIGIN}/`;
 
-export const OG_IMAGE = "/og.svg";
+export const OG_IMAGE = "/og.png";
 
 export const JSON_LD_DESCRIPTION = "Casual swipe-to-spell word game on a letter grid.";
 

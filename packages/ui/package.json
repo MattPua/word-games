@@ -8,7 +8,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./theme.css": "./src/theme.css",
-    "./logo.svg": "./src/logo.svg",
+    "./logo.png": "./src/logo.png",
     "./tailwind-preset": "./tailwind-preset.js"
   },
   "scripts": {

@@ -4,7 +4,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 
 ## Brand
 
-- Name: **Couch Potato** — silly potato-on-couch SVG (`packages/ui`)
+- Name: **Couch Potato** — pixel potato-on-couch PNG (`packages/ui/src/logo.png`; web `/logo.png`)
 - Whimsical **light-first** (+ soft dark); Sage Garden tokens (tweaked); **Grandstander** (display) + **Lexend** (body/tiles)
 - **Color roles:** `primary` = sage (actions, path); `secondary` = potato gold (badges, selected lobby cards, secondary buttons); `accent` = soft sage wash; `muted` = soft sage-gray surfaces. Prefer `bg-secondary` / `text-secondary` over ad-hoc potato hex. See `.cursor/rules/ui.mdc`.
 - Mobile-first; desktop = centered narrow play column
