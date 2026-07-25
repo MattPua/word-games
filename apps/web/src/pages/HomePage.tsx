@@ -8,14 +8,12 @@ import {
   setMenuMusicEnabled,
   setShowWordsLeft,
   setSoundEnabled,
-  setThemePreference,
   type PlayLaunch,
 } from "../storage";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { setEnabled } from "cuelume";
 import { applyMenuMusicEnabled } from "../menuMusic";
-import { applyTheme, resolveTheme } from "../theme";
 import { track } from "../analytics";
 import { Button } from "@/components/ui/button";
 import { IconTooltip } from "@/components/ui/tooltip";
@@ -34,7 +32,6 @@ export function HomePage() {
   const [sound, setSound] = useState(prefs.soundEnabled);
   const [menuMusic, setMenuMusic] = useState(prefs.menuMusicEnabled);
   const [showWordsLeft, setShowWordsLeftState] = useState(prefs.showWordsLeft);
-  const [themePref, setThemePref] = useState(prefs.themePreference);
 
   const play = () => {
     const launch: PlayLaunch =
@@ -63,13 +60,6 @@ export function HomePage() {
   const toggleWordsLeft = (next: boolean) => {
     setShowWordsLeftState(next);
     setShowWordsLeft(next);
-  };
-
-  const toggleDarkMode = (next: boolean) => {
-    const pref = next ? "dark" : "light";
-    setThemePref(pref);
-    setThemePreference(pref);
-    applyTheme(pref);
   };
 
   return (
@@ -114,7 +104,6 @@ export function HomePage() {
           difficulty={difficulty}
           duration={duration}
           showWordsLeft={showWordsLeft}
-          darkMode={resolveTheme(themePref) === "dark"}
           onMode={setMode}
           onGrid={setGrid}
           onTopology={setTopology}
@@ -122,7 +111,6 @@ export function HomePage() {
           onDifficulty={setDifficulty}
           onDuration={setDuration}
           onShowWordsLeft={toggleWordsLeft}
-          onDarkMode={toggleDarkMode}
         />
         {/* Spacer so last cards clear the play bar border */}
         <div className="h-4" aria-hidden />

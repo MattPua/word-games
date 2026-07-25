@@ -6,7 +6,6 @@ import {
   Eye,
   Gauge,
   LayoutGrid,
-  Moon,
   Music2,
   Ruler,
   Sofa,
@@ -44,7 +43,6 @@ export type HomeSetupProps = {
   difficulty: Difficulty;
   duration: Duration;
   showWordsLeft: boolean;
-  darkMode: boolean;
   onMode: (v: Mode) => void;
   onGrid: (v: Grid) => void;
   onTopology: (v: Topology) => void;
@@ -52,7 +50,6 @@ export type HomeSetupProps = {
   onDifficulty: (v: Difficulty) => void;
   onDuration: (v: Duration) => void;
   onShowWordsLeft: (v: boolean) => void;
-  onDarkMode: (v: boolean) => void;
 };
 
 /** Growth rings vs 4×4 base: mid = potato gold, outer = soft sage accent. */
@@ -217,7 +214,6 @@ export function HomeSetup({
   difficulty,
   duration,
   showWordsLeft,
-  darkMode,
   onMode,
   onGrid,
   onTopology,
@@ -225,7 +221,6 @@ export function HomeSetup({
   onDifficulty,
   onDuration,
   onShowWordsLeft,
-  onDarkMode,
 }: HomeSetupProps) {
   return (
     <div className="cp-lobby-setup">
@@ -522,39 +517,6 @@ export function HomeSetup({
               checked={showWordsLeft}
               onCheckedChange={onShowWordsLeft}
               aria-label={`Show words left ${showWordsLeft ? "on" : "off"}`}
-            />
-          </label>
-
-          {/* Dark mode (default system) — quiet fine-tune row, not play-bar chrome */}
-          <label
-            htmlFor="lobby-dark-mode"
-            className={cn(
-              "cp-pref-row flex cursor-pointer items-center justify-between gap-3",
-              darkMode && "cp-pref-row-on cp-select-pop",
-            )}
-          >
-            <span className="flex min-w-0 items-start gap-2.5">
-              <Moon
-                className={cn(
-                  LOBBY_SECTION_ICON,
-                  "mt-0.5",
-                  darkMode && "text-secondary-foreground",
-                )}
-                strokeWidth={2.25}
-                aria-hidden
-              />
-              <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="font-display text-sm font-bold text-foreground">Dark mode</span>
-                <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
-                  Easier on the eyes for late-night sessions
-                </span>
-              </span>
-            </span>
-            <Switch
-              id="lobby-dark-mode"
-              checked={darkMode}
-              onCheckedChange={onDarkMode}
-              aria-label={`Dark mode ${darkMode ? "on" : "off"}`}
             />
           </label>
         </aside>
