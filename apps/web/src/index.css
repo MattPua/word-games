@@ -456,26 +456,33 @@
 
   /*
    * Icon-only chrome (Button size icon / icon-sm + IconTooltip triggers).
-   * Hover lift+pop, press squash, aria-pressed on-ring — CSS only; see ui.mdc.
+   * Loud hover lift+pop + potato tint, press squash, aria-pressed ring+pulse.
    * `!important` on transform beats variant hover:-translate utilities (one recipe).
    */
   .cp-icon-btn {
     transform-origin: center;
+    transition:
+      transform 180ms cubic-bezier(0.34, 1.4, 0.64, 1),
+      box-shadow 180ms ease,
+      background-color 160ms ease,
+      color 160ms ease,
+      filter 160ms ease;
   }
 
   .cp-icon-btn[aria-pressed="true"] {
     box-shadow:
       0 0 0 2px var(--background),
-      0 0 0 4px color-mix(in srgb, var(--primary) 65%, transparent),
+      0 0 0 4px color-mix(in srgb, var(--secondary) 70%, var(--primary)),
       0 3px 0 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
   }
 
   .cp-icon-btn[data-variant="ghost"][aria-pressed="true"] {
-    background: color-mix(in srgb, var(--secondary) 28%, var(--muted));
-    color: var(--foreground);
+    background: color-mix(in srgb, var(--secondary) 34%, var(--muted));
+    color: color-mix(in srgb, var(--secondary) 55%, var(--foreground));
     box-shadow:
       0 0 0 2px var(--background),
-      0 0 0 3.5px color-mix(in srgb, var(--secondary) 60%, var(--primary));
+      0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary)),
+      0 2px 0 0 color-mix(in srgb, var(--secondary) 50%, #2c322e);
   }
 }
 
@@ -527,31 +534,48 @@
     100% {
       box-shadow:
         0 0 0 2px var(--background),
-        0 0 0 4px color-mix(in srgb, var(--primary) 55%, transparent),
+        0 0 0 4px color-mix(in srgb, var(--secondary) 55%, var(--primary)),
         0 3px 0 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
     }
     50% {
       box-shadow:
         0 0 0 2px var(--background),
-        0 0 0 5px color-mix(in srgb, var(--secondary) 45%, var(--primary)),
+        0 0 0 6px color-mix(in srgb, var(--secondary) 80%, transparent),
         0 3px 0 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
     }
   }
 
+  /* Hover: fine-pointer only. Press squash always (touch + mouse). */
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .cp-icon-btn:hover:not(:disabled):not(:active) {
-      transform: translateY(-3px) scale(1.08) !important;
+      transform: translateY(-4px) scale(1.12) !important;
+      color: var(--secondary-foreground);
+      filter: brightness(1.06);
     }
 
-    .cp-icon-btn:active:not(:disabled) {
-      transform: translateY(2px) scale(0.9, 0.84) !important;
-      transition-duration: 90ms;
+    .cp-icon-btn[data-variant="ghost"]:hover:not(:disabled):not(:active),
+    .cp-icon-btn[data-variant="outline"]:hover:not(:disabled):not(:active) {
+      color: color-mix(in srgb, var(--secondary) 70%, var(--foreground));
+      background: color-mix(in srgb, var(--secondary) 32%, var(--muted));
+      filter: none;
+    }
+
+    .cp-icon-btn[data-variant="secondary"]:hover:not(:disabled):not(:active) {
+      box-shadow:
+        0 6px 0 0 color-mix(in srgb, var(--secondary) 65%, #2c322e),
+        0 10px 18px -8px color-mix(in srgb, var(--secondary) 55%, transparent);
     }
   }
 
   @media (prefers-reduced-motion: no-preference) {
+    .cp-icon-btn:active:not(:disabled) {
+      transform: translateY(3px) scale(0.88, 0.82) !important;
+      transition-duration: 80ms;
+      filter: brightness(0.97);
+    }
+
     .cp-icon-btn[aria-pressed="true"] {
-      animation: cp-icon-on-pulse 2.6s ease-in-out infinite;
+      animation: cp-icon-on-pulse 2.2s ease-in-out infinite;
     }
   }
 
@@ -566,15 +590,27 @@
     .cp-lobby-tile,
     .cp-lobby-chip,
     .cp-lobby-challenge,
+    .cp-lobby-glyph,
     .cp-icon-btn {
       transition: none;
     }
 
     .cp-lobby-card:hover,
     .cp-lobby-card:active,
+    .cp-lobby-challenge:hover .cp-lobby-glyph,
+    .cp-lobby-more:hover .cp-lobby-glyph,
+    .cp-lobby-more-summary:hover .cp-lobby-glyph,
     .cp-icon-btn:hover,
     .cp-icon-btn:active {
       transform: none !important;
+      filter: none;
+    }
+
+    /* Color/bg feedback still ok without motion */
+    .cp-icon-btn[data-variant="ghost"]:hover:not(:disabled),
+    .cp-icon-btn[data-variant="outline"]:hover:not(:disabled) {
+      color: color-mix(in srgb, var(--secondary) 70%, var(--foreground));
+      background: color-mix(in srgb, var(--secondary) 28%, var(--muted));
     }
   }
 }
