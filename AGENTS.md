@@ -16,7 +16,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 ## Game rules (engine owns these)
 
 - Grids 4×4 / 5×5 / 6×6; topology **square** (8-way) or **hex / B-comb** (6-way odd-r); **no tile reuse in one swipe**
-- **Rotate:** same letters, new view — **90°** CW or CCW (separate controls). Letters-only remap (never re-gen). **Square:** CSS board spin (~300ms) then remap; input locked mid-spin only — unlock on animation end (no extra beat). Glyphs counter-rotate so they stay upright. **Hex / reduced-motion:** instant remap (90° container spin can’t land on odd-r honeycomb).
+- **Rotate:** same letters, new view — **90°** CW or CCW (separate controls). Letters-only remap (never re-gen). **Square:** CSS board spin (~300ms) then remap; input locked mid-spin only — unlock on animation end (no extra beat). Glyphs counter-rotate so they stay upright. **Frame chrome + box-shadow stay on non-rotating `.cp-board-frame`**; only inner `.cp-board-spin` transforms (idle `transition: none` so angle remap doesn’t reverse-spin). **Hex / reduced-motion:** instant remap (90° container spin can’t land on odd-r honeycomb).
 - Tiles stay for the round (reusable across words)
 - Min word length: global floor **3**; per-game setup may raise to **4** or **5**
 - No duplicate words per round
