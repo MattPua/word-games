@@ -1,6 +1,6 @@
 # Couch Potato
 
-Swipe adjacent letters on a square or honeycomb grid. Casual word game — short sessions, fast first success, no hints.
+Swipe adjacent letters on a square or honeycomb grid. Casual word game: short sessions, fast first success, no hints.
 
 ## Brand
 
@@ -12,7 +12,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - **Viewport shell:** root `h-dvh` + `Shell` column; scroll in `flex-1 min-h-0 overflow-y-auto`, sticky actions (lobby Play) outside the scroller — see `.cursor/rules/ui.mdc`
 - **Motion:** meaningful interactivity should show the change (short CSS/NativeWind transitions — segments, presses, score ticks, screen enters). Whimsical + performant; few intentional motions, not noise; respect `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.
 - **UI inspiration:** [TypeUI](https://www.typeui.sh/) principles (tokens first → hierarchy / type rhythm / interaction feedback) + tactile word-game craft (pillow cream tiles, thick sage board frame, path + select rings, word pill + potato score badge). Keep cream/sage/potato — never purple demo clones. See `.cursor/rules/ui.mdc`.
-- **Copy / voice:** prefer **gaming terminology** (Play, lobby, run, haul, SFX, spin) over sterile app/form words (Submit, Settings, Confirm). Whimsical Couch Potato — clear for casual players, not esports jargon. Icon tooltips match. Details: `.cursor/rules/ui.mdc`.
+- **Copy / voice:** prefer **gaming terminology** (Play, lobby, run, haul, SFX, spin) over sterile app/form words (Submit, Settings, Confirm). Whimsical Couch Potato: clear for casual players, not esports jargon. **No em dashes (—)** in player-facing copy (toasts, empty states, titles, tooltips, share blurbs, SEO); use comma, period, or hyphen sparingly. Icon tooltips match. Details: `.cursor/rules/ui.mdc`.
 
 ## Game rules (engine owns these)
 
