@@ -96,9 +96,11 @@
     background: var(--hud-bubble);
   }
 
+  /* Outer chrome only — box-shadow lives here so CSS rotate never twirls the cast shadow. */
   .cp-board-frame {
     border-radius: calc(var(--radius) + 0.55rem);
     padding: 0.7rem;
+    overflow: hidden;
     background: linear-gradient(
       160deg,
       color-mix(in srgb, var(--board-rim) 55%, #fff) 0%,
@@ -110,7 +112,7 @@
       inset 0 1px 0 color-mix(in srgb, #fff 25%, transparent);
   }
 
-  /* Physical board turn — container spins; glyphs counter-rotate to stay upright.
+  /* Physical board turn — inner well spins; glyphs counter-rotate to stay upright.
      Duration must match BOARD_SPIN_MS in PlayPage. Idle `transition: none` avoids
      reverse-spin when remapping (reset angle + letters in one paint). */
   .cp-board-spin {
@@ -188,17 +190,6 @@
     letter-spacing: 0.02em;
   }
 
-  /* Hex select: same box + clip as cream tile — survives larger `--cp-tile-gap`. */
-  .cp-hex-select {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: visible;
-  }
-
   .cp-tile-active {
     background: linear-gradient(
       180deg,
@@ -213,15 +204,18 @@
     transform: scale(1.02);
   }
 
-  /* Hex tiles: clip-path kills square ring; select SVG is a child of the tile. */
+  /* Hex: select = tile face (clip-path). Ring via drop-shadow so it follows the hex, not a square. */
   .cp-tile-hex {
     border-radius: 0;
   }
 
   .cp-tile-hex.cp-tile-active {
+    border-color: color-mix(in srgb, var(--path) 55%, var(--tile-edge));
     box-shadow:
       0 2px 0 color-mix(in srgb, var(--path) 70%, #2c322e),
       inset 0 1px 0 color-mix(in srgb, #fff 50%, transparent);
+    filter: drop-shadow(0 0 0.6px var(--path)) drop-shadow(0 0 0.6px var(--path))
+      drop-shadow(0 0 1.2px color-mix(in srgb, var(--path) 55%, transparent));
   }
 
   .cp-word-pill {

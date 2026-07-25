@@ -1,10 +1,7 @@
 /** Shared odd-r pointy-top hex board metrics (web LetterGrid + tests). */
 
-/** CSS clip-path for cream tiles — same silhouette as on-tile select SVG. */
+/** CSS clip-path for cream tiles — select is the tile face itself when active. */
 export const HEX_CLIP = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
-
-/** Pointy-top hex in tile-local 0–100 space (matches HEX_CLIP). */
-export const HEX_TILE_POINTS = "50,0 100,25 100,75 50,100 0,75 0,25";
 
 /** Board aspect width / height units for an n×n odd-r hex grid. */
 export function hexAspect(n: number): { w: number; h: number } {
