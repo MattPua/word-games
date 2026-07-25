@@ -15,5 +15,6 @@ alwaysApply: false
 - **Web cursors:** lean global rule in `apps/web/src/index.css` (`button`, `[role=button]`, `a[href]`, `summary`, labels/inputs) — don’t sprinkle `cursor-pointer` per class. Letter board: `grab` / `grabbing` while swiping.
 - `packages/ui` RN Button = Expo/RN path; web app chrome → shadcn. Don’t maintain two competing web Buttons.
 - Mobile-first; minimize one-off Tailwind in routes.
+- **Home lobby IA:** toy cards/tiles (`HomeSetup`) — not stacked MODE/GRID label+segment rows. Hierarchy: mode cards → board picker → challenge → collapsed word length → dominant Play.
 - **Container queries = web-only.** Cross-platform layout: flex + max-width. No `@container` in pure RN views.
 - UI changes require interactive verify (pointer swipe for play) — see `.cursor/skills/verify-ui`.

@@ -235,6 +235,128 @@
     font-weight: 700;
     box-shadow: 0 2px 0 color-mix(in srgb, var(--potato) 55%, #2c322e);
   }
+
+  /* Home lobby — toy cards / tiles, not form label rows */
+  .cp-lobby-card {
+    border-radius: var(--radius);
+    border: 1.5px solid color-mix(in srgb, var(--border) 80%, transparent);
+    background: color-mix(in srgb, var(--card) 88%, transparent);
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--border) 70%, transparent);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease,
+      background 0.2s ease;
+  }
+
+  .cp-lobby-card:hover {
+    border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+    transform: translateY(-1px);
+  }
+
+  .cp-lobby-card:active {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  .cp-lobby-card-active {
+    border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+    background: linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--card) 70%, #fff) 0%,
+      color-mix(in srgb, var(--accent) 22%, var(--card)) 100%
+    );
+    box-shadow:
+      0 3px 0 color-mix(in srgb, var(--primary) 45%, #2c322e),
+      0 8px 18px color-mix(in srgb, var(--primary) 18%, transparent);
+  }
+
+  .cp-lobby-panel {
+    border-radius: calc(var(--radius) + 0.15rem);
+    padding: 0.9rem;
+    background: color-mix(in srgb, var(--card) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
+  }
+
+  .cp-lobby-tile,
+  .cp-lobby-chip,
+  .cp-lobby-challenge {
+    border-radius: calc(var(--radius) - 0.25rem);
+    border: 1.5px solid transparent;
+    background: color-mix(in srgb, var(--secondary) 70%, transparent);
+    color: var(--foreground);
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease,
+      background 0.18s ease,
+      border-color 0.18s ease;
+  }
+
+  .cp-lobby-tile:hover,
+  .cp-lobby-chip:hover,
+  .cp-lobby-challenge:hover {
+    background: color-mix(in srgb, var(--secondary) 95%, var(--card));
+  }
+
+  .cp-lobby-tile:active,
+  .cp-lobby-chip:active,
+  .cp-lobby-challenge:active {
+    transform: scale(0.97);
+  }
+
+  .cp-lobby-tile-active,
+  .cp-lobby-chip-active,
+  .cp-lobby-challenge-active {
+    background: var(--card);
+    border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+    box-shadow:
+      0 2px 0 color-mix(in srgb, var(--primary) 35%, #2c322e),
+      0 6px 12px color-mix(in srgb, var(--primary) 12%, transparent);
+  }
+
+  .cp-lobby-challenge-hard {
+    border-color: color-mix(in srgb, var(--potato) 55%, var(--border));
+    background: color-mix(in srgb, var(--potato) 28%, var(--card));
+    box-shadow:
+      0 2px 0 color-mix(in srgb, var(--potato) 55%, #2c322e),
+      0 6px 12px color-mix(in srgb, var(--potato) 18%, transparent);
+  }
+
+  .cp-lobby-more {
+    border-radius: calc(var(--radius) - 0.2rem);
+    border: 1px dashed color-mix(in srgb, var(--border) 90%, transparent);
+    background: color-mix(in srgb, var(--muted) 45%, transparent);
+    padding: 0.65rem 0.85rem;
+  }
+
+  .cp-lobby-more-summary {
+    display: flex;
+    cursor: pointer;
+    list-style: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .cp-lobby-more-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .cp-lobby-more-summary::after {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    flex-shrink: 0;
+    border-right: 2px solid var(--muted-foreground);
+    border-bottom: 2px solid var(--muted-foreground);
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+  }
+
+  .cp-lobby-more[open] .cp-lobby-more-summary::after {
+    transform: rotate(225deg);
+    margin-top: 0.25rem;
+  }
 }
 
 @layer utilities {
@@ -273,6 +395,18 @@
     .cp-option-swap,
     .cp-select-pop {
       animation: none;
+    }
+
+    .cp-lobby-card,
+    .cp-lobby-tile,
+    .cp-lobby-chip,
+    .cp-lobby-challenge {
+      transition: none;
+    }
+
+    .cp-lobby-card:hover,
+    .cp-lobby-card:active {
+      transform: none;
     }
   }
 }

@@ -26,6 +26,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 
 ## Product surface
 
+- **Home setup = game lobby** (not a settings form): mode as choice cards; board as visual grid/shape tiles; difficulty/duration as one expressive control; min word length collapsed under “Word length.” Play dominates. See `.cursor/rules/ui.mdc`.
 - Local profiles only (no cloud/export/sync); high scores per profile × grid × **topology** × mode × difficulty/duration
 - **Potato Board** (personal local stats on Profiles): games/words totals, bests with timestamps, recent runs (last 20). Not a cloud leaderboard. (“Alita Board” speech → this.)
 - Web share from results (Web Share API + clipboard fallback)

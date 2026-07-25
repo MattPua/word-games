@@ -12,7 +12,7 @@ import { useState } from "react";
 import { setEnabled } from "cuelume";
 import { track } from "../analytics";
 import { Button } from "@/components/ui/button";
-import { SegmentGroup } from "@/components/SegmentGroup";
+import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -46,18 +46,18 @@ export function HomePage() {
 
   return (
     <Shell className="cp-fade-up">
-      <View className="mb-8 items-center">
+      <View className="mb-6 items-center">
         <View className="cp-logo-float">
-          <Logo size={128} />
+          <Logo size={112} />
         </View>
-        <Text className="cp-display mt-4">Couch Potato</Text>
-        <Text className="mt-2 max-w-[18rem] text-center font-body text-base leading-relaxed text-muted-foreground">
+        <Text className="cp-display mt-3">Couch Potato</Text>
+        <Text className="mt-1.5 max-w-[18rem] text-center font-body text-sm leading-relaxed text-muted-foreground">
           Swipe letters. Find words. Stay on the couch.
         </Text>
       </View>
 
-      <View className="mb-5 flex-row items-center justify-between">
-        <Text className="font-body text-base font-semibold text-foreground">
+      <View className="mb-4 flex-row items-center justify-between">
+        <Text className="font-body text-sm font-semibold text-foreground">
           Playing as {profile.name}
         </Text>
         <Button
@@ -69,83 +69,26 @@ export function HomePage() {
         </Button>
       </View>
 
-      <Text className="cp-section-label">Mode</Text>
-      <SegmentGroup
-        value={mode}
-        onChange={setMode}
-        options={[
-          { value: "target", label: "Target" },
-          { value: "timed", label: "Timed" },
-        ]}
+      <HomeSetup
+        mode={mode}
+        grid={grid}
+        topology={topology}
+        minWordLength={minWordLength}
+        difficulty={difficulty}
+        duration={duration}
+        onMode={setMode}
+        onGrid={setGrid}
+        onTopology={setTopology}
+        onMinWordLength={setMinWordLength}
+        onDifficulty={setDifficulty}
+        onDuration={setDuration}
       />
 
-      <Text className="cp-section-label">Grid</Text>
-      <SegmentGroup
-        value={grid}
-        onChange={setGrid}
-        options={[
-          { value: 4, label: "4×4" },
-          { value: 5, label: "5×5" },
-          { value: 6, label: "6×6" },
-        ]}
+      <HomePlayBar
+        onPlay={play}
+        sound={sound}
+        onToggleSound={toggleSound}
       />
-
-      <Text className="cp-section-label">Shape</Text>
-      <SegmentGroup
-        value={topology}
-        onChange={setTopology}
-        options={[
-          { value: "square", label: "Square" },
-          { value: "hex", label: "B-comb" },
-        ]}
-      />
-
-      <Text className="cp-section-label">Min length</Text>
-      <SegmentGroup
-        value={minWordLength}
-        onChange={setMinWordLength}
-        options={[
-          { value: 3, label: "3+" },
-          { value: 4, label: "4+" },
-          { value: 5, label: "5+" },
-        ]}
-      />
-
-      {mode === "target" ? (
-        <div key="target" className="cp-option-swap">
-          <Text className="cp-section-label">Difficulty</Text>
-          <SegmentGroup
-            value={difficulty}
-            onChange={setDifficulty}
-            options={[
-              { value: "easy", label: "Easy" },
-              { value: "medium", label: "Medium" },
-              { value: "hard", label: "Hard" },
-            ]}
-          />
-        </div>
-      ) : (
-        <div key="timed" className="cp-option-swap">
-          <Text className="cp-section-label">Duration</Text>
-          <SegmentGroup
-            value={duration}
-            onChange={setDuration}
-            options={[
-              { value: 30, label: "30s" },
-              { value: 60, label: "60s" },
-              { value: 90, label: "90s" },
-              { value: 120, label: "120s" },
-            ]}
-          />
-        </div>
-      )}
-
-      <Button size="lg" className="mb-3 mt-2 w-full" onClick={play}>
-        Play
-      </Button>
-      <Button variant="secondary" className="w-full" onClick={toggleSound}>
-        {sound ? "Sound on" : "Sound off"}
-      </Button>
     </Shell>
   );
 }
