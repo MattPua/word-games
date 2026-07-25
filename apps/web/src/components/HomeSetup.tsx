@@ -18,12 +18,14 @@ export type HomeSetupProps = {
   minWordLength: MinLen;
   difficulty: Difficulty;
   duration: Duration;
+  showWordsLeft: boolean;
   onMode: (v: Mode) => void;
   onGrid: (v: Grid) => void;
   onTopology: (v: Topology) => void;
   onMinWordLength: (v: MinLen) => void;
   onDifficulty: (v: Difficulty) => void;
   onDuration: (v: Duration) => void;
+  onShowWordsLeft: (v: boolean) => void;
 };
 
 function SquareMini({ n }: { n: number }) {
@@ -155,12 +157,14 @@ export function HomeSetup({
   minWordLength,
   difficulty,
   duration,
+  showWordsLeft,
   onMode,
   onGrid,
   onTopology,
   onMinWordLength,
   onDifficulty,
   onDuration,
+  onShowWordsLeft,
 }: HomeSetupProps) {
   return (
     <div className="flex flex-col gap-5">
@@ -195,7 +199,10 @@ export function HomeSetup({
               )}
             >
               <span
-                className={cn("text-muted-foreground transition-colors", active && "text-secondary")}
+                className={cn(
+                  "text-muted-foreground transition-colors",
+                  active && "text-secondary",
+                )}
               >
                 <Glyph />
               </span>
@@ -367,6 +374,46 @@ export function HomeSetup({
             ]}
             className="mb-0"
           />
+        </div>
+      </details>
+
+      {/* Scout — words-left HUD (discovery default = off) */}
+      <details className="cp-lobby-more group">
+        <summary className="cp-lobby-more-summary">
+          <span className="font-display text-sm font-bold text-foreground">Scout</span>
+          <span className="font-body text-xs text-muted-foreground">
+            {showWordsLeft ? "Words left on" : "Words left off"}
+          </span>
+        </summary>
+        <div className="pt-3">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={showWordsLeft}
+            aria-label={
+              showWordsLeft ? "Hide words left on the run HUD" : "Show words left on the run HUD"
+            }
+            onClick={() => onShowWordsLeft(!showWordsLeft)}
+            className={cn(
+              "cp-lobby-chip flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left",
+              showWordsLeft && "cp-lobby-chip-active cp-select-pop",
+            )}
+          >
+            <span className="flex flex-col gap-0.5">
+              <span className="font-display text-sm font-bold text-foreground">Words left</span>
+              <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
+                How many unfound words are still on the board
+              </span>
+            </span>
+            <span
+              className={cn(
+                "font-display text-xs font-bold tabular-nums",
+                showWordsLeft ? "text-secondary-foreground" : "text-muted-foreground",
+              )}
+            >
+              {showWordsLeft ? "On" : "Off"}
+            </span>
+          </button>
         </div>
       </details>
     </div>

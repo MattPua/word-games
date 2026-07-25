@@ -5,6 +5,7 @@ import {
   getActiveProfile,
   loadDevicePrefs,
   saveLaunch,
+  setShowWordsLeft,
   setSoundEnabled,
   type PlayLaunch,
 } from "../storage";
@@ -26,6 +27,7 @@ export function HomePage() {
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const [duration, setDuration] = useState<30 | 60 | 90 | 120>(60);
   const [sound, setSound] = useState(loadDevicePrefs().soundEnabled);
+  const [showWordsLeft, setShowWordsLeftState] = useState(loadDevicePrefs().showWordsLeft);
 
   const play = () => {
     const launch: PlayLaunch =
@@ -42,6 +44,11 @@ export function HomePage() {
     setSound(next);
     setSoundEnabled(next);
     setEnabled(next);
+  };
+
+  const toggleWordsLeft = (next: boolean) => {
+    setShowWordsLeftState(next);
+    setShowWordsLeft(next);
   };
 
   return (
@@ -79,12 +86,14 @@ export function HomePage() {
         minWordLength={minWordLength}
         difficulty={difficulty}
         duration={duration}
+        showWordsLeft={showWordsLeft}
         onMode={setMode}
         onGrid={setGrid}
         onTopology={setTopology}
         onMinWordLength={setMinWordLength}
         onDifficulty={setDifficulty}
         onDuration={setDuration}
+        onShowWordsLeft={toggleWordsLeft}
       />
 
       <HomePlayBar onPlay={play} sound={sound} onToggleSound={toggleSound} />

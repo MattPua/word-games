@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
+import { Eye, EyeOff, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
 import {
   ConfettiBurst,
   LetterGrid,
@@ -39,6 +39,7 @@ import {
   loadLaunch,
   recordFinishedRun,
   saveLastRun,
+  setShowWordsLeft,
   setSoundEnabled,
 } from "../storage";
 import { playAcceptedWordSound } from "../wordAcceptSound";
@@ -61,7 +62,9 @@ export function PlayPage() {
   const [flash, setFlash] = useState("");
   const [firstWord, setFirstWord] = useState(true);
   const [celebrate, setCelebrate] = useState(false);
-  const [sound, setSound] = useState(loadDevicePrefs().soundEnabled);
+  const prefs = useMemo(() => loadDevicePrefs(), []);
+  const [sound, setSound] = useState(prefs.soundEnabled);
+  const [showWordsLeft, setShowWordsLeftState] = useState(prefs.showWordsLeft);
   const [boardTurnDeg, setBoardTurnDeg] = useState(0);
   const [boardTurning, setBoardTurning] = useState(false);
   const finished = useRef(false);
@@ -187,6 +190,7 @@ export function PlayPage() {
   const wordPoints = scoreWord(currentWord.length);
   const target = state.target ?? 0;
   const remaining = state.remaining;
+  const wordsLeft = state.board.allWords.length - state.found.length;
   const secs = state.remainingMs != null ? Math.ceil(state.remainingMs / 1000) : null;
   const adjacent = (a: Cell, b: Cell) => isAdjacentCells(a, b, state.board.topology);
 
@@ -242,25 +246,55 @@ export function PlayPage() {
       <ConfettiBurst active={celebrate} durationMs={WIN_FLOURISH_MS} />
 
       <View className="mb-4 flex-row items-center justify-between gap-2">
-        {remaining != null ? (
-          <View className="cp-hud-bubble">
-            <Text className="font-display text-lg font-bold text-foreground">{remaining} left</Text>
-          </View>
-        ) : (
-          <View className="cp-hud-bubble">
-            <Text className="font-display text-lg font-bold text-foreground">{state.score}</Text>
-          </View>
-        )}
-        {secs != null ? (
-          <View className="cp-hud-bubble">
-            <Text className="font-display text-lg font-bold text-foreground">{secs}s</Text>
-          </View>
-        ) : (
-          <View className="cp-hud-bubble min-w-[4.5rem]">
-            <Text className="font-display text-lg font-bold text-secondary">{state.score}</Text>
-          </View>
-        )}
+        <View className="min-w-0 flex-1 flex-row flex-wrap items-center gap-2">
+          {remaining != null ? (
+            <View className="cp-hud-bubble" accessibilityLabel={`${remaining} points to clear`}>
+              <Text className="font-display text-lg font-bold text-foreground">
+                {remaining} pts
+              </Text>
+            </View>
+          ) : (
+            <View className="cp-hud-bubble" accessibilityLabel={`Haul ${state.score}`}>
+              <Text className="font-display text-lg font-bold text-foreground">{state.score}</Text>
+            </View>
+          )}
+          {showWordsLeft ? (
+            <View
+              className="cp-hud-bubble"
+              accessibilityLabel={`${wordsLeft} words left on the board`}
+            >
+              <Text className="font-display text-lg font-bold text-foreground">
+                {wordsLeft} words
+              </Text>
+            </View>
+          ) : null}
+          {secs != null ? (
+            <View className="cp-hud-bubble">
+              <Text className="font-display text-lg font-bold text-foreground">{secs}s</Text>
+            </View>
+          ) : remaining != null ? (
+            <View className="cp-hud-bubble min-w-[4.5rem]">
+              <Text className="font-display text-lg font-bold text-secondary">{state.score}</Text>
+            </View>
+          ) : null}
+        </View>
         <View className="flex-row items-center gap-1">
+          <IconTooltip label={showWordsLeft ? "Hide words left" : "Show words left"}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              disabled={celebrate}
+              aria-pressed={showWordsLeft}
+              aria-label={showWordsLeft ? "Hide words left" : "Show words left"}
+              onClick={() => {
+                const next = !showWordsLeft;
+                setShowWordsLeftState(next);
+                setShowWordsLeft(next);
+              }}
+            >
+              {showWordsLeft ? <Eye /> : <EyeOff />}
+            </Button>
+          </IconTooltip>
           <IconTooltip label={sound ? "Mute SFX" : "Unmute SFX"}>
             <Button
               variant="ghost"

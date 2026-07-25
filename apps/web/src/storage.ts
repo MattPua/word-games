@@ -31,8 +31,18 @@ export type Profile = {
 
 export type DevicePrefs = {
   soundEnabled: boolean;
+  /** Unfound valid words on the board (not target pts remaining). Default off = discovery. */
+  showWordsLeft: boolean;
   activeProfileId: string;
 };
+
+function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string }): DevicePrefs {
+  return {
+    soundEnabled: prefs.soundEnabled ?? true,
+    showWordsLeft: prefs.showWordsLeft ?? false,
+    activeProfileId: prefs.activeProfileId ?? "",
+  };
+}
 
 export type StoredBlob = {
   profiles: Profile[];
@@ -87,7 +97,7 @@ export function defaultBlob(): StoredBlob {
         wordsFound: 0,
       },
     ],
-    prefs: { soundEnabled: true, activeProfileId: id },
+    prefs: { soundEnabled: true, showWordsLeft: false, activeProfileId: id },
   };
 }
 
@@ -100,10 +110,12 @@ export function loadStore(): StoredBlob {
       return blob;
     }
     const parsed = JSON.parse(raw) as StoredBlob;
-    return {
-      prefs: parsed.prefs,
-      profiles: (parsed.profiles ?? []).map((p) => normalizeProfile(p as Profile)),
-    };
+    const prefs = normalizePrefs(parsed.prefs ?? { activeProfileId: "" });
+    const profiles = (parsed.profiles ?? []).map((p) => normalizeProfile(p as Profile));
+    if (!prefs.activeProfileId && profiles[0]) {
+      prefs.activeProfileId = profiles[0].id;
+    }
+    return { prefs, profiles };
   } catch {
     return defaultBlob();
   }
@@ -188,6 +200,12 @@ export function recordFinishedRun(input: {
 export function setSoundEnabled(enabled: boolean) {
   const store = loadStore();
   store.prefs.soundEnabled = enabled;
+  saveStore(store);
+}
+
+export function setShowWordsLeft(enabled: boolean) {
+  const store = loadStore();
+  store.prefs.showWordsLeft = enabled;
   saveStore(store);
 }
 
