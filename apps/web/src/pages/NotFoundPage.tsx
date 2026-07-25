@@ -7,17 +7,20 @@ import { Button } from "@/components/ui/button";
 export function NotFoundPage() {
   const navigate = useNavigate();
   return (
-    <Shell className="items-center justify-center">
-      <Logo size={100} />
-      <Text className="mt-4 font-display text-5xl text-primary">404</Text>
-      <EmptyState
-        title="Lost behind the couch cushions"
-        body="That page isn't in this living room. Maybe it rolled under the sofa."
-        className="mt-2"
-      />
-      <Button className="mt-2 w-full" onClick={() => navigate({ to: "/" })}>
-        Back to lobby
-      </Button>
+    <Shell className="overflow-y-auto">
+      {/* min-h-full + justify-center: centers when short, scrolls when tall */}
+      <div className="flex min-h-full w-full shrink-0 flex-col items-center justify-center">
+        <Logo size={100} />
+        <Text className="mt-4 font-display text-5xl text-primary">404</Text>
+        <EmptyState
+          title="Lost behind the couch cushions"
+          body="That page isn't in this living room. Maybe it rolled under the sofa."
+          className="mt-2"
+        />
+        <Button className="mt-2 w-full" onClick={() => navigate({ to: "/" })}>
+          Back to lobby
+        </Button>
+      </div>
     </Shell>
   );
 }
