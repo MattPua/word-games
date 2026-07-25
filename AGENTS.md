@@ -57,6 +57,8 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 
 TPP DRY: one authoritative place per piece of knowledge. No over-abstraction, no one-export files. Engine decides; UI displays. Format with `oxfmt`; lint with `oxlint` (see `.cursor/rules/coding.mdc`).
 
+**Commits:** [Conventional Commits](https://www.conventionalcommits.org/) — imperative subject, concise. Types: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`, `chore:`; optional scope: `feat(engine):`, `fix(play):`. Examples: `fix(play): stop last-catch from shrinking the board`; `feat(engine): vary board letters by difficulty`; `docs: document shared chrome-devtools browser`; `style(ui): remove hard bezel from switch rows`. Don't rewrite history to fix old messages.
+
 ## Agent UI verification (required)
 
 UI work is **not done** until interactively verified in a running local app (pointer swipe across tiles — not click-only). See `.cursor/skills/verify-ui`. Engine-only → Vitest; UI → Vitest **and** interactive check.

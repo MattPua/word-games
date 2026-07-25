@@ -13,3 +13,4 @@ alwaysApply: true
 - Engine owns adjacency, scoring, targets, gen thresholds, accept/reject. UI displays and wires input.
 - Player-facing copy: game voice (see `ui.mdc` / `AGENTS.md`) — not sterile form labels.
 - Coincidental similar code with different meaning stays separate.
+- **Commits:** Conventional Commits (authoritative detail in `AGENTS.md` Code style) — `feat:`, `fix:`, `docs:`, etc.; optional scope; imperative subject.
