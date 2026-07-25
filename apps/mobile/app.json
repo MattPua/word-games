@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Couch Potato",
+    "slug": "couch-potato",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f8f7f4"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.couchpotato.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#f8f7f4"
+      },
+      "package": "app.couchpotato.mobile"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@couch-potato/ui": ["../../packages/ui/src"],
+      "@couch-potato/game-engine": ["../../packages/game-engine/src"],
+      "@couch-potato/dictionary": ["../../packages/dictionary/src"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}

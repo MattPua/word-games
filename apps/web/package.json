@@ -21,7 +21,6 @@
     "posthog-js": "^1.232.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-native": "npm:react-native-web@^0.19.13",
     "react-native-web": "^0.19.13"
   },
   "devDependencies": {
