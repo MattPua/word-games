@@ -7,13 +7,11 @@ import {
   setSoundEnabled,
   type PlayLaunch,
 } from "../storage";
-import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { setEnabled } from "cuelume";
 import { track } from "../analytics";
 
 export function HomePage() {
-  const navigate = useNavigate();
   const profile = getActiveProfile();
   const [mode, setMode] = useState<"target" | "timed">("target");
   const [grid, setGrid] = useState<4 | 5 | 6>(4);
@@ -22,6 +20,7 @@ export function HomePage() {
   );
   const [duration, setDuration] = useState<30 | 60 | 90 | 120>(60);
   const [sound, setSound] = useState(loadDevicePrefs().soundEnabled);
+  const [readyHint, setReadyHint] = useState("");
 
   const play = () => {
     const launch: PlayLaunch =
@@ -30,7 +29,7 @@ export function HomePage() {
         : { mode, grid, duration };
     saveLaunch(launch);
     track("game_started", { mode, grid });
-    navigate({ to: "/play" });
+    setReadyHint("Play route ships next — settings saved.");
   };
 
   const toggleSound = () => {
@@ -52,16 +51,9 @@ export function HomePage() {
         </Text>
       </View>
 
-      <View className="mb-4 flex-row items-center justify-between">
-        <Text className="font-body text-base text-foreground">
-          Playing as {profile.name}
-        </Text>
-        <Button
-          label="Profiles"
-          variant="ghost"
-          onPress={() => navigate({ to: "/profiles" })}
-        />
-      </View>
+      <Text className="mb-4 font-body text-base text-foreground">
+        Playing as {profile.name}
+      </Text>
 
       <Text className="mb-2 font-display text-lg text-foreground">Mode</Text>
       <View className="mb-4 flex-row gap-2">
@@ -134,6 +126,11 @@ export function HomePage() {
         variant="secondary"
         onPress={toggleSound}
       />
+      {readyHint ? (
+        <Text className="mt-3 text-center font-body text-muted-foreground">
+          {readyHint}
+        </Text>
+      ) : null}
     </Shell>
   );
 }
