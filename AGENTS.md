@@ -32,12 +32,14 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - Web share from results (Web Share API + clipboard fallback)
 - SEO: title/description/OG/Twitter + JSON-LD (`WebApplication` / `VideoGame`)
 - PostHog stub (`VITE_PUBLIC_POSTHOG_KEY`); no-op without key
-- Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** on web only; mute from **home or play HUD** (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`
+- Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** on web only; mute from **home or play HUD** icon toggles (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`
+- **Chrome icons:** lucide for sound / rotate / profiles / share (icon or icon+text); keep lobby mode/challenge as words+tiles — don’t icon-spam settings. Always `aria-label` / `title` on icon-only.
 
 ## Stack
 
 - Bun workspaces (**catalog** for shared dep versions); Vitest; Vite + TanStack Router → Vercel
-- **Dev procs:** `bun run mprocs` → `mprocs.yaml` (web + optional mobile / vitest / dict-build / typecheck)
+- **Format / lint:** `oxfmt` + `oxlint` (`bun run fmt` / `fmt:check` / `lint` / `check`) — not Prettier/ESLint unless already required
+- **Dev procs:** `bun run mprocs` → `mprocs.yaml` (web + optional mobile / vitest / dict-build / typecheck / fmt / lint)
 - **Web chrome:** prefer **shadcn/ui** (DOM) for buttons/inputs/toasts — Sage Garden tokens + Grandstander/Lexend. Game board stays custom (`LetterGrid`, path, confetti) in `packages/ui`.
 - `packages/ui`: game + shared presentational (grid, loading/empty, logo); RN Button remains for Expo later — **web screens should not add a second hand-rolled chrome Button** once shadcn is wired.
 - Loading / empty / 404–500 voice live in `packages/ui` (`LoadingPotato`, `EmptyState`) + thin web pages
@@ -47,7 +49,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 
 ## Code style
 
-TPP DRY: one authoritative place per piece of knowledge. No over-abstraction, no one-export files. Engine decides; UI displays.
+TPP DRY: one authoritative place per piece of knowledge. No over-abstraction, no one-export files. Engine decides; UI displays. Format with `oxfmt`; lint with `oxlint` (see `.cursor/rules/coding.mdc`).
 
 ## Agent UI verification (required)
 

@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 import { EmptyState, Shell } from "@couch-potato/ui";
 import { PotatoBoard } from "../components/PotatoBoard";
 import {
@@ -93,6 +94,7 @@ export function ProfilesPage() {
         Rename active
       </Button>
       <Button variant="ghost" className="w-full" onClick={() => navigate({ to: "/" })}>
+        <ArrowLeft />
         Back
       </Button>
     </Shell>

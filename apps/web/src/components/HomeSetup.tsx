@@ -1,3 +1,4 @@
+import { Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { SegmentGroup } from "@/components/SegmentGroup";
@@ -27,11 +28,7 @@ export type HomeSetupProps = {
 function SquareMini({ n }: { n: number }) {
   const cells = Array.from({ length: n * n }, (_, i) => i);
   return (
-    <svg
-      viewBox={`0 0 ${n} ${n}`}
-      className="h-10 w-10"
-      aria-hidden
-    >
+    <svg viewBox={`0 0 ${n} ${n}`} className="h-10 w-10" aria-hidden>
       {cells.map((i) => {
         const r = Math.floor(i / n);
         const c = i % n;
@@ -83,12 +80,7 @@ function HexMini({ n }: { n: number }) {
   return (
     <svg viewBox={`0 0 ${vbW} ${vbH}`} className="h-10 w-10" aria-hidden>
       {hexes.map((h) => (
-        <polygon
-          key={h.key}
-          points={points(h.cx, h.cy)}
-          fill="currentColor"
-          opacity={0.85}
-        />
+        <polygon key={h.key} points={points(h.cx, h.cy)} fill="currentColor" opacity={0.85} />
       ))}
     </svg>
   );
@@ -123,20 +115,8 @@ function TargetGlyph() {
 function TimedGlyph() {
   return (
     <svg viewBox="0 0 40 40" className="h-9 w-9" aria-hidden>
-      <circle
-        cx="20"
-        cy="22"
-        r="13"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-      />
-      <path
-        d="M16 7h8M20 7v3"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
+      <circle cx="20" cy="22" r="13" fill="none" stroke="currentColor" strokeWidth="2.5" />
+      <path d="M16 7h8M20 7v3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
       <path
         d="M20 22v-7M20 22l6 4"
         stroke="currentColor"
@@ -178,11 +158,7 @@ export function HomeSetup({
   return (
     <div className="flex flex-col gap-5">
       {/* Mode — two big choice cards */}
-      <div
-        role="group"
-        aria-label="Mode"
-        className="grid grid-cols-2 gap-2.5"
-      >
+      <div role="group" aria-label="Mode" className="grid grid-cols-2 gap-2.5">
         {(
           [
             {
@@ -212,19 +188,14 @@ export function HomeSetup({
               )}
             >
               <span
-                className={cn(
-                  "text-muted-foreground transition-colors",
-                  active && "text-primary",
-                )}
+                className={cn("text-muted-foreground transition-colors", active && "text-primary")}
               >
                 <Glyph />
               </span>
               <span className="font-display text-lg font-bold leading-none text-foreground">
                 {title}
               </span>
-              <span className="font-body text-xs leading-snug text-muted-foreground">
-                {blurb}
-              </span>
+              <span className="font-body text-xs leading-snug text-muted-foreground">{blurb}</span>
             </button>
           );
         })}
@@ -233,19 +204,13 @@ export function HomeSetup({
       {/* Board — grid size tiles + shape icons */}
       <section aria-label="Board" className="cp-lobby-panel">
         <div className="mb-3 flex items-end justify-between gap-2">
-          <h2 className="font-display text-base font-bold text-foreground">
-            Your board
-          </h2>
+          <h2 className="font-display text-base font-bold text-foreground">Your board</h2>
           <p className="font-body text-xs text-muted-foreground">
             {grid}×{grid} · {topology === "square" ? "Square" : "B-comb"}
           </p>
         </div>
 
-        <div
-          role="group"
-          aria-label="Grid size"
-          className="mb-3 grid grid-cols-3 gap-2"
-        >
+        <div role="group" aria-label="Grid size" className="mb-3 grid grid-cols-3 gap-2">
           {([4, 5, 6] as const).map((n) => {
             const active = grid === n;
             return (
@@ -266,11 +231,7 @@ export function HomeSetup({
                     active && "text-foreground",
                   )}
                 >
-                  {topology === "square" ? (
-                    <SquareMini n={n} />
-                  ) : (
-                    <HexMini n={n} />
-                  )}
+                  {topology === "square" ? <SquareMini n={n} /> : <HexMini n={n} />}
                 </span>
                 <span className="font-display text-sm font-bold tabular-nums">
                   {n}×{n}
@@ -280,11 +241,7 @@ export function HomeSetup({
           })}
         </div>
 
-        <div
-          role="group"
-          aria-label="Shape"
-          className="grid grid-cols-2 gap-2"
-        >
+        <div role="group" aria-label="Shape" className="grid grid-cols-2 gap-2">
           {(
             [
               {
@@ -311,12 +268,7 @@ export function HomeSetup({
                   active && "cp-lobby-chip-active cp-select-pop",
                 )}
               >
-                <span
-                  className={cn(
-                    "scale-75 text-muted-foreground",
-                    active && "text-foreground",
-                  )}
-                >
+                <span className={cn("scale-75 text-muted-foreground", active && "text-foreground")}>
                   <Icon />
                 </span>
                 <span className="font-display text-sm font-bold">{label}</span>
@@ -344,11 +296,7 @@ export function HomeSetup({
         </div>
 
         {mode === "target" ? (
-          <div
-            role="group"
-            aria-label="Difficulty"
-            className="grid grid-cols-3 gap-2"
-          >
+          <div role="group" aria-label="Difficulty" className="grid grid-cols-3 gap-2">
             {DIFFICULTY.map(({ value, label, hint }) => {
               const active = difficulty === value;
               return (
@@ -373,11 +321,7 @@ export function HomeSetup({
             })}
           </div>
         ) : (
-          <div
-            role="group"
-            aria-label="Duration"
-            className="grid grid-cols-4 gap-2"
-          >
+          <div role="group" aria-label="Duration" className="grid grid-cols-4 gap-2">
             {DURATIONS.map((s) => {
               const active = duration === s;
               return (
@@ -402,12 +346,8 @@ export function HomeSetup({
       {/* Secondary — word length collapsed */}
       <details className="cp-lobby-more group">
         <summary className="cp-lobby-more-summary">
-          <span className="font-display text-sm font-bold text-foreground">
-            Word length
-          </span>
-          <span className="font-body text-xs text-muted-foreground">
-            {minWordLength}+ letters
-          </span>
+          <span className="font-display text-sm font-bold text-foreground">Word length</span>
+          <span className="font-body text-xs text-muted-foreground">{minWordLength}+ letters</span>
         </summary>
         <div className="pt-3">
           <SegmentGroup

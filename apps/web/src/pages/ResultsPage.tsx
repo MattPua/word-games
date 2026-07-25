@@ -1,5 +1,6 @@
 import { Text } from "react-native";
 import { useNavigate } from "@tanstack/react-router";
+import { Share2 } from "lucide-react";
 import { EmptyState, Shell } from "@couch-potato/ui";
 import { play } from "cuelume";
 import { toast } from "sonner";
@@ -54,13 +55,9 @@ export function ResultsPage() {
 
   return (
     <Shell>
-      <Text className="mb-1 font-display text-3xl text-foreground">
-        {reasonLabel}
-      </Text>
+      <Text className="mb-1 font-display text-3xl text-foreground">{reasonLabel}</Text>
       <Text className="mb-4 font-display text-4xl text-primary">{run.score}</Text>
-      {run.isHighScore && (
-        <Text className="mb-4 font-body text-path">New high score!</Text>
-      )}
+      {run.isHighScore && <Text className="mb-4 font-body text-path">New high score!</Text>}
 
       <Text className="mb-2 font-display text-lg text-foreground">Found</Text>
       {run.found.length ? (
@@ -73,9 +70,7 @@ export function ResultsPage() {
         />
       )}
 
-      <Text className="mb-2 font-display text-lg text-foreground">
-        Missed longs
-      </Text>
+      <Text className="mb-2 font-display text-lg text-foreground">Missed longs</Text>
       {run.missed.length ? (
         <WordGroups words={run.missed} className="mb-6" />
       ) : (
@@ -93,6 +88,7 @@ export function ResultsPage() {
           void shareScore(blurb);
         }}
       >
+        <Share2 />
         Share
       </Button>
       <Button

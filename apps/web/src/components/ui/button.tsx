@@ -17,15 +17,13 @@ const buttonVariants = cva(
           "border-2 border-border bg-card/80 text-foreground shadow-sm hover:border-primary/50 hover:bg-accent/30 hover:-translate-y-0.5",
         secondary:
           "bg-secondary text-secondary-foreground shadow-[0_2px_0_0_color-mix(in_srgb,var(--border)_90%,#2c322e)] hover:bg-secondary/90 hover:-translate-y-0.5",
-        ghost:
-          "text-foreground hover:bg-secondary/80 hover:text-foreground active:scale-[0.98]",
+        ghost: "text-foreground hover:bg-secondary/80 hover:text-foreground active:scale-[0.98]",
         link: "text-primary underline-offset-4 hover:underline",
         potato:
           "bg-potato text-foreground shadow-[0_3px_0_0_color-mix(in_srgb,var(--potato)_65%,#2c322e)] hover:brightness-105 hover:-translate-y-0.5 active:shadow-[0_1px_0_0_color-mix(in_srgb,var(--potato)_65%,#2c322e)]",
         segment:
           "relative bg-transparent text-muted-foreground shadow-none transition-[color,transform] duration-200 hover:text-foreground active:scale-100",
-        "segment-active":
-          "relative bg-transparent text-foreground shadow-none active:scale-100",
+        "segment-active": "relative bg-transparent text-foreground shadow-none active:scale-100",
       },
       size: {
         default: "min-h-11 h-11 px-5 py-2 text-[0.95rem]",
@@ -43,8 +41,7 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 
@@ -52,11 +49,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
+      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
     );
   },
 );

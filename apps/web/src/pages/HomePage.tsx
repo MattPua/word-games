@@ -1,4 +1,5 @@
 import { Text, View } from "react-native";
+import { Users } from "lucide-react";
 import { Logo, Shell } from "@couch-potato/ui";
 import {
   getActiveProfile,
@@ -21,9 +22,7 @@ export function HomePage() {
   const [grid, setGrid] = useState<4 | 5 | 6>(4);
   const [topology, setTopology] = useState<"square" | "hex">("square");
   const [minWordLength, setMinWordLength] = useState<3 | 4 | 5>(3);
-  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">(
-    "easy",
-  );
+  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const [duration, setDuration] = useState<30 | 60 | 90 | 120>(60);
   const [sound, setSound] = useState(loadDevicePrefs().soundEnabled);
 
@@ -62,10 +61,12 @@ export function HomePage() {
         </Text>
         <Button
           variant="ghost"
-          size="sm"
+          size="icon-sm"
+          aria-label="Profiles"
+          title="Profiles"
           onClick={() => navigate({ to: "/profiles" })}
         >
-          Profiles
+          <Users />
         </Button>
       </View>
 
@@ -84,11 +85,7 @@ export function HomePage() {
         onDuration={setDuration}
       />
 
-      <HomePlayBar
-        onPlay={play}
-        sound={sound}
-        onToggleSound={toggleSound}
-      />
+      <HomePlayBar onPlay={play} sound={sound} onToggleSound={toggleSound} />
     </Shell>
   );
 }

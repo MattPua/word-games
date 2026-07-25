@@ -116,7 +116,6 @@ export function PlayPage() {
     if (!state?.ended || finished.current) return;
     finished.current = true;
     void finish(state);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.ended]);
 
   const finish = async (s: GameState) => {
@@ -128,8 +127,7 @@ export function PlayPage() {
       mode: s.config.mode,
       grid: s.board.size,
       minWordLength: s.config.minWordLength,
-      difficulty:
-        s.config.mode === "target" ? s.config.difficulty : undefined,
+      difficulty: s.config.mode === "target" ? s.config.difficulty : undefined,
       duration: s.config.mode === "timed" ? s.config.duration : undefined,
       reason: s.ended!,
       wordsFound: s.found.length,
@@ -149,8 +147,7 @@ export function PlayPage() {
       detail,
       isHighScore: isHigh,
       minWordLength: s.config.minWordLength,
-      difficulty:
-        s.config.mode === "target" ? s.config.difficulty : undefined,
+      difficulty: s.config.mode === "target" ? s.config.difficulty : undefined,
       duration: s.config.mode === "timed" ? s.config.duration : undefined,
     });
     track("game_completed", {
@@ -183,10 +180,8 @@ export function PlayPage() {
   const wordPoints = scoreWord(currentWord.length);
   const target = state.target ?? 0;
   const remaining = state.remaining;
-  const secs =
-    state.remainingMs != null ? Math.ceil(state.remainingMs / 1000) : null;
-  const adjacent = (a: Cell, b: Cell) =>
-    isAdjacentCells(a, b, state.board.topology);
+  const secs = state.remainingMs != null ? Math.ceil(state.remainingMs / 1000) : null;
+  const adjacent = (a: Cell, b: Cell) => isAdjacentCells(a, b, state.board.topology);
 
   const applyRotate = (steps: 1 | -1) => {
     setState((s) => (s ? { ...s, board: rotateBoard(s.board, steps) } : s));
@@ -242,28 +237,20 @@ export function PlayPage() {
       <View className="mb-4 flex-row items-center justify-between gap-2">
         {remaining != null ? (
           <View className="cp-hud-bubble">
-            <Text className="font-display text-lg font-bold text-foreground">
-              {remaining} left
-            </Text>
+            <Text className="font-display text-lg font-bold text-foreground">{remaining} left</Text>
           </View>
         ) : (
           <View className="cp-hud-bubble">
-            <Text className="font-display text-lg font-bold text-foreground">
-              {state.score}
-            </Text>
+            <Text className="font-display text-lg font-bold text-foreground">{state.score}</Text>
           </View>
         )}
         {secs != null ? (
           <View className="cp-hud-bubble">
-            <Text className="font-display text-lg font-bold text-foreground">
-              {secs}s
-            </Text>
+            <Text className="font-display text-lg font-bold text-foreground">{secs}s</Text>
           </View>
         ) : (
           <View className="cp-hud-bubble min-w-[4.5rem]">
-            <Text className="font-display text-lg font-bold text-potato">
-              {state.score}
-            </Text>
+            <Text className="font-display text-lg font-bold text-potato">{state.score}</Text>
           </View>
         )}
         <View className="flex-row items-center gap-1">
@@ -336,10 +323,7 @@ export function PlayPage() {
                   setFirstWord(false);
                   setFlash(result.word.toUpperCase());
                   setState(next);
-                } else if (
-                  result.reason !== "bad_path" &&
-                  result.reason !== "ended"
-                ) {
+                } else if (result.reason !== "bad_path" && result.reason !== "ended") {
                   play("error");
                   setFlash(result.reason);
                 }
