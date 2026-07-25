@@ -449,13 +449,13 @@ export function PlayPage() {
         <View className="min-w-0 flex-1 flex-row items-center gap-3">
           {remaining != null ? (
             <View className={hudBubbleClass} accessibilityLabel={`${remaining} points to clear`}>
-              <Text className="font-display text-lg font-bold" style={{ color: "inherit" }}>
+              <Text className="font-display text-lg font-bold leading-none" style={{ color: "inherit" }}>
                 {remaining} pts
               </Text>
             </View>
           ) : secs != null ? (
             <View className={hudBubbleClass} accessibilityLabel={`${secs} seconds left`}>
-              <Text className="font-display text-lg font-bold" style={{ color: "inherit" }}>
+              <Text className="font-display text-lg font-bold leading-none" style={{ color: "inherit" }}>
                 {secs}s
               </Text>
             </View>

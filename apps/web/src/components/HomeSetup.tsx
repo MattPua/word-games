@@ -421,7 +421,7 @@ export function HomeSetup({
                       aria-pressed={active}
                       onClick={() => onDuration(s)}
                       className={cn(
-                        "cp-lobby-challenge py-3 font-display text-sm font-bold tabular-nums",
+                        "cp-lobby-challenge flex items-center justify-center py-3 font-display text-sm font-bold tabular-nums leading-none",
                         active && "cp-lobby-challenge-active cp-select-pop",
                       )}
                     >
