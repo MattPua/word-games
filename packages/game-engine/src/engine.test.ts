@@ -8,11 +8,18 @@ import {
 import { buildBoard, generateBoard } from "./generate";
 import {
   createGame,
+  highScoreKey,
   quitGame,
   submitPath,
 } from "./game";
 import { isValidPath, wordFromPath } from "./path";
 import { createSeededRng } from "./rng";
+import { rotateLettersCW } from "./rotate";
+import {
+  isAdjacent8,
+  isAdjacentHex,
+  isAdjacentCells,
+} from "./topology";
 import {
   groupWordsByLength,
   sortWordsByLengthThenAlpha,
@@ -39,7 +46,7 @@ const miniDict = createDictionary(
 );
 
 describe("path", () => {
-  it("rejects reuse and non-adjacent steps", () => {
+  it("square rejects reuse and non-adjacent steps; allows diagonal", () => {
     expect(
       isValidPath(
         [
@@ -48,6 +55,7 @@ describe("path", () => {
           { row: 0, col: 0 },
         ],
         4,
+        "square",
       ),
     ).toBe(false);
     expect(
@@ -57,6 +65,7 @@ describe("path", () => {
           { row: 0, col: 2 },
         ],
         4,
+        "square",
       ),
     ).toBe(false);
     expect(
@@ -66,8 +75,82 @@ describe("path", () => {
           { row: 1, col: 1 },
         ],
         4,
+        "square",
       ),
     ).toBe(true);
+  });
+
+  it("hex is 6-way odd-r — no diagonal that square allows on even rows", () => {
+    // Even row: (0,0) neighbors include (1,0) and (1,-1) but NOT (1,1)
+    expect(isAdjacentHex({ row: 0, col: 0 }, { row: 1, col: 0 })).toBe(true);
+    expect(isAdjacentHex({ row: 0, col: 0 }, { row: 1, col: 1 })).toBe(false);
+    expect(isAdjacent8({ row: 0, col: 0 }, { row: 1, col: 1 })).toBe(true);
+    // Odd row: (1,1) neighbors include (0,1),(0,2),(2,1),(2,2)
+    expect(isAdjacentHex({ row: 1, col: 1 }, { row: 0, col: 2 })).toBe(true);
+    expect(isAdjacentHex({ row: 1, col: 1 }, { row: 0, col: 0 })).toBe(false);
+    expect(
+      isValidPath(
+        [
+          { row: 0, col: 0 },
+          { row: 1, col: 1 },
+        ],
+        4,
+        "hex",
+      ),
+    ).toBe(false);
+    expect(
+      isValidPath(
+        [
+          { row: 0, col: 0 },
+          { row: 1, col: 0 },
+        ],
+        4,
+        "hex",
+      ),
+    ).toBe(true);
+  });
+});
+
+describe("rotate", () => {
+  it("square 90° CW maps (r,c) → (c, n-1-r)", () => {
+    const letters = [
+      ["A", "B"],
+      ["C", "D"],
+    ];
+    expect(rotateLettersCW(letters, "square")).toEqual([
+      ["C", "A"],
+      ["D", "B"],
+    ]);
+  });
+
+  it("hex natural step is 180°", () => {
+    const letters = [
+      ["A", "B"],
+      ["C", "D"],
+    ];
+    expect(rotateLettersCW(letters, "hex")).toEqual([
+      ["D", "C"],
+      ["B", "A"],
+    ]);
+  });
+});
+
+describe("highScoreKey", () => {
+  it("includes topology", () => {
+    const cfg = {
+      mode: "target" as const,
+      difficulty: "easy" as const,
+      minWordLength: 3 as const,
+    };
+    expect(highScoreKey("p1", 4, cfg, "square")).toBe(
+      "p1:4:square:target:easy:min3",
+    );
+    expect(highScoreKey("p1", 4, cfg, "hex")).toBe(
+      "p1:4:hex:target:easy:min3",
+    );
+    expect(highScoreKey("p1", 4, cfg, "square")).not.toBe(
+      highScoreKey("p1", 4, cfg, "hex"),
+    );
   });
 });
 
@@ -118,6 +201,7 @@ describe("game", () => {
     const board = {
       letters,
       size: 4 as const,
+      topology: "square" as const,
       allWords: ["cat", "cats", "act"],
       maxScore: 6,
       targets: { easy: 2, medium: 3, hard: 5 },
@@ -154,6 +238,7 @@ describe("game", () => {
     const board = {
       letters,
       size: 4 as const,
+      topology: "square" as const,
       allWords: ["cat", "cats"],
       maxScore: 4,
       targets: { easy: 1, medium: 2, hard: 3 },
@@ -262,14 +347,30 @@ describe("generateBoard", () => {
     expect(dict.has("cat")).toBe(true);
   });
 
-  it("succeeds within retry cap on seeded RNG", () => {
+  it("succeeds within retry cap on seeded RNG (square)", () => {
     const rng = createSeededRng(42);
     const board = generateBoard({
       size: 4,
       dict: miniDict,
+      topology: "square",
       rng,
       retryCap: GEN_RETRY_CAP,
     });
+    expect(board.topology).toBe("square");
+    expect(board.letters).toHaveLength(4);
+    expect(board.targets.hard).toBeLessThanOrEqual(board.maxScore);
+  });
+
+  it("succeeds within retry cap on seeded RNG (hex)", () => {
+    const rng = createSeededRng(42);
+    const board = generateBoard({
+      size: 4,
+      dict: miniDict,
+      topology: "hex",
+      rng,
+      retryCap: GEN_RETRY_CAP,
+    });
+    expect(board.topology).toBe("hex");
     expect(board.letters).toHaveLength(4);
     expect(board.targets.hard).toBeLessThanOrEqual(board.maxScore);
   });
@@ -295,5 +396,14 @@ describe("generateBoard", () => {
     });
     expect(board.allWords.every((w) => w.length >= 4)).toBe(true);
     expect(board.targets.hard).toBeLessThanOrEqual(board.maxScore);
+  });
+});
+
+describe("adjacency helpers", () => {
+  it("isAdjacentCells dispatches topology", () => {
+    const a = { row: 0, col: 0 };
+    const diag = { row: 1, col: 1 };
+    expect(isAdjacentCells(a, diag, "square")).toBe(true);
+    expect(isAdjacentCells(a, diag, "hex")).toBe(false);
   });
 });

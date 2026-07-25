@@ -240,6 +240,7 @@ export type LastRun = {
   reason: "won" | "timeout" | "quit";
   mode: "target" | "timed";
   grid: number;
+  topology?: "square" | "hex";
   detail: string;
   isHighScore: boolean;
   minWordLength: 3 | 4 | 5;
@@ -265,6 +266,7 @@ export function loadLastRun(): LastRun | null {
 export type PlayLaunch = {
   mode: "target" | "timed";
   grid: 4 | 5 | 6;
+  topology?: "square" | "hex";
   minWordLength?: 3 | 4 | 5;
   difficulty?: "easy" | "medium" | "hard";
   duration?: 30 | 60 | 90 | 120;
@@ -283,13 +285,23 @@ export function loadLaunch(): PlayLaunch {
   } catch {
     /* ignore */
   }
-  return { mode: "target", grid: 4, difficulty: "easy", minWordLength: 3 };
+  return { mode: "target", grid: 4, topology: "square", difficulty: "easy", minWordLength: 3 };
 }
 
 /** Human label from engine highScoreKey (strips profile id prefix). */
 export function formatHighScoreLabel(scoreKey: string): string {
   const parts = scoreKey.split(":");
-  // profileId:size:target:difficulty:minN  OR  profileId:size:timed:duration:minN
+  // profileId:size:topology:target:difficulty:minN  OR  …:timed:duration:minN
+  // Legacy (no topology): profileId:size:target:… 
+  if (parts.length >= 6) {
+    const [, size, topology, mode, detail, minPart] = parts;
+    const min = (minPart ?? "").replace(/^min/, "") || "?";
+    const shape = topology === "hex" ? "B-comb" : "square";
+    if (mode === "target") {
+      return `${size}×${size} ${shape} · target · ${detail} · ${min}+`;
+    }
+    return `${size}×${size} ${shape} · timed · ${detail}s · ${min}+`;
+  }
   if (parts.length < 5) return scoreKey;
   const [, size, mode, detail, minPart] = parts;
   const min = (minPart ?? "").replace(/^min/, "") || "?";

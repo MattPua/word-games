@@ -19,6 +19,7 @@ export function HomePage() {
   const profile = getActiveProfile();
   const [mode, setMode] = useState<"target" | "timed">("target");
   const [grid, setGrid] = useState<4 | 5 | 6>(4);
+  const [topology, setTopology] = useState<"square" | "hex">("square");
   const [minWordLength, setMinWordLength] = useState<3 | 4 | 5>(3);
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">(
     "easy",
@@ -29,10 +30,10 @@ export function HomePage() {
   const play = () => {
     const launch: PlayLaunch =
       mode === "target"
-        ? { mode, grid, difficulty, minWordLength }
-        : { mode, grid, duration, minWordLength };
+        ? { mode, grid, topology, difficulty, minWordLength }
+        : { mode, grid, topology, duration, minWordLength };
     saveLaunch(launch);
-    track("game_started", { mode, grid, minWordLength });
+    track("game_started", { mode, grid, topology, minWordLength });
     navigate({ to: "/play" });
   };
 
@@ -44,19 +45,19 @@ export function HomePage() {
   };
 
   return (
-    <Shell>
-      <View className="mb-6 items-center">
-        <Logo size={120} />
-        <Text className="mt-3 font-display text-3xl font-semibold text-foreground">
-          Couch Potato
-        </Text>
-        <Text className="mt-1 text-center font-body text-muted-foreground">
+    <Shell className="cp-fade-up">
+      <View className="mb-8 items-center">
+        <View className="cp-logo-float">
+          <Logo size={128} />
+        </View>
+        <Text className="cp-display mt-4">Couch Potato</Text>
+        <Text className="mt-2 max-w-[18rem] text-center font-body text-base leading-relaxed text-muted-foreground">
           Swipe letters. Find words. Stay on the couch.
         </Text>
       </View>
 
-      <View className="mb-4 flex-row items-center justify-between">
-        <Text className="font-body text-base text-foreground">
+      <View className="mb-5 flex-row items-center justify-between">
+        <Text className="font-body text-base font-semibold text-foreground">
           Playing as {profile.name}
         </Text>
         <Button
@@ -68,7 +69,7 @@ export function HomePage() {
         </Button>
       </View>
 
-      <Text className="mb-2 font-display text-lg text-foreground">Mode</Text>
+      <Text className="cp-section-label">Mode</Text>
       <SegmentGroup
         value={mode}
         onChange={setMode}
@@ -78,7 +79,7 @@ export function HomePage() {
         ]}
       />
 
-      <Text className="mb-2 font-display text-lg text-foreground">Grid</Text>
+      <Text className="cp-section-label">Grid</Text>
       <SegmentGroup
         value={grid}
         onChange={setGrid}
@@ -89,9 +90,17 @@ export function HomePage() {
         ]}
       />
 
-      <Text className="mb-2 font-display text-lg text-foreground">
-        Min length
-      </Text>
+      <Text className="cp-section-label">Shape</Text>
+      <SegmentGroup
+        value={topology}
+        onChange={setTopology}
+        options={[
+          { value: "square", label: "Square" },
+          { value: "hex", label: "B-comb" },
+        ]}
+      />
+
+      <Text className="cp-section-label">Min length</Text>
       <SegmentGroup
         value={minWordLength}
         onChange={setMinWordLength}
@@ -104,9 +113,7 @@ export function HomePage() {
 
       {mode === "target" ? (
         <div key="target" className="cp-option-swap">
-          <Text className="mb-2 font-display text-lg text-foreground">
-            Difficulty
-          </Text>
+          <Text className="cp-section-label">Difficulty</Text>
           <SegmentGroup
             value={difficulty}
             onChange={setDifficulty}
@@ -119,9 +126,7 @@ export function HomePage() {
         </div>
       ) : (
         <div key="timed" className="cp-option-swap">
-          <Text className="mb-2 font-display text-lg text-foreground">
-            Duration
-          </Text>
+          <Text className="cp-section-label">Duration</Text>
           <SegmentGroup
             value={duration}
             onChange={setDuration}
@@ -135,7 +140,7 @@ export function HomePage() {
         </div>
       )}
 
-      <Button size="lg" className="mb-3 w-full" onClick={play}>
+      <Button size="lg" className="mb-3 mt-2 w-full" onClick={play}>
         Play
       </Button>
       <Button variant="secondary" className="w-full" onClick={toggleSound}>

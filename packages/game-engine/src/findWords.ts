@@ -1,6 +1,6 @@
 import type { Dictionary } from "@couch-potato/dictionary";
 import { MIN_WORD_LENGTH } from "./config";
-import type { Cell } from "./path";
+import { neighborDeltas, type GridTopology } from "./topology";
 
 type TrieNode = {
   children: Map<string, TrieNode>;
@@ -25,21 +25,11 @@ function buildTrie(words: Iterable<string>): TrieNode {
   return root;
 }
 
-const DIRS: Cell[] = [
-  { row: -1, col: -1 },
-  { row: -1, col: 0 },
-  { row: -1, col: 1 },
-  { row: 0, col: -1 },
-  { row: 0, col: 1 },
-  { row: 1, col: -1 },
-  { row: 1, col: 0 },
-  { row: 1, col: 1 },
-];
-
-/** Find all unique *playable* (popular) words on the board (8-way, no reuse). */
+/** Find all unique *playable* (popular) words on the board (topology neighbors, no reuse). */
 export function findAllWords(
   letters: string[][],
   dict: Dictionary,
+  topology: GridTopology = "square",
 ): string[] {
   const size = letters.length;
   // Casual play: only popular — obscure enable1-only words never drive targets/missed.
@@ -56,7 +46,7 @@ export function findAllWords(
     const word = prefix + ch;
     visited[row]![col] = true;
     if (next.end && word.length >= MIN_WORD_LENGTH) found.add(word);
-    for (const d of DIRS) {
+    for (const d of neighborDeltas(topology, row)) {
       const nr = row + d.row;
       const nc = col + d.col;
       if (nr < 0 || nc < 0 || nr >= size || nc >= size) continue;

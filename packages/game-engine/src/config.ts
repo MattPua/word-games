@@ -1,5 +1,7 @@
 /** Single authoritative game config. Loosen thresholds here if gen flakes. */
 
+import type { GridTopology } from "./topology";
+
 /** Global floor — modes may raise via minWordLength. */
 export const MIN_WORD_LENGTH = 3;
 
@@ -34,11 +36,24 @@ export type WordCountThresholds = {
   total: number;
 };
 
-/** Min-word thresholds by grid size (for default min length 3). */
-export const BOARD_THRESHOLDS: Record<GridSize, WordCountThresholds> = {
-  4: { ge3: 40, ge4: 15, ge5: 4, ge6: 1, total: 50 },
-  5: { ge3: 80, ge4: 35, ge5: 12, ge6: 4, total: 100 },
-  6: { ge3: 140, ge4: 60, ge5: 25, ge6: 10, total: 180 },
+/**
+ * Min-word thresholds by topology + grid size (default min length 3).
+ * Hex is leaner — 6 neighbors vs 8 → fewer paths.
+ */
+export const BOARD_THRESHOLDS: Record<
+  GridTopology,
+  Record<GridSize, WordCountThresholds>
+> = {
+  square: {
+    4: { ge3: 40, ge4: 15, ge5: 4, ge6: 1, total: 50 },
+    5: { ge3: 80, ge4: 35, ge5: 12, ge6: 4, total: 100 },
+    6: { ge3: 140, ge4: 60, ge5: 25, ge6: 10, total: 180 },
+  },
+  hex: {
+    4: { ge3: 25, ge4: 9, ge5: 2, ge6: 0, total: 30 },
+    5: { ge3: 50, ge4: 20, ge5: 6, ge6: 2, total: 60 },
+    6: { ge3: 90, ge4: 38, ge5: 14, ge6: 5, total: 110 },
+  },
 };
 
 export const HARD_TARGET_FLOOR = 15;

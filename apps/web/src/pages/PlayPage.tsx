@@ -15,13 +15,17 @@ import {
   createGame,
   generateBoard,
   highScoreKey,
+  isAdjacentCells,
   missedLongWords,
   quitGame,
+  rotateBoard,
+  scoreWord,
   sortWordsByLengthThenAlpha,
   submitPath,
   tickTimer,
   wordFromPath,
   type GameState,
+  type GridTopology,
   type MinWordLength,
 } from "@couch-potato/game-engine";
 import { play } from "cuelume";
@@ -40,6 +44,7 @@ export function PlayPage() {
   const navigate = useNavigate();
   const dict = useMemo(() => getDictionary(), []);
   const launch = useMemo(() => loadLaunch(), []);
+  const topology = (launch.topology ?? "square") as GridTopology;
   const [state, setState] = useState<GameState | null>(null);
   const [path, setPath] = useState<Cell[]>([]);
   const [flash, setFlash] = useState("");
@@ -52,6 +57,7 @@ export function PlayPage() {
     const board = generateBoard({
       size: launch.grid,
       dict,
+      topology,
       minWordLength,
     });
     const config =
@@ -67,7 +73,7 @@ export function PlayPage() {
             minWordLength,
           };
     setState(createGame(board, config));
-  }, [dict, launch]);
+  }, [dict, launch, topology]);
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -105,7 +111,7 @@ export function PlayPage() {
 
   const finish = async (s: GameState) => {
     const profile = getActiveProfile();
-    const key = highScoreKey(profile.id, s.board.size, s.config);
+    const key = highScoreKey(profile.id, s.board.size, s.config, s.board.topology);
     const { isHighScore: isHigh } = recordFinishedRun({
       score: s.score,
       scoreKey: key,
@@ -164,26 +170,51 @@ export function PlayPage() {
   }
 
   const currentWord = wordFromPath(state.board.letters, path).toUpperCase();
+  const wordPoints = scoreWord(currentWord.length);
   const target = state.target ?? 0;
   const remaining = state.remaining;
   const secs =
     state.remainingMs != null ? Math.ceil(state.remainingMs / 1000) : null;
+  const adjacent = (a: Cell, b: Cell) =>
+    isAdjacentCells(a, b, state.board.topology);
+
+  const rotate = () => {
+    if (celebrate) return;
+    setPath([]);
+    setState((s) => (s ? { ...s, board: rotateBoard(s.board, 1) } : s));
+    play("ready");
+  };
 
   return (
-    <Shell className="relative overflow-hidden">
+    <Shell className="relative overflow-hidden cp-fade-up">
       <ConfettiBurst active={celebrate} durationMs={WIN_FLOURISH_MS} />
-      <View className="mb-3 flex-row items-center justify-between">
+
+      <View className="mb-4 flex-row items-center justify-between gap-2">
         {remaining != null ? (
-          <Text className="font-display text-xl text-foreground">
-            {remaining} left
-          </Text>
+          <View className="cp-hud-bubble">
+            <Text className="font-display text-lg font-bold text-foreground">
+              {remaining} left
+            </Text>
+          </View>
         ) : (
-          <Text className="font-display text-xl text-foreground">
-            {state.score}
-          </Text>
+          <View className="cp-hud-bubble">
+            <Text className="font-display text-lg font-bold text-foreground">
+              {state.score}
+            </Text>
+          </View>
         )}
-        {secs != null && (
-          <Text className="font-display text-xl text-foreground">{secs}s</Text>
+        {secs != null ? (
+          <View className="cp-hud-bubble">
+            <Text className="font-display text-lg font-bold text-foreground">
+              {secs}s
+            </Text>
+          </View>
+        ) : (
+          <View className="cp-hud-bubble min-w-[4.5rem]">
+            <Text className="font-display text-lg font-bold text-potato">
+              {state.score}
+            </Text>
+          </View>
         )}
         <Button
           variant="ghost"
@@ -196,21 +227,24 @@ export function PlayPage() {
       </View>
 
       {remaining != null && target > 0 && (
-        <ProgressBar value={remaining} max={target} className="mb-3" />
+        <ProgressBar value={remaining} max={target} className="mb-4" />
       )}
 
       <ScoreBubble
         word={celebrate ? "Couch clear!" : currentWord || flash}
+        points={celebrate ? 0 : wordPoints}
         hint={
           remaining != null
             ? `Clear the couch · ${state.config.minWordLength}+`
             : `${state.config.minWordLength}+ letters`
         }
-        className="mb-3"
+        className="mb-4"
       />
 
       <LetterGrid
         letters={state.board.letters}
+        topology={state.board.topology}
+        isAdjacent={adjacent}
         selected={celebrate ? [] : path}
         dropping={celebrate}
         onPathChange={celebrate ? undefined : setPath}
@@ -240,6 +274,15 @@ export function PlayPage() {
               }
         }
       />
+
+      <Button
+        variant="secondary"
+        className="mt-4 w-full"
+        disabled={celebrate}
+        onClick={rotate}
+      >
+        Rotate board
+      </Button>
     </Shell>
   );
 }

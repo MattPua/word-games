@@ -14,10 +14,12 @@ import {
 } from "./config";
 import { findAllWords } from "./findWords";
 import { createSeededRng, pickWeighted, type Rng } from "./rng";
+import type { GridTopology } from "./topology";
 
 export type Board = {
   letters: string[][];
   size: GridSize;
+  topology: GridTopology;
   /** Words meeting the active min length (scoring / missed / max). */
   allWords: string[];
   maxScore: number;
@@ -73,20 +75,30 @@ export function buildBoard(
   letters: string[][],
   dict: Dictionary,
   minWordLength: MinWordLength = MIN_WORD_LENGTH,
+  topology: GridTopology = "square",
 ): Board {
   const size = letters.length as GridSize;
   // allWords = popular-only (via findAllWords) ≥ minWordLength
-  const allWords = findAllWords(letters, dict).filter(
+  const allWords = findAllWords(letters, dict, topology).filter(
     (w) => w.length >= minWordLength,
   );
   const maxScore = allWords.reduce((s, w) => s + scoreWord(w.length), 0);
   const targets = computeTargets(maxScore);
-  return { letters, size, allWords, maxScore, targets, minWordLength };
+  return {
+    letters,
+    size,
+    topology,
+    allWords,
+    maxScore,
+    targets,
+    minWordLength,
+  };
 }
 
 export type GenerateOptions = {
   size: GridSize;
   dict: Dictionary;
+  topology?: GridTopology;
   minWordLength?: MinWordLength;
   seed?: number;
   rng?: Rng;
@@ -99,10 +111,11 @@ export type GenerateOptions = {
  */
 export function generateBoard(opts: GenerateOptions): Board {
   const minWordLength = opts.minWordLength ?? MIN_WORD_LENGTH;
+  const topology = opts.topology ?? "square";
   const rng = opts.rng ?? createSeededRng(opts.seed ?? Date.now());
   const cap = opts.retryCap ?? GEN_RETRY_CAP;
   const thresholds = thresholdsForMinLength(
-    BOARD_THRESHOLDS[opts.size],
+    BOARD_THRESHOLDS[topology][opts.size],
     minWordLength,
   );
 
@@ -111,7 +124,7 @@ export function generateBoard(opts: GenerateOptions): Board {
 
   for (let attempt = 0; attempt < cap; attempt++) {
     const letters = randomBoard(opts.size, rng);
-    const board = buildBoard(letters, opts.dict, minWordLength);
+    const board = buildBoard(letters, opts.dict, minWordLength, topology);
     const counts = countByLength(board.allWords);
     // allWords is popular-only; ratio stays as a sanity signal for gen quality
     const popular = popularRatio(board.allWords, opts.dict);

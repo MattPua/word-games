@@ -8,6 +8,7 @@ import {
 import {
   applyPathCell,
   cellKey,
+  isAdjacent,
   type Cell,
   type LetterGridProps,
 } from "./pathCells";
@@ -23,6 +24,7 @@ export function LetterGrid({
   onPathEnd,
   dropping = false,
   className = "",
+  isAdjacent: adjacentFn = isAdjacent,
 }: LetterGridProps) {
   const size = letters.length;
   const [layout, setLayout] = useState({ w: 0, h: 0, x: 0, y: 0 });
@@ -47,12 +49,12 @@ export function LetterGrid({
 
   const touch = useCallback(
     (cell: Cell) => {
-      const next = applyPathCell(pathRef.current, cell);
+      const next = applyPathCell(pathRef.current, cell, adjacentFn);
       if (!next) return;
       pathRef.current = next;
       onPathChange?.(next);
     },
-    [onPathChange],
+    [onPathChange, adjacentFn],
   );
 
   const onLayout = (e: LayoutChangeEvent) => {
@@ -94,48 +96,46 @@ export function LetterGrid({
   };
 
   return (
-    <View
-      className={`aspect-square w-full ${className}`}
-      style={{ touchAction: "none" } as object}
-      onLayout={onLayout}
-      onStartShouldSetResponder={() => true}
-      onMoveShouldSetResponder={() => true}
-      onResponderGrant={onStart}
-      onResponderMove={onMove}
-      onResponderRelease={onEnd}
-      onResponderTerminate={onEnd}
-      accessibilityLabel="Letter grid"
-    >
-      {letters.map((row, rowIndex) => (
-        <View key={rowIndex} className="flex-1 flex-row">
-          {row.map((letter, colIndex) => {
-            const active = selectedSet.has(
-              cellKey({ row: rowIndex, col: colIndex }),
-            );
-            return (
-              <View
-                key={`${rowIndex}-${colIndex}`}
-                testID={`tile-${rowIndex}-${colIndex}`}
-                className={`m-0.5 flex-1 items-center justify-center rounded-ui border-2 ${
-                  active ? "border-path bg-secondary" : "border-border bg-card"
-                }`}
-                style={
-                  dropping
-                    ? {
-                        transform: [{ translateY: 800 }],
-                        opacity: 0,
-                      }
-                    : undefined
-                }
-              >
-                <Text className="font-body text-2xl font-extrabold text-foreground">
-                  {letter}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      ))}
+    <View className={`cp-board-frame w-full ${className}`}>
+      <View
+        className="cp-board-well aspect-square w-full"
+        style={{ touchAction: "none" } as object}
+        onLayout={onLayout}
+        onStartShouldSetResponder={() => true}
+        onMoveShouldSetResponder={() => true}
+        onResponderGrant={onStart}
+        onResponderMove={onMove}
+        onResponderRelease={onEnd}
+        onResponderTerminate={onEnd}
+        accessibilityLabel="Letter grid"
+      >
+        {letters.map((row, rowIndex) => (
+          <View key={rowIndex} className="flex-1 flex-row">
+            {row.map((letter, colIndex) => {
+              const active = selectedSet.has(
+                cellKey({ row: rowIndex, col: colIndex }),
+              );
+              return (
+                <View
+                  key={`${rowIndex}-${colIndex}`}
+                  testID={`tile-${rowIndex}-${colIndex}`}
+                  className={`cp-tile ${active ? "cp-tile-active" : ""}`}
+                  style={
+                    dropping
+                      ? {
+                          transform: [{ translateY: 800 }],
+                          opacity: 0,
+                        }
+                      : undefined
+                  }
+                >
+                  <Text className="cp-tile-letter">{letter}</Text>
+                </View>
+              );
+            })}
+          </View>
+        ))}
+      </View>
     </View>
   );
 }

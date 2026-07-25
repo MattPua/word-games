@@ -18,11 +18,21 @@ export {
 
 export {
   isValidPath,
-  isAdjacent8,
   wordFromPath,
   cellsEqual,
   type Cell,
 } from "./path";
+
+export {
+  isAdjacent8,
+  isAdjacentHex,
+  isAdjacentCells,
+  GRID_TOPOLOGIES,
+  neighborDeltas,
+  type GridTopology,
+} from "./topology";
+
+export { rotateLettersCW, rotateBoard } from "./rotate";
 
 export { createSeededRng, pickWeighted, type Rng } from "./rng";
 export { findAllWords } from "./findWords";

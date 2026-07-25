@@ -8,6 +8,7 @@ import {
 } from "./config";
 import type { Board } from "./generate";
 import { isValidPath, wordFromPath, type Cell } from "./path";
+import type { GridTopology } from "./topology";
 import { compareWordsByLengthThenAlpha } from "./wordLists";
 
 export type GameMode = "target" | "timed";
@@ -72,7 +73,7 @@ export function submitPath(
   if (state.ended) {
     return { state, result: { ok: false, reason: "ended" } };
   }
-  if (!isValidPath(path, state.board.size)) {
+  if (!isValidPath(path, state.board.size, state.board.topology)) {
     return { state, result: { ok: false, reason: "bad_path" } };
   }
   const word = wordFromPath(state.board.letters, path);
@@ -134,10 +135,11 @@ export function highScoreKey(
   profileId: string,
   size: number,
   config: GameConfig,
+  topology: GridTopology = "square",
 ): string {
   const min = config.minWordLength;
   if (config.mode === "target") {
-    return `${profileId}:${size}:target:${config.difficulty}:min${min}`;
+    return `${profileId}:${size}:${topology}:target:${config.difficulty}:min${min}`;
   }
-  return `${profileId}:${size}:timed:${config.duration}:min${min}`;
+  return `${profileId}:${size}:${topology}:timed:${config.duration}:min${min}`;
 }

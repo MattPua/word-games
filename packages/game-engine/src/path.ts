@@ -1,17 +1,20 @@
+import {
+  isAdjacentCells,
+  type GridTopology,
+} from "./topology";
+
 export type Cell = { row: number; col: number };
 
 export function cellsEqual(a: Cell, b: Cell): boolean {
   return a.row === b.row && a.col === b.col;
 }
 
-export function isAdjacent8(a: Cell, b: Cell): boolean {
-  const dr = Math.abs(a.row - b.row);
-  const dc = Math.abs(a.col - b.col);
-  return Math.max(dr, dc) === 1;
-}
-
-/** Valid path: in-bounds, 8-neighbor steps, no reuse. */
-export function isValidPath(path: Cell[], gridSize: number): boolean {
+/** Valid path: in-bounds, topology-neighbor steps, no reuse. */
+export function isValidPath(
+  path: Cell[],
+  gridSize: number,
+  topology: GridTopology = "square",
+): boolean {
   if (path.length === 0) return false;
   const seen = new Set<string>();
   for (let i = 0; i < path.length; i++) {
@@ -22,7 +25,7 @@ export function isValidPath(path: Cell[], gridSize: number): boolean {
     const key = `${c.row},${c.col}`;
     if (seen.has(key)) return false;
     seen.add(key);
-    if (i > 0 && !isAdjacent8(path[i - 1]!, c)) return false;
+    if (i > 0 && !isAdjacentCells(path[i - 1]!, c, topology)) return false;
   }
   return true;
 }
