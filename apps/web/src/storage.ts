@@ -1,9 +1,30 @@
-export type HighScores = Record<string, number>;
+export type HighScoreEntry = {
+  score: number;
+  at: string; // ISO
+};
+
+/** Legacy number values migrate on read. */
+export type HighScores = Record<string, HighScoreEntry | number>;
+
+export type GameHistoryEntry = {
+  id: string;
+  at: string;
+  score: number;
+  mode: "target" | "timed";
+  grid: number;
+  minWordLength: 3 | 4 | 5;
+  difficulty?: "easy" | "medium" | "hard";
+  duration?: 30 | 60 | 90 | 120;
+  reason: "won" | "timeout" | "quit";
+  wordsFound: number;
+  isHighScore: boolean;
+};
 
 export type Profile = {
   id: string;
   name: string;
   highScores: HighScores;
+  history: GameHistoryEntry[];
   gamesPlayed: number;
   wordsFound: number;
 };
@@ -19,9 +40,38 @@ export type StoredBlob = {
 };
 
 const KEY = "couch-potato:v1";
+const HISTORY_CAP = 20;
 
 function uid() {
   return `p_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function runId() {
+  return `r_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+}
+
+function normalizeHighScores(raw: HighScores | undefined): Record<string, HighScoreEntry> {
+  const out: Record<string, HighScoreEntry> = {};
+  if (!raw) return out;
+  for (const [k, v] of Object.entries(raw)) {
+    if (typeof v === "number") {
+      out[k] = { score: v, at: "" };
+    } else if (v && typeof v.score === "number") {
+      out[k] = { score: v.score, at: v.at || "" };
+    }
+  }
+  return out;
+}
+
+function normalizeProfile(p: Partial<Profile> & { id: string; name: string }): Profile {
+  return {
+    id: p.id,
+    name: p.name,
+    highScores: normalizeHighScores(p.highScores),
+    history: Array.isArray(p.history) ? p.history : [],
+    gamesPlayed: p.gamesPlayed ?? 0,
+    wordsFound: p.wordsFound ?? 0,
+  };
 }
 
 export function defaultBlob(): StoredBlob {
@@ -32,6 +82,7 @@ export function defaultBlob(): StoredBlob {
         id,
         name: "Potato",
         highScores: {},
+        history: [],
         gamesPlayed: 0,
         wordsFound: 0,
       },
@@ -48,7 +99,13 @@ export function loadStore(): StoredBlob {
       saveStore(blob);
       return blob;
     }
-    return JSON.parse(raw) as StoredBlob;
+    const parsed = JSON.parse(raw) as StoredBlob;
+    return {
+      prefs: parsed.prefs,
+      profiles: (parsed.profiles ?? []).map((p) =>
+        normalizeProfile(p as Profile),
+      ),
+    };
   } catch {
     return defaultBlob();
   }
@@ -64,10 +121,10 @@ export function loadDevicePrefs(): DevicePrefs {
 
 export function getActiveProfile(): Profile {
   const store = loadStore();
-  return (
-    store.profiles.find((p) => p.id === store.prefs.activeProfileId) ??
-    store.profiles[0]!
-  );
+  const p =
+    store.profiles.find((x) => x.id === store.prefs.activeProfileId) ??
+    store.profiles[0]!;
+  return normalizeProfile(p);
 }
 
 export function upsertHighScore(scoreKey: string, score: number): boolean {
@@ -76,9 +133,15 @@ export function upsertHighScore(scoreKey: string, score: number): boolean {
     (p) => p.id === store.prefs.activeProfileId,
   );
   if (!profile) return false;
-  const prev = profile.highScores[scoreKey] ?? 0;
-  if (score <= prev) return false;
-  profile.highScores[scoreKey] = score;
+  const highs = normalizeHighScores(profile.highScores);
+  const prev = highs[scoreKey]?.score ?? 0;
+  if (score <= prev) {
+    profile.highScores = highs;
+    saveStore(store);
+    return false;
+  }
+  highs[scoreKey] = { score, at: new Date().toISOString() };
+  profile.highScores = highs;
   saveStore(store);
   return true;
 }
@@ -92,6 +155,44 @@ export function recordGameStats(wordsFound: number) {
   profile.gamesPlayed += 1;
   profile.wordsFound += wordsFound;
   saveStore(store);
+}
+
+/** Persist one finished run onto the active profile (history + counters + highs). */
+export function recordFinishedRun(input: {
+  score: number;
+  scoreKey: string;
+  mode: "target" | "timed";
+  grid: number;
+  minWordLength: 3 | 4 | 5;
+  difficulty?: "easy" | "medium" | "hard";
+  duration?: 30 | 60 | 90 | 120;
+  reason: "won" | "timeout" | "quit";
+  wordsFound: number;
+}): { isHighScore: boolean } {
+  const isHighScore = upsertHighScore(input.scoreKey, input.score);
+  recordGameStats(input.wordsFound);
+  const store = loadStore();
+  const profile = store.profiles.find(
+    (p) => p.id === store.prefs.activeProfileId,
+  );
+  if (!profile) return { isHighScore };
+  const entry: GameHistoryEntry = {
+    id: runId(),
+    at: new Date().toISOString(),
+    score: input.score,
+    mode: input.mode,
+    grid: input.grid,
+    minWordLength: input.minWordLength,
+    difficulty: input.difficulty,
+    duration: input.duration,
+    reason: input.reason,
+    wordsFound: input.wordsFound,
+    isHighScore,
+  };
+  const history = [entry, ...(profile.history ?? [])].slice(0, HISTORY_CAP);
+  profile.history = history;
+  saveStore(store);
+  return { isHighScore };
 }
 
 export function setSoundEnabled(enabled: boolean) {
@@ -113,6 +214,7 @@ export function createProfile(name: string): Profile {
     id: uid(),
     name: name.trim() || "Potato",
     highScores: {},
+    history: [],
     gamesPlayed: 0,
     wordsFound: 0,
   };
@@ -182,4 +284,49 @@ export function loadLaunch(): PlayLaunch {
     /* ignore */
   }
   return { mode: "target", grid: 4, difficulty: "easy", minWordLength: 3 };
+}
+
+/** Human label from engine highScoreKey (strips profile id prefix). */
+export function formatHighScoreLabel(scoreKey: string): string {
+  const parts = scoreKey.split(":");
+  // profileId:size:target:difficulty:minN  OR  profileId:size:timed:duration:minN
+  if (parts.length < 5) return scoreKey;
+  const [, size, mode, detail, minPart] = parts;
+  const min = (minPart ?? "").replace(/^min/, "") || "?";
+  if (mode === "target") {
+    return `${size}×${size} target · ${detail} · ${min}+`;
+  }
+  return `${size}×${size} timed · ${detail}s · ${min}+`;
+}
+
+export function formatWhen(iso: string): string {
+  if (!iso) return "sometime on the couch";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+export function listHighScores(profile: Profile): {
+  key: string;
+  label: string;
+  score: number;
+  at: string;
+}[] {
+  const highs = normalizeHighScores(profile.highScores);
+  return Object.entries(highs)
+    .map(([key, entry]) => ({
+      key,
+      label: formatHighScoreLabel(key),
+      score: entry.score,
+      at: entry.at,
+    }))
+    .sort((a, b) => b.score - a.score);
 }

@@ -24,6 +24,7 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 ## Product surface
 
 - Local profiles only (no cloud/export/sync); high scores per profile × grid × mode × difficulty/duration
+- **Potato Board** (personal local stats on Profiles): games/words totals, bests with timestamps, recent runs (last 20). Not a cloud leaderboard. (“Alita Board” speech → this.)
 - Web share from results (Web Share API + clipboard fallback)
 - SEO: title/description/OG/Twitter + JSON-LD (`WebApplication` / `VideoGame`)
 - PostHog stub (`VITE_PUBLIC_POSTHOG_KEY`); no-op without key
@@ -32,8 +33,9 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 ## Stack
 
 - Bun workspaces; Vitest; Vite + TanStack Router → Vercel
-- Shared UI: `packages/ui` (RN + RN-web + NativeWind); Expo later (`apps/mobile`)
-- Loading / empty / 404–500 voice live in `packages/ui` (`LoadingPotato`, `EmptyState`) + thin web pages — not one-off DOM kits
+- **Web chrome:** prefer **shadcn/ui** (DOM) for buttons/inputs/toasts — Sage Garden tokens + Fredoka/Nunito. Game board stays custom (`LetterGrid`, path, confetti) in `packages/ui`.
+- `packages/ui`: game + shared presentational (grid, loading/empty, logo); RN Button remains for Expo later — **web screens should not add a second hand-rolled chrome Button** once shadcn is wired.
+- Loading / empty / 404–500 voice live in `packages/ui` (`LoadingPotato`, `EmptyState`) + thin web pages
 - Pointer Events for swipe paths (web); Hammer.js = reference only
 - CSS/NativeWind motion first; no anime.js unless a real gap
 - **UI/UX brand pass** only after playable home→play→results + swipe QA (dedicated milestone — don’t block core)

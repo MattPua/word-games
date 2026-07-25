@@ -25,6 +25,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      "@": path.resolve(__dirname, "./src"),
       "react-native": "react-native-web",
       "@couch-potato/ui": path.resolve(__dirname, "../../packages/ui/src"),
       "@couch-potato/game-engine": path.resolve(

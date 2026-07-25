@@ -29,9 +29,8 @@ import { track } from "../analytics";
 import {
   getActiveProfile,
   loadLaunch,
-  recordGameStats,
+  recordFinishedRun,
   saveLastRun,
-  upsertHighScore,
 } from "../storage";
 
 const WIN_FLOURISH_MS = 1300;
@@ -105,8 +104,18 @@ export function PlayPage() {
   const finish = async (s: GameState) => {
     const profile = getActiveProfile();
     const key = highScoreKey(profile.id, s.board.size, s.config);
-    const isHigh = upsertHighScore(key, s.score);
-    recordGameStats(s.found.length);
+    const { isHighScore: isHigh } = recordFinishedRun({
+      score: s.score,
+      scoreKey: key,
+      mode: s.config.mode,
+      grid: s.board.size,
+      minWordLength: s.config.minWordLength,
+      difficulty:
+        s.config.mode === "target" ? s.config.difficulty : undefined,
+      duration: s.config.mode === "timed" ? s.config.duration : undefined,
+      reason: s.ended!,
+      wordsFound: s.found.length,
+    });
     const missed = missedLongWords(s, dict);
     const detail =
       s.config.mode === "target"

@@ -6,8 +6,9 @@ alwaysApply: false
 
 # UI
 
-- Whimsical light-first (+ soft dark); Fredoka + Nunito; tokens only from `packages/ui` theme.
-- Mobile-first; screens compose UI primitives — minimize one-off Tailwind in routes.
+- Whimsical light-first (+ soft dark); Fredoka + Nunito; Sage Garden tokens from `packages/ui` theme.
+- **Web chrome:** shadcn/ui (Radix + Tailwind) is the preferred base for Button/input/dialog/toast — customize, don’t hand-roll duplicates. Game board (`LetterGrid`, path, tile drop, confetti) stays custom.
+- `packages/ui` RN Button = Expo/RN path; web app chrome → shadcn once initialized. Don’t maintain two competing web Buttons.
+- Mobile-first; minimize one-off Tailwind in routes.
 - **Container queries = web-only.** Cross-platform layout: flex + max-width. No `@container` in pure RN views.
-- Tailwind theme / repeated recipes live in `packages/ui`, not copy-pasted across apps.
 - UI changes require interactive verify (pointer swipe for play) — see `.cursor/skills/verify-ui`.

@@ -5,7 +5,14 @@
     "jsxImportSource": "nativewind",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "nativewind/types"],
+    "baseUrl": ".",
     "paths": {
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/components/ui/*": ["./src/components/ui/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/utils/*": ["./src/lib/*"],
       "@couch-potato/ui": ["../../packages/ui/src"],
       "@couch-potato/game-engine": ["../../packages/game-engine/src"],
       "@couch-potato/dictionary": ["../../packages/dictionary/src"]

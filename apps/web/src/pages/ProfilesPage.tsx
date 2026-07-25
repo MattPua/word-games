@@ -2,6 +2,7 @@ import { Text, TextInput, View } from "react-native";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, EmptyState, Shell } from "@couch-potato/ui";
+import { PotatoBoard } from "../components/PotatoBoard";
 import {
   createProfile,
   getActiveProfile,
@@ -17,8 +18,6 @@ export function ProfilesPage() {
   const store = loadStore();
   const active = getActiveProfile();
   const [name, setName] = useState("");
-  const scoreKeys = Object.keys(active.highScores);
-  const hasScores = scoreKeys.length > 0;
 
   return (
     <Shell>
@@ -59,13 +58,7 @@ export function ProfilesPage() {
         ))
       )}
 
-      {!hasScores && (
-        <EmptyState
-          title="No high scores yet"
-          body="Win a round and we'll carve it into the armrest."
-          className="mb-4 py-2"
-        />
-      )}
+      <PotatoBoard profile={active} />
 
       <TextInput
         value={name}
