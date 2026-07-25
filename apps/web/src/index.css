@@ -63,6 +63,21 @@
     line-height: 1.15;
     letter-spacing: -0.01em;
   }
+
+  /* Interactive affordance — lean global rule; don’t sprinkle cursor-pointer per class */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  summary,
+  label[for],
+  select:not(:disabled),
+  input[type="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 @layer components {
@@ -121,6 +136,11 @@
     background: var(--board-well);
     box-shadow: inset 0 3px 10px color-mix(in srgb, #000 28%, transparent);
     padding: 0.45rem;
+    cursor: grab;
+  }
+
+  .cp-board-well:active {
+    cursor: grabbing;
   }
 
   .cp-tile {
@@ -131,6 +151,7 @@
     justify-content: center;
     margin: 0.2rem;
     border-radius: calc(var(--radius) - 0.15rem);
+    cursor: inherit;
     border: 1.5px solid color-mix(in srgb, var(--tile-edge) 80%, #000);
     background:
       linear-gradient(
