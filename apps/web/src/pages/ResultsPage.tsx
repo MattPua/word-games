@@ -47,7 +47,7 @@ export function ResultsPage() {
 
   const reasonLabel =
     run.reason === "won"
-      ? "Target reached!"
+      ? "Couch clear!"
       : run.reason === "timeout"
         ? "Time's up"
         : "Paused on the couch";

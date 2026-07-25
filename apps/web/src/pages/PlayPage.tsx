@@ -77,6 +77,7 @@ export function PlayPage() {
           ? {
               ...s,
               score: Math.max(s.score, s.target ?? s.score),
+              remaining: 0,
               ended: "won",
             }
           : s,
@@ -164,6 +165,7 @@ export function PlayPage() {
 
   const currentWord = wordFromPath(state.board.letters, path).toUpperCase();
   const target = state.target ?? 0;
+  const remaining = state.remaining;
   const secs =
     state.remainingMs != null ? Math.ceil(state.remainingMs / 1000) : null;
 
@@ -171,10 +173,15 @@ export function PlayPage() {
     <Shell className="relative overflow-hidden">
       <ConfettiBurst active={celebrate} durationMs={WIN_FLOURISH_MS} />
       <View className="mb-3 flex-row items-center justify-between">
-        <Text className="font-display text-xl text-foreground">
-          {state.score}
-          {state.target != null ? ` / ${state.target}` : ""}
-        </Text>
+        {remaining != null ? (
+          <Text className="font-display text-xl text-foreground">
+            {remaining} left
+          </Text>
+        ) : (
+          <Text className="font-display text-xl text-foreground">
+            {state.score}
+          </Text>
+        )}
         {secs != null && (
           <Text className="font-display text-xl text-foreground">{secs}s</Text>
         )}
@@ -188,13 +195,17 @@ export function PlayPage() {
         </Button>
       </View>
 
-      {state.target != null && (
-        <ProgressBar value={state.score} max={target} className="mb-3" />
+      {remaining != null && target > 0 && (
+        <ProgressBar value={remaining} max={target} className="mb-3" />
       )}
 
       <ScoreBubble
         word={celebrate ? "Couch clear!" : currentWord || flash}
-        hint={`${state.config.minWordLength}+ letters`}
+        hint={
+          remaining != null
+            ? `Clear the couch · ${state.config.minWordLength}+`
+            : `${state.config.minWordLength}+ letters`
+        }
         className="mb-3"
       />
 

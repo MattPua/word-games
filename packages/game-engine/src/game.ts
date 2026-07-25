@@ -26,16 +26,22 @@ export type SubmitResult =
 export type GameState = {
   board: Board;
   config: GameConfig;
+  /** Points earned this run (high scores / results). */
   score: number;
   found: string[];
+  /** Initial target points (target mode); null in timed. */
   target: number | null;
+  /**
+   * Target mode: points left to clear (starts at `target`, floors at 0).
+   * Win when remaining === 0. Timed: unused (null).
+   */
+  remaining: number | null;
   remainingMs: number | null;
   ended: EndReason | null;
 };
 
 export function createGame(board: Board, config: GameConfig): GameState {
   const minWordLength = config.minWordLength ?? MIN_WORD_LENGTH;
-  // Prefer board built for this min; recompute target from filtered max if needed
   const target =
     config.mode === "target" ? board.targets[config.difficulty] : null;
   if (
@@ -52,6 +58,7 @@ export function createGame(board: Board, config: GameConfig): GameState {
     score: 0,
     found: [],
     target,
+    remaining: target,
     remainingMs,
     ended: null,
   };
@@ -82,9 +89,13 @@ export function submitPath(
   const points = scoreWord(word.length);
   const score = state.score + points;
   const found = [...state.found, word];
+  const remaining =
+    state.remaining != null
+      ? Math.max(0, state.remaining - points)
+      : null;
   let ended: EndReason | null = null;
-  if (state.target != null && score >= state.target) ended = "won";
-  const next: GameState = { ...state, score, found, ended };
+  if (remaining === 0) ended = "won";
+  const next: GameState = { ...state, score, found, remaining, ended };
   return {
     state: next,
     result: { ok: true, word, points, score, ended: ended ?? undefined },

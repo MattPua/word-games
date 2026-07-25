@@ -18,8 +18,8 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 - No duplicate words per round
 - Dictionary: [dolph/dictionary](https://github.com/dolph/dictionary) — **v1 play lexicon = `popular.txt`** (enable1 ∩ Wiktionary TV/movie frequency lists ≈ 25k common words; not a frequency CSV). Full `enable1` kept in the build artifact for a future “dictionary mode” but **does not** drive accept, board `allWords`, targets, or missed reveals. Plus **offensive/NSFW blocklist** (ENABLE public domain — attribute in README). Blocked tokens must not appear in validation, board gen, or missed-words.
 - Scoring: `points = length - 2` (config constant)
-- **Target**: `% of board max` × Easy/Med/Hard → end immediately on reach. Max/target use **only words ≥ active min length** (targets always ≤ maxScore — never require shorter words the player can’t submit)
-- **Timed**: fixed board; 30/60/90/120s → results
+- **Target**: countdown — `remaining` starts at achievable target (board max × Easy/Med/Hard); each accepted word subtracts its points; **win when remaining === 0** (“Clear the couch”). High scores still store **points earned**. Max/target use only words ≥ active min length.
+- **Timed**: fixed board; 30/60/90/120s → results (score accumulates; unchanged)
 - **Quit mid-game** → results with progress so far (`won` | `timeout` | `quit`)
 
 ## Product surface

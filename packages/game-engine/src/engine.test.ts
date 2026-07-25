@@ -138,9 +138,46 @@ describe("game", () => {
     expect(sub.result.ok).toBe(true);
     state = sub.state;
     expect(state.score).toBe(1);
+    expect(state.remaining).toBe(1); // easy target 2 − 1
     state = quitGame(state);
     expect(state.ended).toBe("quit");
     expect(state.found).toEqual(["cat"]);
+  });
+
+  it("wins when remaining hits 0", () => {
+    const letters = [
+      ["C", "A", "T", "S"],
+      ["X", "X", "X", "X"],
+      ["X", "X", "X", "X"],
+      ["X", "X", "X", "X"],
+    ];
+    const board = {
+      letters,
+      size: 4 as const,
+      allWords: ["cat", "cats"],
+      maxScore: 4,
+      targets: { easy: 1, medium: 2, hard: 3 },
+      minWordLength: 3 as const,
+    };
+    let state = createGame(board, {
+      mode: "target",
+      difficulty: "easy",
+      minWordLength: 3,
+    });
+    expect(state.remaining).toBe(1);
+    const sub = submitPath(
+      state,
+      [
+        { row: 0, col: 0 },
+        { row: 0, col: 1 },
+        { row: 0, col: 2 },
+      ],
+      miniDict,
+    );
+    expect(sub.result.ok).toBe(true);
+    expect(sub.state.remaining).toBe(0);
+    expect(sub.state.ended).toBe("won");
+    expect(sub.state.score).toBe(1);
   });
 
   it("rejects words shorter than active minWordLength", () => {
