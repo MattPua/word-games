@@ -20,7 +20,7 @@ export function ScoreBubble({
     <View className={`relative items-center justify-center ${className}`}>
       <View className={`cp-word-pill w-full max-w-sm ${show ? "" : "cp-word-pill-empty"}`}>
         <Text
-          className={`text-center tracking-normal ${
+          className={`text-center leading-none tracking-normal ${
             show
               ? "font-display text-3xl font-bold text-primary-foreground"
               : "font-body text-base font-medium text-muted-foreground"
@@ -31,7 +31,9 @@ export function ScoreBubble({
       </View>
       {show && points > 0 ? (
         <View className="cp-score-badge" accessibilityLabel={`${points} points`}>
-          <Text className="font-display text-sm font-bold text-secondary-foreground">{points}</Text>
+          <Text className="font-display text-sm font-bold leading-none text-secondary-foreground">
+            {points}
+          </Text>
         </View>
       ) : null}
     </View>
