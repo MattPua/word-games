@@ -97,10 +97,8 @@ function PausePrefRow({
     <label
       htmlFor={id}
       className={cn(
-        "flex w-full cursor-pointer items-center justify-between gap-3 rounded-ui border-2 px-4 py-3 transition-[border-color,background-color] duration-200",
-        checked
-          ? "border-secondary/80 bg-secondary/20"
-          : "border-border bg-card/80 hover:border-primary/40",
+        "cp-pref-row flex w-full cursor-pointer items-center justify-between gap-3",
+        checked && "cp-pref-row-on",
       )}
     >
       <span className={cn("flex min-w-0 gap-2.5", description ? "items-start" : "items-center")}>

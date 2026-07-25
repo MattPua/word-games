@@ -117,16 +117,14 @@
     background: color-mix(in srgb, var(--path) 72%, var(--card));
     border-color: color-mix(in srgb, var(--path) 55%, var(--border));
     color: var(--primary-foreground);
-    box-shadow: 0 2px 0 color-mix(in srgb, var(--path) 45%, #2c322e);
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--path) 22%, transparent);
   }
 
   .cp-hud-bubble.cp-hud-heat-3 {
     background: var(--secondary);
     border-color: color-mix(in srgb, var(--secondary) 55%, var(--border));
     color: var(--secondary-foreground);
-    box-shadow:
-      0 2px 0 color-mix(in srgb, var(--secondary) 55%, #2c322e),
-      0 6px 14px color-mix(in srgb, var(--secondary) 22%, transparent);
+    box-shadow: 0 2px 14px color-mix(in srgb, var(--secondary) 28%, transparent);
   }
 
   @keyframes cp-hud-pulse {
@@ -326,7 +324,7 @@
     padding: 0.4rem 0.9rem;
     background: color-mix(in srgb, var(--muted) 50%, var(--card));
     border: 1.5px solid color-mix(in srgb, var(--primary) 20%, var(--border));
-    box-shadow: 0 1px 0 color-mix(in srgb, var(--border) 55%, transparent);
+    box-shadow: none;
   }
 
   .cp-last-found-label {
@@ -376,12 +374,15 @@
     text-align: center;
   }
 
-  /* Home lobby — toy cards / tiles, not form label rows */
+  /*
+   * Lobby / pause soft chrome — flat borders + warm fills; no hard pixel bottom bars.
+   * Chunky toy shadows stay on Play CTA + board frame only (see ui.mdc).
+   */
   .cp-lobby-card {
     border-radius: var(--radius);
-    border: 1.5px solid color-mix(in srgb, var(--border) 80%, transparent);
+    border: 1.5px solid color-mix(in srgb, var(--border) 72%, transparent);
     background: color-mix(in srgb, var(--card) 88%, transparent);
-    box-shadow: 0 2px 0 color-mix(in srgb, var(--border) 70%, transparent);
+    box-shadow: none;
     transition:
       transform 0.2s ease,
       box-shadow 0.2s ease,
@@ -406,22 +407,22 @@
       color-mix(in srgb, var(--secondary) 22%, var(--card)) 100%
     );
     box-shadow:
-      0 3px 0 color-mix(in srgb, var(--secondary) 45%, #2c322e),
-      0 8px 18px color-mix(in srgb, var(--secondary) 18%, transparent);
+      0 0 0 2px color-mix(in srgb, var(--secondary) 28%, transparent),
+      0 2px 10px color-mix(in srgb, var(--secondary) 14%, transparent);
   }
 
   .cp-lobby-panel {
-    border-radius: calc(var(--radius) + 0.15rem);
+    border-radius: var(--radius);
     padding: 0.9rem;
     background: color-mix(in srgb, var(--card) 72%, transparent);
-    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+    border: 1.5px solid color-mix(in srgb, var(--border) 65%, transparent);
     box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
   }
 
   .cp-lobby-tile,
   .cp-lobby-chip,
   .cp-lobby-challenge {
-    border-radius: calc(var(--radius) - 0.25rem);
+    border-radius: calc(var(--radius) - 0.1rem);
     border: 1.5px solid transparent;
     background: color-mix(in srgb, var(--muted) 70%, transparent);
     color: var(--foreground);
@@ -450,30 +451,42 @@
     background: var(--card);
     border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
     box-shadow:
-      0 2px 0 color-mix(in srgb, var(--primary) 35%, #2c322e),
-      0 6px 12px color-mix(in srgb, var(--primary) 12%, transparent);
+      0 0 0 2px color-mix(in srgb, var(--primary) 22%, transparent),
+      0 2px 8px color-mix(in srgb, var(--primary) 10%, transparent);
   }
 
   .cp-lobby-challenge-hard {
     border-color: color-mix(in srgb, var(--secondary) 55%, var(--border));
     background: color-mix(in srgb, var(--secondary) 28%, var(--card));
     box-shadow:
-      0 2px 0 color-mix(in srgb, var(--secondary) 55%, #2c322e),
-      0 6px 12px color-mix(in srgb, var(--secondary) 18%, transparent);
+      0 0 0 2px color-mix(in srgb, var(--secondary) 28%, transparent),
+      0 2px 8px color-mix(in srgb, var(--secondary) 14%, transparent);
   }
 
+  /* Switch pref rows — lobby Show words left + Couch break toggles */
+  .cp-pref-row,
   .cp-lobby-more {
-    border-radius: calc(var(--radius) - 0.2rem);
-    border: 1px dashed color-mix(in srgb, var(--border) 90%, transparent);
-    background: color-mix(in srgb, var(--muted) 45%, transparent);
+    border-radius: calc(var(--radius) - 0.1rem);
+    border: 1.5px solid color-mix(in srgb, var(--border) 72%, transparent);
+    background: color-mix(in srgb, var(--muted) 32%, transparent);
     padding: 0.65rem 0.85rem;
+    box-shadow: none;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
+  .cp-pref-row:hover:not(.cp-pref-row-on):not(.cp-lobby-more-on),
+  .cp-lobby-more:hover:not(.cp-pref-row-on):not(.cp-lobby-more-on) {
+    border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  }
+
+  .cp-pref-row-on,
   .cp-lobby-more-on {
-    border-style: solid;
     border-color: color-mix(in srgb, var(--secondary) 55%, var(--border));
     background: color-mix(in srgb, var(--secondary) 18%, var(--card));
-    box-shadow: 0 2px 0 color-mix(in srgb, var(--secondary) 40%, #2c322e);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--secondary) 22%, transparent);
   }
 
   .cp-lobby-glyph {
@@ -483,12 +496,14 @@
   }
 
   .cp-lobby-challenge:hover .cp-lobby-glyph,
+  .cp-pref-row:hover .cp-lobby-glyph,
   .cp-lobby-more:hover .cp-lobby-glyph,
   .cp-lobby-more-summary:hover .cp-lobby-glyph {
     transform: translateY(-1px) scale(1.12);
   }
 
   .cp-lobby-challenge:active .cp-lobby-glyph,
+  .cp-pref-row:active .cp-lobby-glyph,
   .cp-lobby-more:active .cp-lobby-glyph {
     transform: scale(0.92);
   }
@@ -502,6 +517,7 @@
 
   /* Soft fill on selected lucide glyphs (stroke stays; currentColor) */
   .cp-lobby-challenge-active .cp-lobby-glyph svg,
+  .cp-pref-row-on .cp-lobby-glyph,
   .cp-lobby-more-on .cp-lobby-glyph,
   .cp-lobby-more[data-state="open"] .cp-lobby-glyph {
     fill: currentColor;
@@ -582,8 +598,7 @@
   .cp-icon-btn[aria-pressed="true"] {
     box-shadow:
       0 0 0 2px var(--background),
-      0 0 0 4px color-mix(in srgb, var(--secondary) 70%, var(--primary)),
-      0 3px 0 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
+      0 0 0 4px color-mix(in srgb, var(--secondary) 70%, var(--primary));
   }
 
   .cp-icon-btn[data-variant="ghost"][aria-pressed="true"] {
@@ -591,8 +606,7 @@
     color: color-mix(in srgb, var(--secondary) 55%, var(--foreground));
     box-shadow:
       0 0 0 2px var(--background),
-      0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary)),
-      0 2px 0 0 color-mix(in srgb, var(--secondary) 50%, #2c322e);
+      0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary));
   }
 
   /* Icon toggles (jam/SFX): quiet outline off, potato on — not filled secondary CTAs */
@@ -609,8 +623,7 @@
     background: color-mix(in srgb, var(--secondary) 34%, var(--muted));
     box-shadow:
       0 0 0 2px var(--background),
-      0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary)),
-      0 2px 0 0 color-mix(in srgb, var(--secondary) 50%, #2c322e);
+      0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary));
   }
 }
 
@@ -677,14 +690,12 @@
     100% {
       box-shadow:
         0 0 0 2px var(--background),
-        0 0 0 4px color-mix(in srgb, var(--secondary) 55%, var(--primary)),
-        0 3px 0 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
+        0 0 0 4px color-mix(in srgb, var(--secondary) 55%, var(--primary));
     }
     50% {
       box-shadow:
         0 0 0 2px var(--background),
-        0 0 0 6px color-mix(in srgb, var(--secondary) 80%, transparent),
-        0 3px 0 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
+        0 0 0 6px color-mix(in srgb, var(--secondary) 80%, transparent);
     }
   }
 
@@ -784,6 +795,7 @@
     .cp-lobby-card:hover,
     .cp-lobby-card:active,
     .cp-lobby-challenge:hover .cp-lobby-glyph,
+    .cp-pref-row:hover .cp-lobby-glyph,
     .cp-lobby-more:hover .cp-lobby-glyph,
     .cp-lobby-more-summary:hover .cp-lobby-glyph,
     .cp-icon-btn:hover,
@@ -945,9 +957,10 @@
   font-size: 0.9375rem;
 }
 
+.cp-lobby-advanced .cp-pref-row,
 .cp-lobby-advanced .cp-lobby-more {
-  border-color: color-mix(in srgb, var(--border) 72%, transparent);
-  background: color-mix(in srgb, var(--muted) 32%, transparent);
+  border-color: color-mix(in srgb, var(--border) 68%, transparent);
+  background: color-mix(in srgb, var(--muted) 28%, transparent);
 }
 
 /* Lobby sticky Play — owns bottom safe-area + shadow room (Shell lobby uses pb-0) */
@@ -975,8 +988,7 @@
   border-color: color-mix(in srgb, var(--secondary) 45%, var(--border));
   box-shadow:
     0 0 0 2px var(--background),
-    0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary)),
-    0 2px 0 0 color-mix(in srgb, var(--secondary) 50%, #2c322e);
+    0 0 0 4px color-mix(in srgb, var(--secondary) 75%, var(--primary));
 }
 
 /* Lobby Play bar: full width on phone; narrower centered cluster on md+ lobby */

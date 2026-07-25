@@ -488,8 +488,8 @@ export function HomeSetup({
           <label
             htmlFor="lobby-words-left"
             className={cn(
-              "cp-lobby-more flex cursor-pointer items-center justify-between gap-3 transition-[border-color,background-color,box-shadow] duration-200",
-              showWordsLeft && "cp-lobby-more-on cp-select-pop",
+              "cp-pref-row flex cursor-pointer items-center justify-between gap-3",
+              showWordsLeft && "cp-pref-row-on cp-select-pop",
             )}
           >
             <span className="flex min-w-0 items-start gap-2.5">
