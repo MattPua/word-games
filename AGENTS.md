@@ -37,8 +37,8 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - SEO: title/description/OG/Twitter + JSON-LD (`WebApplication` / `VideoGame`)
 - PostHog stub (`VITE_PUBLIC_POSTHOG_KEY`); no-op without key
 - Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** SFX on web only; mute from **home, play HUD, or pause menu** (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`. **Lobby jam** (`public/audio/menu-bgm.mp3`, `menuMusicEnabled`) loops on home / couch crew only (fades out on Play); separate toggle from SFX
-- **Words left** HUD (`showWordsLeft` device pref, default **off**): unfound valid words on the board (`allWords − found`), not target pts remaining; lobby Scout + play HUD / pause menu toggles
-- **Chrome icons:** lucide for sound / lobby jam / pause / rotate / couch crew / share / words-left eye (icon or icon+text); keep lobby mode/challenge as words+tiles — don’t icon-spam settings. Always `aria-label` on icon-only; web uses shadcn `IconTooltip` (game voice — see `.cursor/rules/ui.mdc`).
+- **Words left** HUD (`showWordsLeft` device pref, default **off**): unfound valid words on the board (`allWords − found`), not target pts remaining; toggle in lobby Scout + Couch break (pause) only — play HUD shows muted “N left” readout when on (no eye icon)
+- **Chrome icons:** lucide for sound / lobby jam / pause / rotate / couch crew / share (icon or icon+text); words-left eye lives in Couch break / lobby Scout — not the play HUD cluster. Keep lobby mode/challenge as words+tiles — don’t icon-spam settings. Always `aria-label` on icon-only; web uses shadcn `IconTooltip` (game voice — see `.cursor/rules/ui.mdc`).
 
 ## Stack
 

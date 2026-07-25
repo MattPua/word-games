@@ -361,18 +361,6 @@ export function PlayPage() {
           ) : null}
         </View>
         <View className="shrink-0 flex-row items-center gap-0.5">
-          <IconTooltip label={showWordsLeft ? "Hide words left" : "Show words left"}>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              disabled={celebrate}
-              aria-pressed={showWordsLeft}
-              aria-label={showWordsLeft ? "Hide words left" : "Show words left"}
-              onClick={toggleWordsLeft}
-            >
-              {showWordsLeft ? <Eye /> : <EyeOff />}
-            </Button>
-          </IconTooltip>
           <IconTooltip label={sound ? "Mute SFX" : "Unmute SFX"}>
             <Button
               variant="ghost"
