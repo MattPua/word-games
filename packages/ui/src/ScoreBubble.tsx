@@ -20,10 +20,10 @@ export function ScoreBubble({
     <View className={`relative items-center justify-center ${className}`}>
       <View className={`cp-word-pill w-full max-w-sm ${show ? "" : "cp-word-pill-empty"}`}>
         <Text
-          className={`text-center font-display tracking-[0.12em] ${
+          className={`text-center tracking-normal ${
             show
-              ? "text-3xl font-bold text-primary-foreground"
-              : "font-body text-base font-medium tracking-normal text-muted-foreground"
+              ? "font-display text-3xl font-bold text-primary-foreground"
+              : "font-body text-base font-medium text-muted-foreground"
           }`}
         >
           {show ? word : hint}
