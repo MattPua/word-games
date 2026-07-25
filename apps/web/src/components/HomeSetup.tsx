@@ -1,6 +1,18 @@
-import { Music, Music2, Volume2, VolumeX } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Droplets,
+  Eye,
+  Music,
+  Music2,
+  Sofa,
+  Sun,
+  Type,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { IconTooltip } from "@/components/ui/tooltip";
 import { SegmentGroup } from "@/components/SegmentGroup";
 
@@ -28,6 +40,16 @@ export type HomeSetupProps = {
   onShowWordsLeft: (v: boolean) => void;
 };
 
+/** Growth rings vs 4×4 base: mid = potato gold, outer = sage. */
+const SIZE_BASE = 4;
+
+function sizeCellFill(r: number, c: number): { fill: string; opacity: number } {
+  const ring = Math.max(r, c);
+  if (ring < SIZE_BASE) return { fill: "currentColor", opacity: 0.85 };
+  if (ring === SIZE_BASE) return { fill: "var(--secondary)", opacity: 1 };
+  return { fill: "var(--primary)", opacity: 1 };
+}
+
 function SquareMini({ n }: { n: number }) {
   const cells = Array.from({ length: n * n }, (_, i) => i);
   return (
@@ -35,6 +57,7 @@ function SquareMini({ n }: { n: number }) {
       {cells.map((i) => {
         const r = Math.floor(i / n);
         const c = i % n;
+        const { fill, opacity } = sizeCellFill(r, c);
         return (
           <rect
             key={i}
@@ -43,8 +66,8 @@ function SquareMini({ n }: { n: number }) {
             width={0.76}
             height={0.76}
             rx={0.14}
-            fill="currentColor"
-            opacity={0.85}
+            fill={fill}
+            opacity={opacity}
           />
         );
       })}
@@ -52,16 +75,18 @@ function SquareMini({ n }: { n: number }) {
   );
 }
 
-/** Odd-r packing centers — denser as `n` grows (fixed SVG box → size reads). */
+/** Odd-r packing centers: denser as `n` grows (fixed SVG box → size reads). */
 function oddRPack(n: number) {
   const w = 1.05;
   const h = 0.92;
-  const pts: { cx: number; cy: number; key: string }[] = [];
+  const pts: { cx: number; cy: number; r: number; c: number; key: string }[] = [];
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
       const odd = r % 2 === 1;
       pts.push({
         key: `${r}-${c}`,
+        r,
+        c,
         cx: c * w + (odd ? w / 2 : 0) + 0.55,
         cy: r * h + 0.5,
       });
@@ -88,9 +113,12 @@ function HexMini({ n }: { n: number }) {
   const { pts, vbW, vbH } = oddRPack(n);
   return (
     <svg viewBox={`0 0 ${vbW} ${vbH}`} className="h-10 w-10" aria-hidden>
-      {pts.map((p) => (
-        <polygon key={p.key} points={hexPoints(p.cx, p.cy)} fill="currentColor" opacity={0.85} />
-      ))}
+      {pts.map((p) => {
+        const { fill, opacity } = sizeCellFill(p.r, p.c);
+        return (
+          <polygon key={p.key} points={hexPoints(p.cx, p.cy)} fill={fill} opacity={opacity} />
+        );
+      })}
     </svg>
   );
 }
@@ -141,15 +169,16 @@ const DIFFICULTY: {
   value: Difficulty;
   label: string;
   hint: string;
+  Icon: LucideIcon;
 }[] = [
-  { value: "easy", label: "Easy", hint: "Soft couch" },
-  { value: "medium", label: "Medium", hint: "Warm seat" },
-  { value: "hard", label: "Hard", hint: "Spud sweat" },
+  { value: "easy", label: "Easy", hint: "Soft couch", Icon: Sofa },
+  { value: "medium", label: "Medium", hint: "Warm seat", Icon: Sun },
+  { value: "hard", label: "Hard", hint: "Spud sweat", Icon: Droplets },
 ];
 
 const DURATIONS: Duration[] = [30, 60, 90, 120];
 
-/** Toy lobby setup — cards + mini boards, not labeled form rows. */
+/** Toy lobby setup: cards + mini boards, not labeled form rows. */
 export function HomeSetup({
   mode,
   grid,
@@ -168,7 +197,7 @@ export function HomeSetup({
 }: HomeSetupProps) {
   return (
     <div className="flex flex-col gap-5">
-      {/* Mode — two big choice cards */}
+      {/* Mode: two big choice cards */}
       <div role="group" aria-label="Game mode" className="grid grid-cols-2 gap-2.5">
         {(
           [
@@ -215,7 +244,7 @@ export function HomeSetup({
         })}
       </div>
 
-      {/* Board — grid size tiles + shape icons */}
+      {/* Board: grid size tiles + shape icons */}
       <section aria-label="Board" className="cp-lobby-panel">
         <div className="mb-3 flex items-end justify-between gap-2">
           <h2 className="font-display text-base font-bold text-foreground">Your board</h2>
@@ -292,7 +321,7 @@ export function HomeSetup({
         </div>
       </section>
 
-      {/* Challenge — difficulty or duration */}
+      {/* Challenge: difficulty or duration */}
       <section
         key={mode}
         aria-label={mode === "target" ? "Challenge" : "Sprint"}
@@ -309,7 +338,7 @@ export function HomeSetup({
 
         {mode === "target" ? (
           <div role="group" aria-label="Challenge" className="grid grid-cols-3 gap-2">
-            {DIFFICULTY.map(({ value, label, hint }) => {
+            {DIFFICULTY.map(({ value, label, hint, Icon }) => {
               const active = difficulty === value;
               return (
                 <button
@@ -319,11 +348,20 @@ export function HomeSetup({
                   aria-label={`${label}: ${hint}`}
                   onClick={() => onDifficulty(value)}
                   className={cn(
-                    "cp-lobby-challenge flex flex-col items-center gap-0.5 px-1 py-3",
+                    "cp-lobby-challenge flex flex-col items-center gap-1 px-1 py-2.5",
                     active && "cp-lobby-challenge-active cp-select-pop",
                     active && value === "hard" && "cp-lobby-challenge-hard",
                   )}
                 >
+                  <span
+                    className={cn(
+                      "cp-lobby-glyph text-muted-foreground",
+                      active && (value === "hard" ? "text-secondary-foreground" : "text-primary"),
+                    )}
+                    aria-hidden
+                  >
+                    <Icon className="size-5" strokeWidth={2.25} />
+                  </span>
                   <span className="font-display text-sm font-bold">{label}</span>
                   <span className="font-body text-[0.65rem] leading-tight text-muted-foreground">
                     {hint}
@@ -355,10 +393,17 @@ export function HomeSetup({
         )}
       </section>
 
-      {/* Secondary — word length collapsed */}
+      {/* Secondary: word length collapsed */}
       <details className="cp-lobby-more group">
         <summary className="cp-lobby-more-summary">
-          <span className="font-display text-sm font-bold text-foreground">Word length</span>
+          <span className="flex items-center gap-2">
+            <Type
+              className="cp-lobby-glyph size-4 shrink-0 text-muted-foreground"
+              strokeWidth={2.25}
+              aria-hidden
+            />
+            <span className="font-display text-sm font-bold text-foreground">Word length</span>
+          </span>
           <span className="font-body text-xs text-muted-foreground">{minWordLength}+ letters</span>
         </summary>
         <div className="pt-3">
@@ -375,45 +420,37 @@ export function HomeSetup({
         </div>
       </details>
 
-      {/* Scout — words-left HUD (discovery default = off) */}
-      <details className="cp-lobby-more group">
-        <summary className="cp-lobby-more-summary">
-          <span className="font-display text-sm font-bold text-foreground">Scout</span>
-          <span className="font-body text-xs text-muted-foreground">
-            {showWordsLeft ? "Words left on" : "Words left off"}
-          </span>
-        </summary>
-        <div className="pt-3">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={showWordsLeft}
-            aria-label={
-              showWordsLeft ? "Hide words left on the run HUD" : "Show words left on the run HUD"
-            }
-            onClick={() => onShowWordsLeft(!showWordsLeft)}
+      {/* Words left HUD (default off) */}
+      <label
+        htmlFor="lobby-words-left"
+        className={cn(
+          "cp-lobby-more flex cursor-pointer items-center justify-between gap-3 transition-[border-color,background-color,box-shadow] duration-200",
+          showWordsLeft && "cp-lobby-more-on cp-select-pop",
+        )}
+      >
+        <span className="flex min-w-0 items-start gap-2.5">
+          <Eye
             className={cn(
-              "cp-lobby-chip flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left",
-              showWordsLeft && "cp-lobby-chip-active cp-select-pop",
+              "cp-lobby-glyph mt-0.5 size-4 shrink-0",
+              showWordsLeft ? "text-secondary-foreground" : "text-muted-foreground",
             )}
-          >
-            <span className="flex flex-col gap-0.5">
-              <span className="font-display text-sm font-bold text-foreground">Words left</span>
-              <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
-                How many unfound words are still on the board
-              </span>
+            strokeWidth={2.25}
+            aria-hidden
+          />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="font-display text-sm font-bold text-foreground">Words left</span>
+            <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
+              Unfound words still on the board
             </span>
-            <span
-              className={cn(
-                "font-display text-xs font-bold tabular-nums",
-                showWordsLeft ? "text-secondary-foreground" : "text-muted-foreground",
-              )}
-            >
-              {showWordsLeft ? "On" : "Off"}
-            </span>
-          </button>
-        </div>
-      </details>
+          </span>
+        </span>
+        <Switch
+          id="lobby-words-left"
+          checked={showWordsLeft}
+          onCheckedChange={onShowWordsLeft}
+          aria-label={`Words left ${showWordsLeft ? "on" : "off"}`}
+        />
+      </label>
     </div>
   );
 }
@@ -431,8 +468,8 @@ export function HomePlayBar({
   menuMusic: boolean;
   onToggleMenuMusic: () => void;
 }) {
-  const soundLabel = sound ? "Mute SFX" : "Unmute SFX";
-  const jamLabel = menuMusic ? "Mute lobby jam" : "Lobby jam on";
+  const soundLabel = sound ? "SFX on" : "SFX off";
+  const jamLabel = menuMusic ? "Lobby jam on" : "Lobby jam off";
   return (
     <div
       className="cp-lobby-play shrink-0 -mx-4 border-t border-border/40 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] px-4 pt-3 backdrop-blur-sm"
@@ -451,7 +488,7 @@ export function HomePlayBar({
             aria-label={jamLabel}
             onClick={onToggleMenuMusic}
           >
-            {menuMusic ? <Music2 /> : <Music className="opacity-50" />}
+            {menuMusic ? <Music2 /> : <Music className="opacity-40" />}
           </Button>
         </IconTooltip>
         <IconTooltip label={soundLabel}>
@@ -463,7 +500,7 @@ export function HomePlayBar({
             aria-label={soundLabel}
             onClick={onToggleSound}
           >
-            {sound ? <Volume2 /> : <VolumeX />}
+            {sound ? <Volume2 /> : <VolumeX className="opacity-40" />}
           </Button>
         </IconTooltip>
       </div>

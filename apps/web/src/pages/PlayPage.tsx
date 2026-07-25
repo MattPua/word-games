@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, Music, Music2, Pause, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
+import { Eye, Pause, RotateCcw, RotateCw, Volume2, VolumeX, type LucideIcon } from "lucide-react";
 import {
   ConfettiBurst,
   LetterGrid,
@@ -20,7 +20,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { IconTooltip } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import {
   createGame,
   generateBoard,
@@ -66,6 +68,62 @@ const REJECT_FLASH: Record<"short" | "invalid" | "duplicate", string> = {
   duplicate: "Already found",
 };
 
+/** HUD pill heat: 0 muted → 1 soft sage → 2 path → 3 potato gold. */
+function hudHeatTier(progress: number): 0 | 1 | 2 | 3 {
+  if (progress >= 0.72) return 3;
+  if (progress >= 0.42) return 2;
+  if (progress >= 0.18) return 1;
+  return 0;
+}
+
+
+/** Couch break pref row: feature name + Switch (on = secondary). */
+function PausePrefRow({
+  id,
+  label,
+  checked,
+  onCheckedChange,
+  Icon,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
+  onCheckedChange: (next: boolean) => void;
+  Icon?: LucideIcon;
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className={cn(
+        "flex w-full cursor-pointer items-center justify-between gap-3 rounded-ui border-2 px-4 py-3 transition-[border-color,background-color] duration-200",
+        checked
+          ? "border-secondary/80 bg-secondary/20"
+          : "border-border bg-card/80 hover:border-primary/40",
+      )}
+    >
+      <span className="flex items-center gap-2.5">
+        {Icon ? (
+          <Icon
+            className={cn(
+              "cp-lobby-glyph size-4 shrink-0",
+              checked ? "text-secondary-foreground" : "text-muted-foreground",
+            )}
+            strokeWidth={2.25}
+            aria-hidden
+          />
+        ) : null}
+        <span className="font-display text-sm font-bold text-foreground">{label}</span>
+      </span>
+      <Switch
+        id={id}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        aria-label={`${label} ${checked ? "on" : "off"}`}
+      />
+    </label>
+  );
+}
+
 export function PlayPage() {
   const navigate = useNavigate();
   const dict = useMemo(() => getDictionary(), []);
@@ -84,11 +142,13 @@ export function PlayPage() {
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [boardTurnDeg, setBoardTurnDeg] = useState(0);
   const [boardTurning, setBoardTurning] = useState(false);
+  const [hudPulse, setHudPulse] = useState(false);
   const finished = useRef(false);
   const boardClearedRef = useRef(false);
   const rotatingRef = useRef(false);
   const rotateFallbackRef = useRef<number | null>(null);
   const rotateStepsRef = useRef<1 | -1>(1);
+  const hudSignalRef = useRef<{ remaining: number | null; score: number } | null>(null);
 
   const openPause = () => {
     setPath([]);
@@ -101,22 +161,19 @@ export function PlayPage() {
     setPaused(false);
   };
 
-  const toggleSound = () => {
-    const next = !sound;
+  const setSoundOn = (next: boolean) => {
     setSound(next);
     setSoundEnabled(next);
     setEnabled(next);
   };
 
-  const toggleMenuMusic = () => {
-    const next = !menuMusic;
+  const setMenuMusicOn = (next: boolean) => {
     setMenuMusic(next);
     setMenuMusicEnabled(next);
     applyMenuMusicEnabled(next);
   };
 
-  const toggleWordsLeft = () => {
-    const next = !showWordsLeft;
+  const setWordsLeftOn = (next: boolean) => {
     setShowWordsLeftState(next);
     setShowWordsLeft(next);
   };
@@ -158,6 +215,7 @@ export function PlayPage() {
     const w = window as unknown as {
       __cpForceWin?: () => void;
       __cpForceBoardClear?: () => void;
+      __cpSetRemaining?: (remaining: number) => void;
     };
     w.__cpForceWin = () => {
       setState((s) =>
@@ -171,6 +229,13 @@ export function PlayPage() {
           : s,
       );
     };
+    w.__cpSetRemaining = (remaining: number) => {
+      setState((s) =>
+        s && s.remaining != null
+          ? { ...s, remaining: Math.max(0, Math.floor(remaining)), score: Math.max(s.score, (s.target ?? 0) - Math.max(0, Math.floor(remaining))) }
+          : s,
+      );
+    };
     w.__cpForceBoardClear = () => {
       setState((s) => {
         if (!s || s.board.allWords.length === 0) return s;
@@ -180,6 +245,7 @@ export function PlayPage() {
     };
     return () => {
       delete w.__cpForceWin;
+      delete w.__cpSetRemaining;
       delete w.__cpForceBoardClear;
     };
   }, []);
@@ -191,6 +257,20 @@ export function PlayPage() {
     }, 250);
     return () => window.clearInterval(id);
   }, [state?.config.mode, state?.ended, paused]);
+
+  useEffect(() => {
+    if (!state) return;
+    const prev = hudSignalRef.current;
+    hudSignalRef.current = { remaining: state.remaining, score: state.score };
+    if (!prev) return;
+    const cleared =
+      state.remaining != null && prev.remaining != null && state.remaining < prev.remaining;
+    const hauled = state.score > prev.score;
+    if (!cleared && !hauled) return;
+    setHudPulse(true);
+    const id = window.setTimeout(() => setHudPulse(false), 420);
+    return () => window.clearTimeout(id);
+  }, [state?.remaining, state?.score]);
 
   useEffect(() => {
     if (celebrate || !state || state.ended) return;
@@ -281,6 +361,20 @@ export function PlayPage() {
   const secs = state.remainingMs != null ? Math.ceil(state.remainingMs / 1000) : null;
   const adjacent = (a: Cell, b: Cell) => isAdjacentCells(a, b, state.board.topology);
   const boardLocked = celebrate || boardTurning || paused;
+  const heatProgress =
+    remaining != null && target > 0
+      ? Math.min(1, Math.max(0, 1 - remaining / target))
+      : state.board.maxScore > 0
+        ? Math.min(1, state.score / state.board.maxScore)
+        : 0;
+  const heatTier = hudHeatTier(heatProgress);
+  const hudBubbleClass = [
+    "cp-hud-bubble",
+    heatTier > 0 ? `cp-hud-heat-${heatTier}` : "",
+    hudPulse ? "is-pulsing" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const applyRotate = (steps: 1 | -1) => {
     setState((s) => (s ? { ...s, board: rotateBoard(s.board, steps) } : s));
@@ -337,18 +431,20 @@ export function PlayPage() {
     <Shell className="relative overflow-hidden cp-fade-up">
       <ConfettiBurst active={celebrate} durationMs={WIN_FLOURISH_MS} />
 
-      {/* One calm top row: primary status + optional scout count + icon cluster */}
+      {/* One calm top row: primary status + optional words-left count + icon cluster */}
       <View className="mb-3 flex-row items-center justify-between gap-3">
         <View className="min-w-0 flex-1 flex-row items-center gap-3">
           {remaining != null ? (
-            <View className="cp-hud-bubble" accessibilityLabel={`${remaining} points to clear`}>
-              <Text className="font-display text-lg font-bold text-foreground">
+            <View className={hudBubbleClass} accessibilityLabel={`${remaining} points to clear`}>
+              <Text className="font-display text-lg font-bold" style={{ color: "inherit" }}>
                 {remaining} pts
               </Text>
             </View>
           ) : secs != null ? (
-            <View className="cp-hud-bubble" accessibilityLabel={`${secs} seconds left`}>
-              <Text className="font-display text-lg font-bold text-foreground">{secs}s</Text>
+            <View className={hudBubbleClass} accessibilityLabel={`${secs} seconds left`}>
+              <Text className="font-display text-lg font-bold" style={{ color: "inherit" }}>
+                {secs}s
+              </Text>
             </View>
           ) : null}
           {showWordsLeft ? (
@@ -361,14 +457,14 @@ export function PlayPage() {
           ) : null}
         </View>
         <View className="shrink-0 flex-row items-center gap-0.5">
-          <IconTooltip label={sound ? "Mute SFX" : "Unmute SFX"}>
+          <IconTooltip label={sound ? "SFX on" : "SFX off"}>
             <Button
               variant="ghost"
               size="icon-sm"
               disabled={celebrate}
               aria-pressed={sound}
-              aria-label={sound ? "Mute SFX" : "Unmute SFX"}
-              onClick={toggleSound}
+              aria-label={sound ? "SFX on" : "SFX off"}
+              onClick={() => setSoundOn(!sound)}
             >
               {sound ? <Volume2 /> : <VolumeX />}
             </Button>
@@ -505,45 +601,25 @@ export function PlayPage() {
             <Button data-pause-resume className="w-full justify-start" onClick={closePause}>
               Resume
             </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-between"
-              aria-pressed={sound}
-              onClick={toggleSound}
-            >
-              <span>{sound ? "Mute SFX" : "Unmute SFX"}</span>
-              {sound ? (
-                <Volume2 className="size-4 opacity-70" />
-              ) : (
-                <VolumeX className="size-4 opacity-70" />
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-between"
-              aria-pressed={menuMusic}
-              onClick={toggleMenuMusic}
-            >
-              <span>{menuMusic ? "Mute lobby jam" : "Lobby jam on"}</span>
-              {menuMusic ? (
-                <Music2 className="size-4 opacity-70" />
-              ) : (
-                <Music className="size-4 opacity-50" />
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-between"
-              aria-pressed={showWordsLeft}
-              onClick={toggleWordsLeft}
-            >
-              <span>{showWordsLeft ? "Hide words left" : "Show words left"}</span>
-              {showWordsLeft ? (
-                <Eye className="size-4 opacity-70" />
-              ) : (
-                <EyeOff className="size-4 opacity-70" />
-              )}
-            </Button>
+            <PausePrefRow
+              id="pause-sfx"
+              label="SFX"
+              checked={sound}
+              onCheckedChange={setSoundOn}
+            />
+            <PausePrefRow
+              id="pause-lobby-jam"
+              label="Lobby jam"
+              checked={menuMusic}
+              onCheckedChange={setMenuMusicOn}
+            />
+            <PausePrefRow
+              id="pause-words-left"
+              label="Words left"
+              Icon={Eye}
+              checked={showWordsLeft}
+              onCheckedChange={setWordsLeftOn}
+            />
             {confirmEnd ? (
               <div className="flex flex-col gap-2 rounded-ui border-2 border-border bg-muted/40 p-3">
                 <p className="font-body text-sm text-muted-foreground">

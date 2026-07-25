@@ -23,22 +23,22 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - No duplicate words per round
 - Dictionary: [dolph/dictionary](https://github.com/dolph/dictionary) — **v1 play lexicon = `popular.txt`** (enable1 ∩ Wiktionary TV/movie frequency lists ≈ 25k common words; not a frequency CSV). Full `enable1` kept in the build artifact for a future “dictionary mode” but **does not** drive accept, board `allWords`, targets, or missed reveals. Plus **offensive/NSFW blocklist** (ENABLE public domain — attribute in README). Blocked tokens must not appear in validation, board gen, or missed-words.
 - Scoring: `points = length - 2` (config constant)
-- **Target**: countdown — `remaining` starts at achievable target (board max × Easy/Med/Hard); each accepted word subtracts its points; **win when remaining === 0** (“Clear the couch”). High scores still store **points earned**. Max/target use only words ≥ active min length.
-- **Timed**: fixed board; 30/60/90/120s → results (score accumulates; unchanged)
+- **Goal** (UI; engine `mode: "target"`): countdown — `remaining` starts at achievable target (board max × Easy/Med/Hard); each accepted word subtracts its points; **win when remaining === 0** (“Clear the couch”). High scores still store **points earned**. Max/target use only words ≥ active min length. Lobby card: Goal / Clear the couch, not “High score” (collides with Timed haul / Potato Board bests).
+- **Timed**: fixed board; 30/60/90/120s → results (score accumulates; unchanged). Lobby: Timed / Beat the clock.
 - **Quit mid-game** (UI: **End run**) → results with progress so far (`won` | `timeout` | `quit`)
 - **Pause menu** (play): Escape or HUD pause → **Couch break** overlay — Switch rows for SFX / Lobby jam / Words left (+ End run); pauses timed clock + blocks grid swipe until Resume / second Escape
 
 ## Product surface
 
-- **Home setup = game lobby** (not a settings form): mode as choice cards; board as visual grid/shape tiles; difficulty/duration as one expressive control; min word length collapsed under “Word length”; Scout for words-left HUD. Play dominates. See `.cursor/rules/ui.mdc`.
+- **Home setup = game lobby** (not a settings form): mode as choice cards; board as visual grid/shape tiles; difficulty/duration as one expressive control; min word length collapsed under “Word length”; **Words left** Switch row (HUD pref). Play dominates. See `.cursor/rules/ui.mdc`.
 - Local profiles only (no cloud/export/sync); high scores per profile × grid × **topology** × mode × difficulty/duration. UI label: **Couch crew** (route may stay `/profiles`).
 - **Potato Board** (personal local stats on Couch crew): games/words totals, bests with timestamps, recent runs (last 20). Not a cloud leaderboard. (“Alita Board” speech → this.)
 - Web share from results (Web Share API + clipboard fallback)
 - SEO: title/description/OG/Twitter + JSON-LD (`WebApplication` / `VideoGame`)
 - PostHog stub (`VITE_PUBLIC_POSTHOG_KEY`); no-op without key
 - Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** SFX on web only; mute from **home, play HUD, or pause menu** (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`. **Lobby jam** (`public/audio/menu-bgm.mp3`, `menuMusicEnabled`) loops on home / couch crew / play (quieter bed under SFX on `/play`; fades out on results); Couch break mute/unmute mid-run; separate toggle from SFX
-- **Words left** HUD (`showWordsLeft` device pref, default **off**): unfound valid words on the board (`allWords − found`), not target pts remaining; toggle in lobby Scout + Couch break (pause) only — play HUD shows muted “N left” readout when on (no eye icon)
-- **Chrome icons:** lucide for sound / lobby jam / pause / rotate / couch crew / share (icon or icon+text); words-left eye lives in Couch break / lobby Scout — not the play HUD cluster. Keep lobby mode/challenge as words+tiles — don’t icon-spam settings. Always `aria-label` on icon-only; web uses shadcn `IconTooltip` (game voice — see `.cursor/rules/ui.mdc`). Icon-only sizes share `.cp-icon-btn` hover/press/on motion (ui.mdc).
+- **Words left** HUD (`showWordsLeft` device pref, default **off**): unfound valid words on the board (`allWords − found`), not target pts remaining; toggle in lobby + Couch break only — play HUD shows muted “N left” readout when on (no eye in the HUD cluster)
+- **Chrome icons:** lucide for sound / lobby jam / pause / rotate / couch crew / share (icon or icon+text); words-left eye lives in Couch break + lobby Words left row — not the play HUD cluster. Lobby challenge / word length / words left also get toy lucide glyphs. Always `aria-label` on icon-only; web uses shadcn `IconTooltip` (game voice — see `.cursor/rules/ui.mdc`). Icon-only sizes share `.cp-icon-btn` hover/press/on motion (ui.mdc).
 
 ## Stack
 
