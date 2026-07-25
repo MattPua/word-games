@@ -5,6 +5,7 @@ import {
   getActiveProfile,
   loadDevicePrefs,
   saveLaunch,
+  setMenuMusicEnabled,
   setShowWordsLeft,
   setSoundEnabled,
   type PlayLaunch,
@@ -12,6 +13,7 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { setEnabled } from "cuelume";
+import { applyMenuMusicEnabled } from "../menuMusic";
 import { track } from "../analytics";
 import { Button } from "@/components/ui/button";
 import { IconTooltip } from "@/components/ui/tooltip";
@@ -26,8 +28,10 @@ export function HomePage() {
   const [minWordLength, setMinWordLength] = useState<3 | 4 | 5>(3);
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const [duration, setDuration] = useState<30 | 60 | 90 | 120>(60);
-  const [sound, setSound] = useState(loadDevicePrefs().soundEnabled);
-  const [showWordsLeft, setShowWordsLeftState] = useState(loadDevicePrefs().showWordsLeft);
+  const prefs = loadDevicePrefs();
+  const [sound, setSound] = useState(prefs.soundEnabled);
+  const [menuMusic, setMenuMusic] = useState(prefs.menuMusicEnabled);
+  const [showWordsLeft, setShowWordsLeftState] = useState(prefs.showWordsLeft);
 
   const play = () => {
     const launch: PlayLaunch =
@@ -44,6 +48,13 @@ export function HomePage() {
     setSound(next);
     setSoundEnabled(next);
     setEnabled(next);
+  };
+
+  const toggleMenuMusic = () => {
+    const next = !menuMusic;
+    setMenuMusic(next);
+    setMenuMusicEnabled(next);
+    applyMenuMusicEnabled(next);
   };
 
   const toggleWordsLeft = (next: boolean) => {
@@ -100,7 +111,13 @@ export function HomePage() {
         <div className="h-3" aria-hidden />
       </div>
 
-      <HomePlayBar onPlay={play} sound={sound} onToggleSound={toggleSound} />
+      <HomePlayBar
+        onPlay={play}
+        sound={sound}
+        onToggleSound={toggleSound}
+        menuMusic={menuMusic}
+        onToggleMenuMusic={toggleMenuMusic}
+      />
     </Shell>
   );
 }

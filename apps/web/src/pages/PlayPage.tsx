@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, Pause, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
+import { Eye, EyeOff, Music, Music2, Pause, RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
 import {
   ConfettiBurst,
   LetterGrid,
@@ -48,9 +48,11 @@ import {
   loadLaunch,
   recordFinishedRun,
   saveLastRun,
+  setMenuMusicEnabled,
   setShowWordsLeft,
   setSoundEnabled,
 } from "../storage";
+import { applyMenuMusicEnabled } from "../menuMusic";
 import { playAcceptedWordSound } from "../wordAcceptSound";
 
 const WIN_FLOURISH_MS = 1300;
@@ -76,6 +78,7 @@ export function PlayPage() {
   const [celebrate, setCelebrate] = useState(false);
   const prefs = useMemo(() => loadDevicePrefs(), []);
   const [sound, setSound] = useState(prefs.soundEnabled);
+  const [menuMusic, setMenuMusic] = useState(prefs.menuMusicEnabled);
   const [showWordsLeft, setShowWordsLeftState] = useState(prefs.showWordsLeft);
   const [paused, setPaused] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
@@ -103,6 +106,13 @@ export function PlayPage() {
     setSound(next);
     setSoundEnabled(next);
     setEnabled(next);
+  };
+
+  const toggleMenuMusic = () => {
+    const next = !menuMusic;
+    setMenuMusic(next);
+    setMenuMusicEnabled(next);
+    applyMenuMusicEnabled(next);
   };
 
   const toggleWordsLeft = () => {
@@ -518,6 +528,19 @@ export function PlayPage() {
                 <Volume2 className="size-4 opacity-70" />
               ) : (
                 <VolumeX className="size-4 opacity-70" />
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-between"
+              aria-pressed={!menuMusic}
+              onClick={toggleMenuMusic}
+            >
+              <span>{menuMusic ? "Mute lobby jam" : "Lobby jam on"}</span>
+              {menuMusic ? (
+                <Music2 className="size-4 opacity-70" />
+              ) : (
+                <Music className="size-4 opacity-50" />
               )}
             </Button>
             <Button

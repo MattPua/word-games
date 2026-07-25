@@ -20,6 +20,7 @@ in `apps/web` only. **Not used on Expo** (Web Audio).
 - `bind()` once at app root (`useEffect`) for optional declarative chrome (`data-cuelume-*`).
 - Prefer imperative `play("success" | "error" | …)` for word accept/reject and game end (reliable with RN-web).
 - Mute → `setEnabled(false)`; persist `soundEnabled` in app storage. Toggle on **home, play HUD, and pause menu** (same flag). When muted, all `play(...)` / `playAcceptedWordSound` / `playBoardClearedSound` calls no-op.
+- **Lobby jam** is separate (`menuMusicEnabled` + `apps/web/src/menuMusic.ts` / `public/audio/menu-bgm.mp3`) — not cuelume. Don’t wire BGM through `setEnabled`.
 
 ## Outcomes
 

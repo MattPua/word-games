@@ -31,6 +31,8 @@ export type Profile = {
 
 export type DevicePrefs = {
   soundEnabled: boolean;
+  /** Looping lobby jam (home / couch crew). Separate from SFX. Default on. */
+  menuMusicEnabled: boolean;
   /** Unfound valid words on the board (not target pts remaining). Default off = discovery. */
   showWordsLeft: boolean;
   activeProfileId: string;
@@ -39,6 +41,7 @@ export type DevicePrefs = {
 function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string }): DevicePrefs {
   return {
     soundEnabled: prefs.soundEnabled ?? true,
+    menuMusicEnabled: prefs.menuMusicEnabled ?? true,
     showWordsLeft: prefs.showWordsLeft ?? false,
     activeProfileId: prefs.activeProfileId ?? "",
   };
@@ -97,7 +100,7 @@ export function defaultBlob(): StoredBlob {
         wordsFound: 0,
       },
     ],
-    prefs: { soundEnabled: true, showWordsLeft: false, activeProfileId: id },
+    prefs: { soundEnabled: true, menuMusicEnabled: true, showWordsLeft: false, activeProfileId: id },
   };
 }
 
@@ -200,6 +203,12 @@ export function recordFinishedRun(input: {
 export function setSoundEnabled(enabled: boolean) {
   const store = loadStore();
   store.prefs.soundEnabled = enabled;
+  saveStore(store);
+}
+
+export function setMenuMusicEnabled(enabled: boolean) {
+  const store = loadStore();
+  store.prefs.menuMusicEnabled = enabled;
   saveStore(store);
 }
 

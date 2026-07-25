@@ -1,4 +1,4 @@
-import { Volume2, VolumeX } from "lucide-react";
+import { Music, Music2, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { IconTooltip } from "@/components/ui/tooltip";
@@ -422,12 +422,17 @@ export function HomePlayBar({
   onPlay,
   sound,
   onToggleSound,
+  menuMusic,
+  onToggleMenuMusic,
 }: {
   onPlay: () => void;
   sound: boolean;
   onToggleSound: () => void;
+  menuMusic: boolean;
+  onToggleMenuMusic: () => void;
 }) {
   const soundLabel = sound ? "Mute SFX" : "Unmute SFX";
+  const jamLabel = menuMusic ? "Mute lobby jam" : "Lobby jam on";
   return (
     <div
       className="cp-lobby-play shrink-0 -mx-4 border-t border-border/40 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] px-4 pt-3 backdrop-blur-sm"
@@ -437,6 +442,18 @@ export function HomePlayBar({
         <Button size="lg" className="flex-1 text-lg" onClick={onPlay}>
           Play
         </Button>
+        <IconTooltip label={jamLabel}>
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-12 w-12 shrink-0"
+            aria-pressed={!menuMusic}
+            aria-label={jamLabel}
+            onClick={onToggleMenuMusic}
+          >
+            {menuMusic ? <Music2 /> : <Music className="opacity-50" />}
+          </Button>
+        </IconTooltip>
         <IconTooltip label={soundLabel}>
           <Button
             variant="secondary"

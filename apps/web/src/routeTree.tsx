@@ -1,4 +1,4 @@
-import { createRootRoute, createRoute, Outlet } from "@tanstack/react-router";
+import { createRootRoute, createRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { bind, setEnabled } from "cuelume";
 import { HomePage } from "./pages/HomePage";
@@ -6,13 +6,26 @@ import { PlayPage } from "./pages/PlayPage";
 import { ResultsPage } from "./pages/ResultsPage";
 import { ProfilesPage } from "./pages/ProfilesPage";
 import { loadDevicePrefs } from "./storage";
+import {
+  applyMenuMusicEnabled,
+  isMenuRoute,
+  setMenuMusicRouteActive,
+} from "./menuMusic";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 function RootLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
   useEffect(() => {
     bind();
-    setEnabled(loadDevicePrefs().soundEnabled);
+    const prefs = loadDevicePrefs();
+    setEnabled(prefs.soundEnabled);
+    applyMenuMusicEnabled(prefs.menuMusicEnabled);
   }, []);
+
+  useEffect(() => {
+    setMenuMusicRouteActive(isMenuRoute(pathname));
+  }, [pathname]);
 
   return (
     <TooltipProvider delayDuration={400} skipDelayDuration={200}>
