@@ -16,12 +16,18 @@
     "@couch-potato/ui": "workspace:*",
     "@fontsource/fredoka": "^5.2.5",
     "@fontsource/nunito": "^5.2.5",
+    "@radix-ui/react-slot": "^1.3.3",
     "@tanstack/react-router": "^1.114.25",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "cuelume": "^0.1.0",
+    "lucide-react": "^1.26.0",
     "posthog-js": "^1.232.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-native-web": "^0.19.13"
+    "react-native-web": "^0.19.13",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^8.0.1",

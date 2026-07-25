@@ -2,7 +2,6 @@ import { Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
-  Button,
   ConfettiBurst,
   LetterGrid,
   LoadingPotato,
@@ -32,6 +31,7 @@ import {
   recordFinishedRun,
   saveLastRun,
 } from "../storage";
+import { Button } from "@/components/ui/button";
 
 const WIN_FLOURISH_MS = 1300;
 
@@ -178,11 +178,13 @@ export function PlayPage() {
           <Text className="font-display text-xl text-foreground">{secs}s</Text>
         )}
         <Button
-          label="Quit"
           variant="ghost"
+          size="sm"
           disabled={celebrate}
-          onPress={() => setState(quitGame(state))}
-        />
+          onClick={() => setState(quitGame(state))}
+        >
+          Quit
+        </Button>
       </View>
 
       {state.target != null && (
@@ -190,11 +192,7 @@ export function PlayPage() {
       )}
 
       <ScoreBubble
-        word={
-          celebrate
-            ? "Couch clear!"
-            : currentWord || flash
-        }
+        word={celebrate ? "Couch clear!" : currentWord || flash}
         hint={`${state.config.minWordLength}+ letters`}
         className="mb-3"
       />

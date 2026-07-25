@@ -3,6 +3,9 @@
   --background: #f8f7f4;
   --foreground: #2c322e;
   --card: #ffffff;
+  --card-foreground: #2c322e;
+  --popover: #ffffff;
+  --popover-foreground: #2c322e;
   --primary: #7c9082;
   --primary-foreground: #f8f7f4;
   --secondary: #e8eee9;
@@ -11,7 +14,11 @@
   --muted-foreground: #6b756e;
   --accent: #a8c5a8;
   --accent-foreground: #2c322e;
+  --destructive: #c45c4a;
+  --destructive-foreground: #f8f7f4;
   --border: #d8e0d9;
+  --input: #d8e0d9;
+  --ring: #7c9082;
   --path: #5f9e6e;
   --potato: #e0b070;
   --radius: 1rem;
@@ -21,6 +28,9 @@
   --background: #1c1f1d;
   --foreground: #eef1ec;
   --card: #2a2f2b;
+  --card-foreground: #eef1ec;
+  --popover: #2a2f2b;
+  --popover-foreground: #eef1ec;
   --primary: #9aaf9e;
   --primary-foreground: #1c1f1d;
   --secondary: #343a36;
@@ -29,7 +39,11 @@
   --muted-foreground: #a8b0aa;
   --accent: #5f7366;
   --accent-foreground: #eef1ec;
+  --destructive: #e07a6a;
+  --destructive-foreground: #1c1f1d;
   --border: #3d4440;
+  --input: #3d4440;
+  --ring: #9aaf9e;
   --path: #7cbf88;
   --potato: #e0b070;
   --radius: 1rem;
@@ -49,4 +63,33 @@
 .cp-tile-drop {
   animation: cp-tile-drop 0.95s cubic-bezier(0.4, 0.05, 0.85, 0.35) forwards;
   pointer-events: none;
+}
+
+@keyframes cp-soft-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.cp-logo-float {
+  animation: cp-soft-float 4.5s ease-in-out infinite;
+}
+
+@keyframes cp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cp-fade-up {
+  animation: cp-fade-up 0.45s ease-out both;
 }

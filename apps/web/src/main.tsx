@@ -6,6 +6,7 @@ import { routeTree } from "./routeTree";
 import { initAnalytics } from "./analytics";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { ErrorPage } from "./pages/ErrorPage";
+import { Toaster } from "@/components/ui/sonner";
 
 initAnalytics();
 
@@ -24,5 +25,6 @@ declare module "@tanstack/react-router" {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <RouterProvider router={router} />
+    <Toaster position="top-center" />
   </StrictMode>,
 );

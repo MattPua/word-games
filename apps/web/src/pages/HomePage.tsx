@@ -1,5 +1,5 @@
 import { Text, View } from "react-native";
-import { Button, Logo, Shell } from "@couch-potato/ui";
+import { Logo, Shell } from "@couch-potato/ui";
 import {
   getActiveProfile,
   loadDevicePrefs,
@@ -11,6 +11,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { setEnabled } from "cuelume";
 import { track } from "../analytics";
+import { Button } from "@/components/ui/button";
+import { SegmentGroup } from "@/components/SegmentGroup";
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -58,98 +60,87 @@ export function HomePage() {
           Playing as {profile.name}
         </Text>
         <Button
-          label="Profiles"
           variant="ghost"
-          onPress={() => navigate({ to: "/profiles" })}
-        />
+          size="sm"
+          onClick={() => navigate({ to: "/profiles" })}
+        >
+          Profiles
+        </Button>
       </View>
 
       <Text className="mb-2 font-display text-lg text-foreground">Mode</Text>
-      <View className="mb-4 flex-row gap-2">
-        <Button
-          label="Target"
-          variant={mode === "target" ? "primary" : "secondary"}
-          className="flex-1"
-          onPress={() => setMode("target")}
-        />
-        <Button
-          label="Timed"
-          variant={mode === "timed" ? "primary" : "secondary"}
-          className="flex-1"
-          onPress={() => setMode("timed")}
-        />
-      </View>
+      <SegmentGroup
+        value={mode}
+        onChange={setMode}
+        options={[
+          { value: "target", label: "Target" },
+          { value: "timed", label: "Timed" },
+        ]}
+      />
 
       <Text className="mb-2 font-display text-lg text-foreground">Grid</Text>
-      <View className="mb-4 flex-row gap-2">
-        {([4, 5, 6] as const).map((n) => (
-          <Button
-            key={n}
-            label={`${n}×${n}`}
-            variant={grid === n ? "primary" : "secondary"}
-            className="flex-1"
-            onPress={() => setGrid(n)}
-          />
-        ))}
-      </View>
+      <SegmentGroup
+        value={grid}
+        onChange={setGrid}
+        options={[
+          { value: 4, label: "4×4" },
+          { value: 5, label: "5×5" },
+          { value: 6, label: "6×6" },
+        ]}
+      />
 
       <Text className="mb-2 font-display text-lg text-foreground">
         Min length
       </Text>
-      <View className="mb-4 flex-row gap-2">
-        {([3, 4, 5] as const).map((n) => (
-          <Button
-            key={n}
-            label={`${n}+`}
-            variant={minWordLength === n ? "primary" : "secondary"}
-            className="flex-1"
-            onPress={() => setMinWordLength(n)}
-          />
-        ))}
-      </View>
+      <SegmentGroup
+        value={minWordLength}
+        onChange={setMinWordLength}
+        options={[
+          { value: 3, label: "3+" },
+          { value: 4, label: "4+" },
+          { value: 5, label: "5+" },
+        ]}
+      />
 
       {mode === "target" ? (
         <>
           <Text className="mb-2 font-display text-lg text-foreground">
             Difficulty
           </Text>
-          <View className="mb-6 flex-row gap-2">
-            {(["easy", "medium", "hard"] as const).map((d) => (
-              <Button
-                key={d}
-                label={d[0]!.toUpperCase() + d.slice(1)}
-                variant={difficulty === d ? "primary" : "secondary"}
-                className="flex-1"
-                onPress={() => setDifficulty(d)}
-              />
-            ))}
-          </View>
+          <SegmentGroup
+            value={difficulty}
+            onChange={setDifficulty}
+            options={[
+              { value: "easy", label: "Easy" },
+              { value: "medium", label: "Medium" },
+              { value: "hard", label: "Hard" },
+            ]}
+          />
         </>
       ) : (
         <>
           <Text className="mb-2 font-display text-lg text-foreground">
             Duration
           </Text>
-          <View className="mb-6 flex-row gap-2">
-            {([30, 60, 90, 120] as const).map((d) => (
-              <Button
-                key={d}
-                label={`${d}s`}
-                variant={duration === d ? "primary" : "secondary"}
-                className="flex-1"
-                onPress={() => setDuration(d)}
-              />
-            ))}
-          </View>
+          <SegmentGroup
+            value={duration}
+            onChange={setDuration}
+            options={[
+              { value: 30, label: "30s" },
+              { value: 60, label: "60s" },
+              { value: 90, label: "90s" },
+              { value: 120, label: "120s" },
+            ]}
+          />
         </>
       )}
 
-      <Button label="Play" onPress={play} className="mb-3" />
-      <Button
-        label={sound ? "Sound on" : "Sound off"}
-        variant="secondary"
-        onPress={toggleSound}
-      />
+      <Button size="lg" className="mb-3 w-full" onClick={play}>
+        Play
+      </Button>
+      <Button variant="secondary" className="w-full" onClick={toggleSound}>
+        {sound ? "Sound on" : "Sound off"}
+      </Button>
     </Shell>
   );
 }

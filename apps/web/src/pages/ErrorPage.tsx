@@ -4,7 +4,8 @@ import {
   useRouter,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { Button, EmptyState, Logo, Shell } from "@couch-potato/ui";
+import { EmptyState, Logo, Shell } from "@couch-potato/ui";
+import { Button } from "@/components/ui/button";
 
 /** Unexpected failure — potato spilled the snacks. */
 export function ErrorPage({ error, reset }: ErrorComponentProps) {
@@ -26,19 +27,21 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
         </Text>
       ) : null}
       <Button
-        label="Try again"
         className="mb-2 w-full"
-        onPress={() => {
+        onClick={() => {
           reset?.();
           void router.invalidate();
         }}
-      />
+      >
+        Try again
+      </Button>
       <Button
-        label="Back to the couch"
         variant="secondary"
         className="w-full"
-        onPress={() => navigate({ to: "/" })}
-      />
+        onClick={() => navigate({ to: "/" })}
+      >
+        Back to the couch
+      </Button>
     </Shell>
   );
 }

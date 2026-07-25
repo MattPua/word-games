@@ -13,6 +13,8 @@
       "@/lib/*": ["./src/lib/*"],
       "@/hooks/*": ["./src/hooks/*"],
       "@/utils/*": ["./src/lib/*"],
+      "nativewind": ["./node_modules/nativewind"],
+      "nativewind/*": ["./node_modules/nativewind/*"],
       "@couch-potato/ui": ["../../packages/ui/src"],
       "@couch-potato/game-engine": ["../../packages/game-engine/src"],
       "@couch-potato/dictionary": ["../../packages/dictionary/src"]

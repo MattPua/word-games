@@ -1,6 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+const nativewindRoot = path.dirname(require.resolve("nativewind/package.json"));
+const rnWebRoot = path.dirname(require.resolve("react-native-web/package.json"));
 
 export default defineConfig({
   plugins: [
@@ -26,7 +33,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "react-native": "react-native-web",
+      // Absolute paths so packages/ui (outside app) resolves correctly after Expo added real RN
+      "react-native": rnWebRoot,
+      nativewind: nativewindRoot,
       "@couch-potato/ui": path.resolve(__dirname, "../../packages/ui/src"),
       "@couch-potato/game-engine": path.resolve(
         __dirname,
@@ -37,6 +46,7 @@ export default defineConfig({
         "../../packages/dictionary/src",
       ),
     },
+    dedupe: ["react", "react-dom"],
     extensions: [".web.tsx", ".web.ts", ".tsx", ".ts", ".web.js", ".js"],
   },
   optimizeDeps: {

@@ -1,9 +1,11 @@
 import { Text } from "react-native";
 import { useNavigate } from "@tanstack/react-router";
-import { Button, EmptyState, Shell } from "@couch-potato/ui";
+import { EmptyState, Shell } from "@couch-potato/ui";
 import { play } from "cuelume";
+import { toast } from "sonner";
 import { track } from "../analytics";
 import { loadLastRun, saveLaunch, type PlayLaunch } from "../storage";
+import { Button } from "@/components/ui/button";
 
 async function shareScore(text: string) {
   try {
@@ -16,6 +18,7 @@ async function shareScore(text: string) {
   }
   await navigator.clipboard.writeText(text);
   play("success");
+  toast.success("Copied to clipboard");
 }
 
 export function ResultsPage() {
@@ -29,9 +32,10 @@ export function ResultsPage() {
           showLogo
           title="No crumbs on the couch yet"
           body="Play a round first — then we'll show off your haul."
-          actionLabel="Back to the couch"
-          onAction={() => navigate({ to: "/" })}
         />
+        <Button className="mt-4 w-full" onClick={() => navigate({ to: "/" })}>
+          Back to the couch
+        </Button>
       </Shell>
     );
   }
@@ -86,18 +90,18 @@ export function ResultsPage() {
       )}
 
       <Button
-        label="Share"
-        className="mb-2"
-        onPress={() => {
+        className="mb-2 w-full"
+        onClick={() => {
           track("share_clicked", { score: run.score });
           void shareScore(blurb);
         }}
-      />
+      >
+        Share
+      </Button>
       <Button
-        label="Play again"
         variant="secondary"
-        className="mb-2"
-        onPress={() => {
+        className="mb-2 w-full"
+        onClick={() => {
           const launch: PlayLaunch = {
             mode: run.mode,
             grid: run.grid as 4 | 5 | 6,
@@ -108,8 +112,12 @@ export function ResultsPage() {
           saveLaunch(launch);
           navigate({ to: "/play" });
         }}
-      />
-      <Button label="Home" variant="ghost" onPress={() => navigate({ to: "/" })} />
+      >
+        Play again
+      </Button>
+      <Button variant="ghost" className="w-full" onClick={() => navigate({ to: "/" })}>
+        Home
+      </Button>
     </Shell>
   );
 }

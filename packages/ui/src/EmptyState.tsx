@@ -1,12 +1,12 @@
 import { Text, View } from "react-native";
-import { Button } from "./Button";
+import type { ReactNode } from "react";
 import { Logo } from "./Logo";
 
 export type EmptyStateProps = {
   title: string;
   body?: string;
-  actionLabel?: string;
-  onAction?: () => void;
+  /** Optional chrome (e.g. web shadcn Button) — keep actions out of this package. */
+  children?: ReactNode;
   showLogo?: boolean;
   className?: string;
 };
@@ -15,8 +15,7 @@ export type EmptyStateProps = {
 export function EmptyState({
   title,
   body,
-  actionLabel,
-  onAction,
+  children,
   showLogo = false,
   className = "",
 }: EmptyStateProps) {
@@ -35,9 +34,7 @@ export function EmptyState({
           {body}
         </Text>
       ) : null}
-      {actionLabel && onAction ? (
-        <Button label={actionLabel} className="mt-4" onPress={onAction} />
-      ) : null}
+      {children ? <View className="mt-4 w-full">{children}</View> : null}
     </View>
   );
 }

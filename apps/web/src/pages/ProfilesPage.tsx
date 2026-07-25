@@ -1,7 +1,7 @@
-import { Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Button, EmptyState, Shell } from "@couch-potato/ui";
+import { EmptyState, Shell } from "@couch-potato/ui";
 import { PotatoBoard } from "../components/PotatoBoard";
 import {
   createProfile,
@@ -10,6 +10,8 @@ import {
   renameProfile,
   setActiveProfile,
 } from "../storage";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function ProfilesPage() {
   const navigate = useNavigate();
@@ -46,48 +48,53 @@ export function ProfilesPage() {
               </Text>
             </View>
             <Button
-              label={p.id === active.id ? "Playing" : "Switch"}
-              variant={p.id === active.id ? "secondary" : "primary"}
+              variant={p.id === active.id ? "secondary" : "default"}
+              size="sm"
               disabled={p.id === active.id}
-              onPress={() => {
+              onClick={() => {
                 setActiveProfile(p.id);
                 refresh();
               }}
-            />
+            >
+              {p.id === active.id ? "Playing" : "Switch"}
+            </Button>
           </View>
         ))
       )}
 
       <PotatoBoard profile={active} />
 
-      <TextInput
+      <Input
         value={name}
-        onChangeText={setName}
+        onChange={(e) => setName(e.target.value)}
         placeholder="New profile name"
-        className="mb-2 rounded-ui border border-border bg-card px-3 py-3 font-body text-foreground"
-        placeholderTextColor="#6b756e"
+        className="mb-2"
       />
       <Button
-        label="Create profile"
-        className="mb-2"
-        onPress={() => {
+        className="mb-2 w-full"
+        onClick={() => {
           createProfile(name);
           setName("");
           refresh();
         }}
-      />
+      >
+        Create profile
+      </Button>
       <Button
-        label="Rename active"
         variant="secondary"
-        className="mb-2"
-        onPress={() => {
+        className="mb-2 w-full"
+        onClick={() => {
           if (!name.trim()) return;
           renameProfile(active.id, name);
           setName("");
           refresh();
         }}
-      />
-      <Button label="Back" variant="ghost" onPress={() => navigate({ to: "/" })} />
+      >
+        Rename active
+      </Button>
+      <Button variant="ghost" className="w-full" onClick={() => navigate({ to: "/" })}>
+        Back
+      </Button>
     </Shell>
   );
 }
