@@ -5,7 +5,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 ## Brand
 
 - Name: **Couch Potato** — pixel potato-on-couch PNG (`packages/ui/src/logo.png`; web `/logo.png`). Brand mark + favicon: **transparent** (cream-matted alpha — not black RGB under alpha). `apple-touch-icon.png` / `og.png`: same art on **opaque cream** (platforms paint transparent as black).
-- **Sprite sheet:** `packages/ui/src/logo-sprite.png` (web `/logo-sprite.png`) — AI-generated 2-frame sheet (idle chill | cheer, arms up + sparkles) in the same pixel style as `logo`/`logo-celebrate`, transparent bg. Reference only for now (not wired into a component); close but not pixel-identical to the hand-tuned marks — re-run through PixelLab if a component needs true 1:1 frames.
+- **Sprite sheet:** `packages/ui/src/logo-sprite.png` (web `/logo-sprite.png`) — AI-generated 2-frame sheet (idle chill | cheer, arms up + sparkles) in the same pixel style as `logo`/`logo-celebrate`, transparent bg. Reference only for now (not wired into a component); close but not pixel-identical to the hand-tuned marks — re-run through PixelLab if a component needs true 1:1 frames. Prompt/atlas/QC conventions for generating or adding sprite frames: `.cursor/skills/potato-sprites`.
 - Whimsical **light-first** (+ soft dark); Sage Garden tokens (tweaked); **Grandstander** (display) + **Lexend** (body/tiles). Palette sampled + locked from the logo mascot (olive sage, muted tan potato gold) — see `.cursor/rules/ui.mdc` token roles.
 - **Color roles:** `primary` = sage (actions, path); `secondary` = potato gold (badges, selected lobby cards, secondary buttons); `accent` = soft sage wash; `muted` = soft sage-gray surfaces. Prefer `bg-secondary` / `text-secondary` over ad-hoc potato hex. See `.cursor/rules/ui.mdc`.
 - Mobile-first; play/results = centered narrow `max-w-md` column; **web lobby** widens on md+ (`cp-shell-lobby` — see `.cursor/rules/ui.mdc`)
@@ -80,4 +80,4 @@ Hints, cloud, combos/multipliers, Next.js, Web Worker for gen, daily/streaks, fa
 ## Pointers
 
 - Rules: `.cursor/rules/` (`coding`, `agent-docs`, `ui`, `engine`)
-- Skills: `.cursor/skills/` (`verify-ui`, `verify-mobile`, `cuelume`, `sync-agent-docs`, `new-mode-or-scoring`)
+- Skills: `.cursor/skills/` (`verify-ui`, `verify-mobile`, `cuelume`, `sync-agent-docs`, `new-mode-or-scoring`, `potato-sprites`)
