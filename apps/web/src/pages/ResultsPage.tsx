@@ -2,7 +2,7 @@ import { Text, View } from "react-native";
 import { type ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown, Share2, Sofa } from "lucide-react";
-import { ConfettiBurst, EmptyState, LogoCelebrate, Shell } from "@couch-potato/ui";
+import { ConfettiBurst, EmptyState, PotatoSprite, Shell } from "@couch-potato/ui";
 import { play } from "cuelume";
 import { toast } from "sonner";
 import { track } from "../analytics";
@@ -116,35 +116,39 @@ export function ResultsPage() {
     <ResultsScrollShell shellClassName="relative">
       <ConfettiBurst active={celebrate} durationMs={CONFETTI_DURATION_MS} />
 
-      <View className="mb-5 items-center cp-fade-up">
-        {/* Results hero — celebratory potato, not the chill lobby `Logo` (see AGENTS.md Brand).
-            Split wrappers: outer plays the one-shot pop-in, inner keeps the idle float looping
-            (both set the `animation` shorthand, so they can't share a single element). */}
-        <View className="cp-pop-in mb-1">
+      <View className="mb-6 items-center cp-fade-up">
+        {/* Results hero — the potato sprite (idle | cheer atlas frame, see
+            AGENTS.md Brand / spriteAtlas.ts) is the star, not an afterthought
+            beside the score. Split wrappers: outer plays the one-shot
+            pop-in, inner keeps the idle float looping (both set the
+            `animation` shorthand, so they can't share a single element). */}
+        <View className="cp-pop-in mb-2">
           <View className="cp-logo-float">
-            <LogoCelebrate size={88} />
+            <PotatoSprite frame={celebratory ? "cheer" : "idle"} size={148} />
           </View>
         </View>
-        <Text className="mb-3 text-center font-display text-2xl text-foreground">
+        <Text className="mb-1 text-center font-display text-2xl text-foreground">
           {reasonLabel}
         </Text>
-        <View
-          className={`cp-results-plaque cp-pop-in ${celebratory ? "cp-results-plaque-gold" : ""}`}
-        >
-          <Text className="font-display text-5xl font-bold tabular-nums text-foreground">
-            {displayScore}
-          </Text>
-          <Text className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
-            pts
-          </Text>
-        </View>
-        {run.isHighScore && (
-          <View className="cp-results-best-chip mt-3 cp-fade-up cp-stagger-2">
-            <Text className="font-display text-xs font-bold uppercase tracking-wide text-secondary-foreground">
-              New personal best!
+        <View className="cp-results-haul cp-pop-in">
+          <View
+            className={`cp-results-haul-tag ${run.isHighScore ? "cp-results-haul-tag-gold" : celebratory ? "cp-results-haul-tag-gold" : ""}`}
+          >
+            <Text
+              className={`font-display text-5xl font-bold tabular-nums text-foreground ${
+                run.isHighScore ? "cp-results-score-sparkle" : ""
+              }`}
+            >
+              {displayScore}
+            </Text>
+            <Text className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
+              pts
             </Text>
           </View>
-        )}
+          {run.isHighScore && (
+            <Text className="cp-results-best-label cp-fade-up cp-stagger-2">New couch best</Text>
+          )}
+        </View>
       </View>
 
       <View className="cp-lobby-card mb-4 p-4 cp-fade-up cp-stagger-1">

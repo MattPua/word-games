@@ -336,6 +336,85 @@
     line-height: 1;
   }
 
+  /*
+   * Results screen — score reads as a haul tag under the potato sprite, not
+   * a plaque/coin container: number + "pts" label share one dark-ink family
+   * (`--foreground` / `--muted-foreground`) so light/dark mode never mixes a
+   * light glyph against a dark one.
+   */
+  .cp-results-haul-tag {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  .cp-results-haul-tag-gold {
+    color: color-mix(in srgb, var(--secondary) 65%, var(--foreground));
+  }
+
+  .cp-results-haul {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cp-results-best-label {
+    margin-top: 0.35rem;
+    font-family: Grandstander, system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    color: color-mix(in srgb, var(--secondary) 78%, var(--foreground));
+  }
+
+  .cp-results-best-label > * {
+    line-height: 1.2;
+  }
+
+  .cp-word-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.3rem 0.75rem;
+  }
+
+  .cp-word-chip-found {
+    background: color-mix(in srgb, var(--primary) 16%, var(--card));
+    border: 1.5px solid color-mix(in srgb, var(--primary) 32%, var(--border));
+  }
+
+  .cp-word-chip-missed {
+    background: color-mix(in srgb, var(--muted) 55%, var(--card));
+    border: 1.5px solid color-mix(in srgb, var(--border) 65%, transparent);
+  }
+
+  /*
+   * Missed-words collapse — same 0fr/1fr grid recipe as `.cp-lobby-more-panel`
+   * (chevron rotate handled inline via Tailwind `rotate-180` on the trigger).
+   * Plain class toggle, not `data-state`: react-native-web `View` only
+   * forwards `data-*` attributes via the `dataSet` prop, not a raw JSX prop.
+   */
+  .cp-results-collapse-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
+      opacity 0.24s ease;
+  }
+
+  .cp-results-collapse-panel-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  .cp-results-collapse-panel-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+
   /* Last accepted word — shares a row with the rotate controls, so it must fit in the
      slot between them rather than pushing board height (see `.cp-board-frame` note). */
   .cp-last-found {
@@ -735,6 +814,27 @@
     animation: cp-catch-in 0.32s cubic-bezier(0.34, 1.35, 0.64, 1) both;
   }
 
+  @keyframes cp-score-sparkle {
+    0%,
+    100% {
+      filter: none;
+    }
+    50% {
+      filter: drop-shadow(0 0 6px color-mix(in srgb, var(--secondary) 55%, transparent));
+    }
+  }
+
+  .cp-results-score-sparkle {
+    animation: cp-score-sparkle 2.8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cp-results-score-sparkle {
+      animation: none;
+      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--secondary) 40%, transparent));
+    }
+  }
+
   @keyframes cp-tooltip-in {
     from {
       opacity: 0;
@@ -850,6 +950,7 @@
     .cp-end-run-btn,
     .cp-lobby-more-panel,
     .cp-lobby-more-summary::after,
+    .cp-results-collapse-panel,
     .cp-icon-btn {
       transition: none;
     }
