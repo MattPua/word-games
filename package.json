@@ -4,16 +4,26 @@
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "web": "bun run --filter @couch-potato/web dev",
+    "mobile": "bun run --filter @couch-potato/mobile start",
+    "mobile:web": "bun run --filter @couch-potato/mobile web",
     "build": "bun run --filter @couch-potato/dictionary build && bun run --filter @couch-potato/web build",
     "test": "bun run --filter '*' test",
     "typecheck": "bun run --filter '*' typecheck"
+  },
+  "catalog": {
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9",
+    "react": "19.0.0",
+    "react-dom": "19.1.0",
+    "@types/react": "19.0.14",
+    "@types/react-dom": "19.0.6"
   },
   "overrides": {
     "@types/react": "19.0.14",
     "@types/react-dom": "19.0.6"
   },
   "devDependencies": {
-    "typescript": "^5.8.2",
-    "vitest": "^3.0.9"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

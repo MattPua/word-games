@@ -33,7 +33,7 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 
 ## Stack
 
-- Bun workspaces; Vitest; Vite + TanStack Router → Vercel
+- Bun workspaces (**catalog** for shared dep versions); Vitest; Vite + TanStack Router → Vercel
 - **Web chrome:** prefer **shadcn/ui** (DOM) for buttons/inputs/toasts — Sage Garden tokens + Fredoka/Nunito. Game board stays custom (`LetterGrid`, path, confetti) in `packages/ui`.
 - `packages/ui`: game + shared presentational (grid, loading/empty, logo); RN Button remains for Expo later — **web screens should not add a second hand-rolled chrome Button** once shadcn is wired.
 - Loading / empty / 404–500 voice live in `packages/ui` (`LoadingPotato`, `EmptyState`) + thin web pages

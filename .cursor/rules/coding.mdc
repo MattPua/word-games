@@ -7,6 +7,7 @@ alwaysApply: true
 
 - **TPP DRY**: one authoritative place per piece of knowledge (game rules in engine, theme in `packages/ui`). Knowledge/intent — not line-dedupe.
 - No over-abstraction, no one-export files, no layers “for later.”
-- **Bun** workspaces; **Vitest** for engine/dictionary.
+- **Bun** workspaces with a root **`catalog`** for shared dependency versions (`"pkg": "catalog:"` in workspace package.json — don’t repeat the same version pins).
+- **Vitest** for engine/dictionary.
 - Engine owns adjacency, scoring, targets, gen thresholds, accept/reject. UI displays and wires input.
 - Coincidental similar code with different meaning stays separate.
