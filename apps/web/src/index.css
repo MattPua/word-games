@@ -312,6 +312,7 @@
     font-size: 0.875rem;
     line-height: 1.625;
     color: var(--muted-foreground);
+    text-align: center;
   }
 
   /* Home lobby — toy cards / tiles, not form label rows */
@@ -724,6 +725,7 @@
   container-name: lobby;
 }
 
+/* Brand: logo + wordmark hero; full tagline under title (never beside). */
 .cp-lobby-brand {
   display: flex;
   flex-direction: column;
@@ -735,6 +737,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0;
 }
 
 .cp-lobby-brand-copy .cp-display {
@@ -742,6 +745,7 @@
 }
 
 @container lobby (min-width: 36rem) {
+  /* Wide: logo | copy — copy stays column (wordmark, then full tagline) */
   .cp-lobby-brand {
     flex-direction: row;
     align-items: center;
@@ -758,7 +762,7 @@
     margin-top: 0;
   }
 
-  .cp-lobby-tagline {
+  .cp-lobby-brand-copy .cp-lobby-tagline {
     text-align: left;
   }
 
