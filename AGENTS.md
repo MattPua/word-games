@@ -34,7 +34,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - Local profiles only (no cloud/export/sync); high scores per profile × grid × **topology** × mode × difficulty/duration. UI label: **Couch crew** (route may stay `/profiles`).
 - **Potato Board** (personal local stats on Couch crew): games/words totals, bests with timestamps, recent runs (last 20). Not a cloud leaderboard. (“Alita Board” speech → this.)
 - Web share from results (Web Share API + clipboard fallback)
-- SEO: title/description/OG/Twitter + JSON-LD (`WebApplication` / `VideoGame`)
+- SEO: strings in `apps/web/src/seo.ts` (cold-load via Vite `transformIndexHtml` → `index.html`; per-screen titles via TanStack Router `head` + `HeadContent`). JSON-LD `WebApplication` / `VideoGame`.
 - PostHog stub (`VITE_PUBLIC_POSTHOG_KEY`); no-op without key
 - Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** SFX on web only; mute from **home, play HUD, or pause menu** (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`. **Lobby jam** (`public/audio/menu-bgm.mp3`, `menuMusicEnabled`) loops on home / couch crew / play (quieter bed under SFX on `/play`; fades out on results); Couch break mute/unmute mid-run; separate toggle from SFX
 - **Status pill heat:** primary pts/timer pill escalates muted → sage/`path` → potato `secondary` as Goal clear progress (`1 − remaining/target`) or timed haul (`score/maxScore`); brief pulse on clear/haul; `prefers-reduced-motion` = color only. See `.cursor/rules/ui.mdc` Play HUD.

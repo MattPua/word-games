@@ -5,6 +5,7 @@ import { EmptyState, Shell } from "@couch-potato/ui";
 import { play } from "cuelume";
 import { toast } from "sonner";
 import { track } from "../analytics";
+import { PRODUCT_NAME } from "../seo";
 import { loadLastRun, saveLaunch, type PlayLaunch } from "../storage";
 import { Button } from "@/components/ui/button";
 import { WordGroups } from "../components/WordGroups";
@@ -12,7 +13,7 @@ import { WordGroups } from "../components/WordGroups";
 async function shareScore(text: string) {
   try {
     if (navigator.share) {
-      await navigator.share({ text, title: "Couch Potato" });
+      await navigator.share({ text, title: PRODUCT_NAME });
       return;
     }
   } catch {
