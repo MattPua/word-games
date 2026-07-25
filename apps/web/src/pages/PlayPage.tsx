@@ -1,7 +1,16 @@
 import { Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Eye, Pause, RotateCcw, RotateCw, Volume2, VolumeX, type LucideIcon } from "lucide-react";
+import {
+  Eye,
+  Moon,
+  Pause,
+  RotateCcw,
+  RotateCw,
+  Volume2,
+  VolumeX,
+  type LucideIcon,
+} from "lucide-react";
 import {
   ConfettiBurst,
   LetterGrid,
@@ -54,8 +63,10 @@ import {
   setMenuMusicEnabled,
   setShowWordsLeft,
   setSoundEnabled,
+  setThemePreference,
 } from "../storage";
 import { applyMenuMusicEnabled } from "../menuMusic";
+import { applyTheme, resolveTheme } from "../theme";
 import { playAcceptedWordSound } from "../wordAcceptSound";
 
 const WIN_FLOURISH_MS = 1300;
@@ -150,6 +161,7 @@ export function PlayPage() {
   const [sound, setSound] = useState(prefs.soundEnabled);
   const [menuMusic, setMenuMusic] = useState(prefs.menuMusicEnabled);
   const [showWordsLeft, setShowWordsLeftState] = useState(prefs.showWordsLeft);
+  const [themePref, setThemePref] = useState(prefs.themePreference);
   const [paused, setPaused] = useState(false);
   const [boardTurnDeg, setBoardTurnDeg] = useState(0);
   const [boardTurning, setBoardTurning] = useState(false);
@@ -185,6 +197,13 @@ export function PlayPage() {
   const setWordsLeftOn = (next: boolean) => {
     setShowWordsLeftState(next);
     setShowWordsLeft(next);
+  };
+
+  const setDarkModeOn = (next: boolean) => {
+    const pref = next ? "dark" : "light";
+    setThemePref(pref);
+    setThemePreference(pref);
+    applyTheme(pref);
   };
 
   const celebrateBoardClear = () => {
@@ -658,6 +677,13 @@ export function PlayPage() {
               Icon={Eye}
               checked={showWordsLeft}
               onCheckedChange={setWordsLeftOn}
+            />
+            <PausePrefRow
+              id="pause-dark-mode"
+              label="Dark mode"
+              Icon={Moon}
+              checked={resolveTheme(themePref) === "dark"}
+              onCheckedChange={setDarkModeOn}
             />
             <Button
               variant="ghost"

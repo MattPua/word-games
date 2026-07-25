@@ -27,12 +27,12 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - **Goal** (UI; engine `mode: "target"`): countdown — `remaining` starts at achievable target (board max × Easy/Med/Hard); each accepted word subtracts its points; **win when remaining === 0** (“Clear the couch”). High scores still store **points earned**. Max/target use only words ≥ active min length. Lobby card: Goal / Clear the couch, not “High score” (collides with Timed haul / Potato Board bests).
 - **Timed**: fixed board; 30/60/90/120s → results (score accumulates; unchanged). Lobby: Timed / Beat the clock.
 - **Quit mid-game** (UI: **End run**) → results with progress so far (`won` | `timeout` | `quit`)
-- **Pause menu** (play): Escape or HUD pause → **Couch break** overlay — Switch rows for SFX / Background music / Words left (+ End run); pauses timed clock + blocks grid swipe until Resume / second Escape
+- **Pause menu** (play): Escape or HUD pause → **Couch break** overlay — Switch rows for SFX / Background music / Words left / Dark mode (+ End run); pauses timed clock + blocks grid swipe until Resume / second Escape
 
 ## Product surface
 
-- **Home setup = game lobby** (not a settings form): **Primary** — mode cards, board picker (size + Square/Honeycomb), challenge (How hard? / How long?). **Advanced** (quieter fine-tune) — Min length choice cards (helper + 3+/4+/5+ hints), Show words left Switch. Phone: stack primary then advanced. Wide web: primary left | advanced right; cards hug content. Play dominates; sticky Play bar narrows on md+ lobby (centered cluster, not full shell width). See `.cursor/rules/ui.mdc`.
-- Local profiles only (no cloud/export/sync); high scores per profile × grid × **topology** × mode × difficulty/duration. UI label: **Couch crew** (route may stay `/profiles`).
+- **Home setup = game lobby** (not a settings form): **Primary** — mode cards, board picker (size + Square/Honeycomb), challenge (How hard? / How long?). **Advanced** (quieter fine-tune) — Min length choice cards (helper + 3+/4+/5+ hints), Show words left Switch. Phone: stack primary then advanced. Wide web: primary left | advanced right; cards hug content. Play dominates; sticky Play bar = Play + background music + SFX only (no theme toggle); narrows on md+ lobby (centered cluster, not full shell width). See `.cursor/rules/ui.mdc`.
+- Local profiles only (no cloud/export/sync); high scores per profile × grid × **topology** × mode × difficulty/duration. UI label: **Couch crew** (route may stay `/profiles`). **Dark mode** toggle lives on Couch crew (Switch row + helper), not the lobby Play bar; Couch break may also expose it mid-run.
 - **Potato Board** (personal local stats on Couch crew): games/words totals, bests with timestamps, recent runs (last 20). Not a cloud leaderboard. (“Alita Board” speech → this.)
 - Web share from results (Web Share API + clipboard fallback)
 - SEO: strings in `apps/web/src/seo.ts` (cold-load via Vite `transformIndexHtml` → `index.html`; per-screen titles via TanStack Router `head` + `HeadContent`). JSON-LD `WebApplication` / `VideoGame`.

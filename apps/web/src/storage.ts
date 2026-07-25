@@ -29,12 +29,17 @@ export type Profile = {
   wordsFound: number;
 };
 
+/** `system` follows OS `prefers-color-scheme`; `light`/`dark` are explicit user overrides. */
+export type ThemePreference = "light" | "dark" | "system";
+
 export type DevicePrefs = {
   soundEnabled: boolean;
   /** Looping background music (home / couch crew / quiet on play). Separate from SFX. Default on. */
   menuMusicEnabled: boolean;
   /** Unfound valid words on the board (not target pts remaining). Default off = discovery. */
   showWordsLeft: boolean;
+  /** Default system; explicit light/dark once the player picks via the toggle. */
+  themePreference: ThemePreference;
   activeProfileId: string;
 };
 
@@ -43,6 +48,7 @@ function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string
     soundEnabled: prefs.soundEnabled ?? true,
     menuMusicEnabled: prefs.menuMusicEnabled ?? true,
     showWordsLeft: prefs.showWordsLeft ?? false,
+    themePreference: prefs.themePreference ?? "system",
     activeProfileId: prefs.activeProfileId ?? "",
   };
 }
@@ -100,7 +106,13 @@ export function defaultBlob(): StoredBlob {
         wordsFound: 0,
       },
     ],
-    prefs: { soundEnabled: true, menuMusicEnabled: true, showWordsLeft: false, activeProfileId: id },
+    prefs: {
+      soundEnabled: true,
+      menuMusicEnabled: true,
+      showWordsLeft: false,
+      themePreference: "system",
+      activeProfileId: id,
+    },
   };
 }
 
@@ -215,6 +227,12 @@ export function setMenuMusicEnabled(enabled: boolean) {
 export function setShowWordsLeft(enabled: boolean) {
   const store = loadStore();
   store.prefs.showWordsLeft = enabled;
+  saveStore(store);
+}
+
+export function setThemePreference(pref: ThemePreference) {
+  const store = loadStore();
+  store.prefs.themePreference = pref;
   saveStore(store);
 }
 

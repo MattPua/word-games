@@ -52,7 +52,12 @@
         color-mix(in srgb, var(--primary) 4%, transparent) 11px,
         color-mix(in srgb, var(--primary) 4%, transparent) 12px
       ),
-      linear-gradient(168deg, #f7f2e6 0%, var(--background) 48%, #eef2ee 100%);
+      linear-gradient(
+        168deg,
+        color-mix(in srgb, var(--background) 82%, #fff) 0%,
+        var(--background) 48%,
+        color-mix(in srgb, var(--background) 82%, #eef2ee) 100%
+      );
     background-attachment: fixed;
   }
 
@@ -243,11 +248,7 @@
   }
 
   .cp-tile-active {
-    background: linear-gradient(
-      180deg,
-      var(--tile-select-top) 0%,
-      var(--tile-select-bottom) 100%
-    );
+    background: linear-gradient(180deg, var(--tile-select-top) 0%, var(--tile-select-bottom) 100%);
     border-color: var(--path);
     border-width: 2px;
     box-shadow:
@@ -279,7 +280,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 9999px;
-    padding: 0.75rem 1.5rem;
+    padding: 0 1.5rem;
     background: linear-gradient(
       180deg,
       color-mix(in srgb, var(--primary) 88%, #fff),
@@ -293,6 +294,10 @@
   .cp-word-pill-empty {
     background: color-mix(in srgb, var(--card) 75%, transparent);
     box-shadow: inset 0 0 0 1.5px var(--border);
+  }
+
+  .cp-word-pill > * {
+    line-height: 1;
   }
 
   .cp-score-badge {
@@ -313,6 +318,10 @@
     box-shadow: 0 2px 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
   }
 
+  .cp-score-badge > * {
+    line-height: 1;
+  }
+
   /* Last accepted word — shares a row with the rotate controls, so it must fit in the
      slot between them rather than pushing board height (see `.cp-board-frame` note). */
   .cp-last-found {
@@ -331,6 +340,7 @@
     font-family: Grandstander, system-ui, sans-serif;
     font-size: 0.6rem;
     font-weight: 700;
+    line-height: 1;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--muted-foreground);
@@ -342,6 +352,7 @@
     font-family: Grandstander, system-ui, sans-serif;
     font-size: 0.95rem;
     font-weight: 700;
+    line-height: 1;
     letter-spacing: 0.01em;
     color: var(--foreground);
     white-space: nowrap;
@@ -361,6 +372,7 @@
     font-family: Grandstander, system-ui, sans-serif;
     font-size: 0.68rem;
     font-weight: 700;
+    line-height: 1;
   }
 
   /* Home lobby tagline — always under wordmark (see unlayered `.cp-lobby-brand`) */
