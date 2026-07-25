@@ -1,0 +1,11 @@
+{
+  "image": "logo-sprite.png",
+  "cols": 2,
+  "rows": 1,
+  "frameWidth": 506,
+  "frameHeight": 512,
+  "frames": {
+    "idle": { "x": 0, "y": 0, "w": 506, "h": 512 },
+    "cheer": { "x": 506, "y": 0, "w": 506, "h": 512 }
+  }
+}

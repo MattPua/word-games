@@ -228,13 +228,97 @@
   animation: cp-tile-select 0.28s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
+/*
+ * PotatoSprite — steps between the `spriteAtlas.ts` idle/cheer frames via
+ * `background-position-x: 0%/100%` (background-image + background-size come
+ * from the atlas, set inline by the component so the frame map stays the
+ * one source of truth). Base rule covers both call sites:
+ *  - pinned `frame` (results win/quit): static, no animation here — the
+ *    outer `.cp-logo-float` wrapper owns the bob so a pinned "idle" (quit)
+ *    frame never gets the interactive mascot's periodic cheer nudge below.
+ *  - `.cp-potato-sprite-interactive` (frame omitted — 404 / empty-state):
+ *    idle bob (mirrors `cp-soft-float`) + an occasional brief cheer-frame
+ *    nudge keep it alive without being busy; hover (or a tap via
+ *    `.is-poked` on touch) pokes it into a bigger wiggle + cheer frame.
+ * See AGENTS.md Brand.
+ */
+.cp-potato-sprite {
+  display: block;
+  background-repeat: no-repeat;
+  background-position: 0% center;
+  image-rendering: pixelated;
+}
+
+.cp-potato-sprite-interactive {
+  transform-origin: 50% 88%;
+  cursor: pointer;
+}
+
+@keyframes cp-potato-sprite-idle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes cp-potato-sprite-nudge {
+  0%,
+  84%,
+  100% {
+    background-position-x: 0%;
+  }
+  89%,
+  95% {
+    background-position-x: 100%;
+  }
+}
+
+@keyframes cp-potato-sprite-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  30% {
+    transform: rotate(-6deg) scale(1.05);
+  }
+  60% {
+    transform: rotate(5deg) scale(1.07);
+  }
+  85% {
+    transform: rotate(-2deg) scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cp-potato-sprite-interactive {
+    animation:
+      cp-potato-sprite-idle 4.5s ease-in-out infinite,
+      cp-potato-sprite-nudge 7s ease-in-out infinite;
+  }
+
+  .cp-potato-sprite-interactive:hover,
+  .cp-potato-sprite-interactive.is-poked {
+    animation: cp-potato-sprite-wiggle 0.55s ease-in-out;
+    background-position-x: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cp-logo-float,
   .cp-fade-up,
   .cp-pop-in,
   .cp-tile-selected,
-  .cp-tile-drop {
+  .cp-tile-drop,
+  .cp-potato-sprite-interactive {
     animation: none;
+  }
+
+  .cp-potato-sprite-interactive:hover,
+  .cp-potato-sprite-interactive.is-poked {
+    background-position-x: 100%;
   }
 
   .cp-board-spin.is-turning,
