@@ -8,6 +8,7 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 - Whimsical **light-first** (+ soft dark); Sage Garden tokens (tweaked); **Fredoka** + **Nunito**
 - Mobile-first; desktop = centered narrow play column
 - **Container queries = web-only**; shared layout uses flex + max-width
+- **Motion:** meaningful interactivity should show the change (short CSS/NativeWind transitions — segments, presses, score ticks, screen enters). Whimsical + performant; few intentional motions, not noise; respect `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.
 
 ## Game rules (engine owns these)
 

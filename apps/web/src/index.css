@@ -34,3 +34,43 @@
     font-family: Fredoka, system-ui, sans-serif;
   }
 }
+
+@layer utilities {
+  @keyframes cp-option-swap {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .cp-option-swap {
+    animation: cp-option-swap 0.28s ease-out both;
+  }
+
+  @keyframes cp-select-pop {
+    0% {
+      transform: scale(1);
+    }
+    45% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .cp-select-pop {
+    animation: cp-select-pop 0.32s cubic-bezier(0.34, 1.45, 0.64, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cp-option-swap,
+    .cp-select-pop {
+      animation: none;
+    }
+  }
+}

@@ -103,7 +103,7 @@ export function HomePage() {
       />
 
       {mode === "target" ? (
-        <>
+        <div key="target" className="cp-option-swap">
           <Text className="mb-2 font-display text-lg text-foreground">
             Difficulty
           </Text>
@@ -116,9 +116,9 @@ export function HomePage() {
               { value: "hard", label: "Hard" },
             ]}
           />
-        </>
+        </div>
       ) : (
-        <>
+        <div key="timed" className="cp-option-swap">
           <Text className="mb-2 font-display text-lg text-foreground">
             Duration
           </Text>
@@ -132,7 +132,7 @@ export function HomePage() {
               { value: 120, label: "120s" },
             ]}
           />
-        </>
+        </div>
       )}
 
       <Button size="lg" className="mb-3 w-full" onClick={play}>

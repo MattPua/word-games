@@ -21,10 +21,10 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         potato:
           "bg-potato text-foreground shadow-sm hover:brightness-105",
-        segment:
-          "bg-transparent text-muted-foreground shadow-none hover:text-foreground",
+  "segment":
+          "relative bg-transparent text-muted-foreground shadow-none transition-[color,transform] duration-200 hover:text-foreground",
         "segment-active":
-          "bg-card text-foreground shadow-sm hover:bg-card",
+          "relative bg-transparent text-foreground shadow-none",
       },
       size: {
         default: "h-10 px-4 py-2",
