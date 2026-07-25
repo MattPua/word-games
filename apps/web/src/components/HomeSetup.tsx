@@ -1,6 +1,6 @@
-import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
+  ALargeSmall,
   Droplets,
   Eye,
   Music,
@@ -10,12 +10,12 @@ import {
   Type,
   Volume2,
   VolumeX,
+  WholeWord,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { IconTooltip } from "@/components/ui/tooltip";
-import { SegmentGroup } from "@/components/SegmentGroup";
 
 type Mode = "target" | "timed";
 type Topology = "square" | "hex";
@@ -23,6 +23,12 @@ type Difficulty = "easy" | "medium" | "hard";
 type Grid = 4 | 5 | 6;
 type MinLen = 3 | 4 | 5;
 type Duration = 30 | 60 | 90 | 120;
+
+const MIN_LENGTH: { value: MinLen; label: string; hint: string; Icon: LucideIcon }[] = [
+  { value: 3, label: "3+", hint: "Short words count", Icon: Type },
+  { value: 4, label: "4+", hint: "Mid and up", Icon: WholeWord },
+  { value: 5, label: "5+", hint: "Longer words only", Icon: ALargeSmall },
+];
 
 export type HomeSetupProps = {
   mode: Mode;
@@ -196,11 +202,9 @@ export function HomeSetup({
   onDuration,
   onShowWordsLeft,
 }: HomeSetupProps) {
-  const [wordLengthOpen, setWordLengthOpen] = useState(false);
-
   return (
-    <div className="flex flex-col gap-5">
-      {/* Mode: two big choice cards */}
+    <div className="cp-lobby-setup flex flex-col gap-5">
+      {/* Mode: two big choice cards (full width) */}
       <div role="group" aria-label="Game mode" className="grid grid-cols-2 gap-2.5">
         {(
           [
@@ -247,7 +251,8 @@ export function HomeSetup({
         })}
       </div>
 
-      {/* Board: grid size tiles + shape icons */}
+      {/* Board + challenge: stack on phone, 2-col when lobby container is wide */}
+      <div className="cp-lobby-main flex flex-col gap-5">
       <section aria-label="Board" className="cp-lobby-panel">
         <div className="mb-3 flex items-end justify-between gap-2">
           <h2 className="font-display text-base font-bold text-foreground">Your board</h2>
@@ -406,56 +411,56 @@ export function HomeSetup({
           </div>
         )}
       </section>
-
-      {/* Secondary: min length (animated accordion) */}
-      <div className="cp-lobby-more group" data-state={wordLengthOpen ? "open" : "closed"}>
-        <button
-          type="button"
-          className="cp-lobby-more-summary w-full"
-          aria-expanded={wordLengthOpen}
-          aria-controls="lobby-word-length-panel"
-          id="lobby-word-length-trigger"
-          onClick={() => setWordLengthOpen((o) => !o)}
-        >
-          <span className="flex min-w-0 items-start gap-2">
-            <Type
-              className="cp-lobby-glyph mt-0.5 size-4 shrink-0 text-muted-foreground group-data-[state=open]:text-secondary"
-              strokeWidth={2.25}
-              aria-hidden
-            />
-            <span className="flex min-w-0 flex-col gap-0.5 text-left">
-              <span className="font-display text-sm font-bold text-foreground">Min length</span>
-              <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
-                Only count words this long or longer
-              </span>
-            </span>
-          </span>
-          <span className="font-body text-xs tabular-nums text-muted-foreground">
-            {minWordLength}+
-          </span>
-        </button>
-        <div
-          id="lobby-word-length-panel"
-          role="region"
-          aria-labelledby="lobby-word-length-trigger"
-          className="cp-lobby-more-panel"
-        >
-          <div className="cp-lobby-more-panel-inner">
-            <div className="pt-3">
-              <SegmentGroup
-                value={minWordLength}
-                onChange={onMinWordLength}
-                options={[
-                  { value: 3, label: "3+" },
-                  { value: 4, label: "4+" },
-                  { value: 5, label: "5+" },
-                ]}
-                className="mb-0"
-              />
-            </div>
-          </div>
-        </div>
       </div>
+
+      {/* Min length + words left: stack on phone, side-by-side when wide */}
+      <div className="cp-lobby-extras flex flex-col gap-5">
+      {/* Min length: same pattern as How hard? */}
+      <section aria-label="Min length" className="cp-lobby-panel">
+        <div className="mb-3 flex flex-col gap-0.5">
+          <h2 className="font-display text-base font-bold text-foreground">Min length</h2>
+          <p className="font-body text-xs text-muted-foreground">
+            Only count words this long or longer
+          </p>
+        </div>
+        <div role="group" aria-label="Min length" className="grid grid-cols-3 gap-2">
+          {MIN_LENGTH.map(({ value, label, hint, Icon }) => {
+            const active = minWordLength === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={active}
+                aria-label={`${label}: ${hint}`}
+                onClick={() => onMinWordLength(value)}
+                className={cn(
+                  "cp-lobby-challenge flex flex-col items-center gap-1 px-1 py-2.5",
+                  active && "cp-lobby-challenge-active cp-select-pop",
+                )}
+              >
+                <span
+                  className={cn(
+                    "cp-lobby-glyph text-muted-foreground",
+                    active && "text-secondary",
+                  )}
+                  aria-hidden
+                >
+                  <Icon
+                    className="size-5"
+                    strokeWidth={2.25}
+                    fill={active ? "currentColor" : "none"}
+                    fillOpacity={active ? 0.22 : 0}
+                  />
+                </span>
+                <span className="font-display text-sm font-bold tabular-nums">{label}</span>
+                <span className="font-body text-[0.65rem] leading-tight text-muted-foreground text-center">
+                  {hint}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Words left HUD (default off) */}
       <label
@@ -488,6 +493,7 @@ export function HomeSetup({
           aria-label={`Show words left ${showWordsLeft ? "on" : "off"}`}
         />
       </label>
+      </div>
     </div>
   );
 }
