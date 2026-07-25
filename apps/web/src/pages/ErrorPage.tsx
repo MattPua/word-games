@@ -9,7 +9,7 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
 
   return (
-    <Shell className="overflow-y-auto">
+    <Shell className="cp-shell-scroll overflow-y-auto">
       {/* min-h-full + justify-center: centers when short, scrolls when tall */}
       <div className="flex min-h-full w-full shrink-0 flex-col items-center justify-center">
         <Logo size={100} />

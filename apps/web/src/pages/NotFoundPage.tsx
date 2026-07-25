@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 export function NotFoundPage() {
   const navigate = useNavigate();
   return (
-    <Shell className="overflow-y-auto">
+    <Shell className="cp-shell-scroll overflow-y-auto">
       {/* min-h-full + justify-center: centers when short, scrolls when tall */}
       <div className="flex min-h-full w-full shrink-0 flex-col items-center justify-center">
         <Logo size={100} />

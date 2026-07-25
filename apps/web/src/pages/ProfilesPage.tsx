@@ -23,7 +23,7 @@ export function ProfilesPage() {
   const [name, setName] = useState("");
 
   return (
-    <Shell className="overflow-y-auto">
+    <Shell className="cp-shell-scroll overflow-y-auto">
       <Text className="mb-4 font-display text-2xl text-foreground">Couch crew</Text>
 
       {store.profiles.length === 0 ? (

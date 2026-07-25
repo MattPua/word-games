@@ -104,6 +104,37 @@
   padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
 }
 
+/*
+ * Web Shell scroll regions — cards must clear overlay scrollbar thumbs.
+ * Lobby: inner `.cp-shell-scroll` (Home). Long pages: Shell + `cp-shell-scroll`.
+ */
+.cp-shell-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--muted-foreground) 42%, transparent) transparent;
+}
+
+.cp-shell-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cp-shell-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted-foreground) 40%, transparent);
+}
+
+.cp-shell-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cp-shell-scroll:not(.cp-shell) {
+  padding-inline-end: 1rem;
+}
+
+.cp-shell.cp-shell-scroll {
+  padding-inline-end: calc(1rem + 1rem);
+}
+
 .cp-logo-float {
   animation: cp-soft-float 4.5s ease-in-out infinite;
 }

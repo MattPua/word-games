@@ -1,6 +1,6 @@
 # Couch Potato
 
-Swipe adjacent letters on a square or honeycomb grid. Casual word game: short sessions, fast first success, no hints.
+Swipe adjacent letters on a square or honeycomb grid. Casual word game — short sessions, fast first success, no hints.
 
 ## Brand
 
@@ -9,10 +9,10 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game: short se
 - **Color roles:** `primary` = sage (actions, path); `secondary` = potato gold (badges, selected lobby cards, secondary buttons); `accent` = soft sage wash; `muted` = soft sage-gray surfaces. Prefer `bg-secondary` / `text-secondary` over ad-hoc potato hex. See `.cursor/rules/ui.mdc`.
 - Mobile-first; desktop = centered narrow play column
 - **Container queries = web-only**; shared layout uses flex + max-width
-- **Viewport shell:** root `h-dvh` + `Shell` column; scroll in `flex-1 min-h-0 overflow-y-auto`, sticky actions (lobby Play) outside the scroller — see `.cursor/rules/ui.mdc`
+- **Viewport shell:** root `h-dvh` + `Shell` column; scroll in `flex-1 min-h-0 overflow-y-auto cp-shell-scroll` (stable gutter — cards clear the bar); sticky actions (lobby Play) outside the scroller — see `.cursor/rules/ui.mdc`
 - **Motion:** meaningful interactivity should show the change (short CSS/NativeWind transitions — segments, presses, score ticks, screen enters). Whimsical + performant; few intentional motions, not noise; respect `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.
 - **UI inspiration:** [TypeUI](https://www.typeui.sh/) principles (tokens first → hierarchy / type rhythm / interaction feedback) + tactile word-game craft (pillow cream tiles, thick sage board frame, path + select rings, word pill + potato score badge). Keep cream/sage/potato — never purple demo clones. See `.cursor/rules/ui.mdc`.
-- **Copy / voice:** prefer **gaming terminology** (Play, lobby, run, haul, SFX, spin) over sterile app/form words (Submit, Settings, Confirm). Whimsical Couch Potato: clear for casual players, not esports jargon. **No em dashes (—)** in player-facing copy (toasts, empty states, titles, tooltips, share blurbs, SEO); use comma, period, or hyphen sparingly. Icon tooltips match. Details: `.cursor/rules/ui.mdc`.
+- **Copy / voice:** prefer **gaming terminology** (Play, lobby, run, haul, SFX, spin) over sterile app/form words (Submit, Settings, Confirm). Whimsical Couch Potato — clear for casual players, not esports jargon. Icon tooltips match. Details: `.cursor/rules/ui.mdc`.
 
 ## Game rules (engine owns these)
 
@@ -23,10 +23,10 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game: short se
 - No duplicate words per round
 - Dictionary: [dolph/dictionary](https://github.com/dolph/dictionary) — **v1 play lexicon = `popular.txt`** (enable1 ∩ Wiktionary TV/movie frequency lists ≈ 25k common words; not a frequency CSV). Full `enable1` kept in the build artifact for a future “dictionary mode” but **does not** drive accept, board `allWords`, targets, or missed reveals. Plus **offensive/NSFW blocklist** (ENABLE public domain — attribute in README). Blocked tokens must not appear in validation, board gen, or missed-words.
 - Scoring: `points = length - 2` (config constant)
-- **Goal** (UI; engine `mode: "target"`): countdown — `remaining` starts at achievable target (board max × Easy/Med/Hard); each accepted word subtracts its points; **win when remaining === 0** (“Clear the couch”). High scores still store **points earned**. Max/target use only words ≥ active min length. Lobby card: Goal / Clear the couch, not “High score” (collides with Timed haul / Potato Board bests).
-- **Timed**: fixed board; 30/60/90/120s → results (score accumulates; unchanged). Lobby: Timed / Beat the clock.
+- **Target**: countdown — `remaining` starts at achievable target (board max × Easy/Med/Hard); each accepted word subtracts its points; **win when remaining === 0** (“Clear the couch”). High scores still store **points earned**. Max/target use only words ≥ active min length.
+- **Timed**: fixed board; 30/60/90/120s → results (score accumulates; unchanged)
 - **Quit mid-game** (UI: **End run**) → results with progress so far (`won` | `timeout` | `quit`)
-- **Pause menu** (play): Escape or HUD pause → overlay (SFX, words-left scout, End run); pauses timed clock + blocks grid swipe until Resume / second Escape
+- **Pause menu** (play): Escape or HUD pause → **Couch break** overlay — Switch rows for SFX / Lobby jam / Words left (+ End run); pauses timed clock + blocks grid swipe until Resume / second Escape
 
 ## Product surface
 

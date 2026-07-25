@@ -64,7 +64,7 @@ export function HomePage() {
 
   return (
     <Shell className="overflow-hidden pb-0 cp-fade-up">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div className="cp-shell-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain scrollbar-gutter-stable">
         <View className="mb-4 items-center">
           <View className="cp-logo-float">
             <Logo size={72} />
