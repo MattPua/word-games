@@ -125,7 +125,7 @@ export function PlayPage() {
     if (boardClearedRef.current) return;
     boardClearedRef.current = true;
     playBoardClearedSound();
-    toast.success("Board cleared — every word nabbed!");
+    toast.success("Board cleared. Every word nabbed!");
     setFlash("BOARD CLEARED!");
     window.setTimeout(() => setFlash(""), BOARD_CLEAR_FLASH_MS);
   };

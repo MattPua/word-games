@@ -26,7 +26,7 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
     <View className="mb-6">
       <Text className="mb-1 font-display text-xl text-foreground">Potato Board</Text>
       <Text className="mb-3 font-body text-sm text-muted-foreground">
-        Your local scoreboard — no cloud bragging.
+        Your local scoreboard. No cloud bragging.
       </Text>
 
       <View className="mb-4 flex-row gap-3">
@@ -43,7 +43,7 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
       {empty ? (
         <EmptyState
           title="Board still warm and empty"
-          body="Play a round — bests and recent runs show up here."
+          body="Play a round. Bests and recent runs show up here."
           className="py-2"
         />
       ) : (
@@ -52,7 +52,7 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
           {highs.length === 0 ? (
             <EmptyState
               title="No bests carved yet"
-              body="Beat a target or clock and we'll keep the high water mark."
+              body="Clear a goal or beat the clock and we'll keep the high water mark."
               className="mb-4 py-2"
             />
           ) : (

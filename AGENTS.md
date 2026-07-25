@@ -23,8 +23,8 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - No duplicate words per round
 - Dictionary: [dolph/dictionary](https://github.com/dolph/dictionary) — **v1 play lexicon = `popular.txt`** (enable1 ∩ Wiktionary TV/movie frequency lists ≈ 25k common words; not a frequency CSV). Full `enable1` kept in the build artifact for a future “dictionary mode” but **does not** drive accept, board `allWords`, targets, or missed reveals. Plus **offensive/NSFW blocklist** (ENABLE public domain — attribute in README). Blocked tokens must not appear in validation, board gen, or missed-words.
 - Scoring: `points = length - 2` (config constant)
-- **Target**: countdown — `remaining` starts at achievable target (board max × Easy/Med/Hard); each accepted word subtracts its points; **win when remaining === 0** (“Clear the couch”). High scores still store **points earned**. Max/target use only words ≥ active min length.
-- **Timed**: fixed board; 30/60/90/120s → results (score accumulates; unchanged)
+- **Goal** (UI; engine `mode: "target"`): countdown — `remaining` starts at achievable target (board max × Easy/Med/Hard); each accepted word subtracts its points; **win when remaining === 0** (“Clear the couch”). High scores still store **points earned**. Max/target use only words ≥ active min length. Lobby card: Goal / Clear the couch, not “High score” (collides with Timed haul / Potato Board bests).
+- **Timed**: fixed board; 30/60/90/120s → results (score accumulates; unchanged). Lobby: Timed / Beat the clock.
 - **Quit mid-game** (UI: **End run**) → results with progress so far (`won` | `timeout` | `quit`)
 - **Pause menu** (play): Escape or HUD pause → overlay (SFX, words-left scout, End run); pauses timed clock + blocks grid swipe until Resume / second Escape
 

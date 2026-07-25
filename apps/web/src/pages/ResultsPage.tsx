@@ -20,7 +20,7 @@ async function shareScore(text: string) {
   }
   await navigator.clipboard.writeText(text);
   play("success");
-  toast.success("Haul copied — go brag");
+  toast.success("Haul copied. Go brag");
 }
 
 export function ResultsPage() {
@@ -29,11 +29,11 @@ export function ResultsPage() {
 
   if (!run) {
     return (
-      <Shell className="overflow-y-auto">
+      <Shell className="cp-shell-scroll overflow-y-auto">
         <EmptyState
           showLogo
           title="No crumbs on the couch yet"
-          body="Play a round first — then we'll show off your haul."
+          body="Play a round first, then we'll show off your haul."
         />
         <Button className="mt-4 w-full" onClick={() => navigate({ to: "/" })}>
           Back to lobby
@@ -42,7 +42,7 @@ export function ResultsPage() {
     );
   }
 
-  const blurb = `Couch Potato — ${run.score} pts on ${run.grid}×${run.grid} ${run.detail}${
+  const blurb = `Couch Potato: ${run.score} pts on ${run.grid}×${run.grid} ${run.detail}${
     run.isHighScore ? " ★ high score" : ""
   }`;
 
@@ -50,7 +50,7 @@ export function ResultsPage() {
     run.reason === "won" ? "Couch clear!" : run.reason === "timeout" ? "Time's up" : "Run ended";
 
   return (
-    <Shell className="overflow-y-auto">
+    <Shell className="cp-shell-scroll overflow-y-auto">
       <Text className="mb-1 font-display text-3xl text-foreground">{reasonLabel}</Text>
       <Text className="mb-4 font-display text-4xl text-primary">{run.score}</Text>
       {run.isHighScore && <Text className="mb-4 font-body text-path">New personal best!</Text>}
