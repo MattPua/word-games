@@ -7,6 +7,7 @@ alwaysApply: false
 # Engine / dictionary
 
 - Pure TypeScript — no React/DOM.
-- Vitest for path rules, scoring, board gen (incl. gen-within-retry-cap on seeded RNG), dict filters.
+- Vitest for path rules, scoring, board gen (incl. gen-within-retry-cap on seeded RNG), dict filters, **minWordLength** (short reject + achievable targets).
 - Single authoritative thresholds/scoring config object; loosen there if gen flakes — never ad-hoc in UI.
+- `minWordLength` on `GameConfig`: maxScore/targets/allWords/missed filter to ≥ N; targets always ≤ maxScore.
 - Dictionary: enable1 + popular + blocklist → build artifact; load once at app start.

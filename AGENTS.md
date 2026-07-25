@@ -13,10 +13,11 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 
 - Grids 4×4 / 5×5 / 6×6; **8-way** adjacency; **no tile reuse in one swipe**
 - Tiles stay for the round (reusable across words)
-- Min word length **3**; no duplicate words per round
+- Min word length: global floor **3**; per-game setup may raise to **4** or **5**
+- No duplicate words per round
 - Dictionary: [dolph/dictionary](https://github.com/dolph/dictionary) `enable1.txt` + `popular.txt` + blocklist (ENABLE public domain — attribute in README)
 - Scoring: `points = length - 2` (config constant)
-- **Target**: `% of board max` × Easy/Med/Hard → end immediately on reach
+- **Target**: `% of board max` × Easy/Med/Hard → end immediately on reach. Max/target use **only words ≥ active min length** (targets always ≤ maxScore — never require shorter words the player can’t submit)
 - **Timed**: fixed board; 30/60/90/120s → results
 - **Quit mid-game** → results with progress so far (`won` | `timeout` | `quit`)
 
@@ -32,8 +33,10 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 
 - Bun workspaces; Vitest; Vite + TanStack Router → Vercel
 - Shared UI: `packages/ui` (RN + RN-web + NativeWind); Expo later (`apps/mobile`)
+- Loading / empty / 404–500 voice live in `packages/ui` (`LoadingPotato`, `EmptyState`) + thin web pages — not one-off DOM kits
 - Pointer Events for swipe paths (web); Hammer.js = reference only
 - CSS/NativeWind motion first; no anime.js unless a real gap
+- **UI/UX brand pass** only after playable home→play→results + swipe QA (dedicated milestone — don’t block core)
 
 ## Code style
 
