@@ -475,7 +475,7 @@ export function PlayPage() {
             </Text>
           ) : null}
         </View>
-        <View className="shrink-0 flex-row items-center gap-0.5">
+        <View className="shrink-0 flex-row items-center gap-2">
           <IconTooltip label={sound ? "SFX on" : "SFX off"}>
             <Button
               variant="outline"
