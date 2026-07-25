@@ -1,6 +1,6 @@
 import { createDictionary } from "@couch-potato/dictionary";
 import { describe, expect, it } from "vitest";
-import { GEN_RETRY_CAP, computeTargets, scoreWord } from "./config";
+import { GEN_RETRY_CAP, computeTargets, letterMixWeights, scoreWord } from "./config";
 import { buildBoard, generateBoard } from "./generate";
 import { createGame, highScoreKey, quitGame, submitPath } from "./game";
 import { isValidPath, wordFromPath } from "./path";
@@ -469,6 +469,66 @@ describe("generateBoard", () => {
     });
     expect(board.allWords.every((w) => w.length >= 4)).toBe(true);
     expect(board.targets.hard).toBeLessThanOrEqual(board.maxScore);
+  });
+
+  it("succeeds within retry cap on seeded RNG for every difficulty", () => {
+    for (const difficulty of ["easy", "medium", "hard"] as const) {
+      const rng = createSeededRng(42);
+      const board = generateBoard({
+        size: 4,
+        dict: miniDict,
+        topology: "square",
+        difficulty,
+        rng,
+        retryCap: GEN_RETRY_CAP,
+      });
+      expect(board.letters).toHaveLength(4);
+      expect(board.targets.hard).toBeLessThanOrEqual(board.maxScore);
+    }
+  });
+});
+
+describe("letter variety by difficulty", () => {
+  it("flattens the common-letter bias more as difficulty rises (rare letters relatively boosted)", () => {
+    const easy = letterMixWeights({}, "easy");
+    const medium = letterMixWeights({}, "medium");
+    const hard = letterMixWeights({}, "hard");
+    // Ratio of a very common letter to a very rare one should shrink as difficulty rises,
+    // since flattening compresses the dynamic range without reordering it.
+    const ratio = (w: Record<string, number>) => w.e! / w.z!;
+    expect(ratio(medium)).toBeLessThan(ratio(easy));
+    expect(ratio(hard)).toBeLessThan(ratio(medium));
+    // Still common-biased at every difficulty — never flips the ordering.
+    expect(hard.e!).toBeGreaterThan(hard.z!);
+  });
+
+  it("docks a repeated letter's weight harder on higher difficulties", () => {
+    const repeats = { e: 4 };
+    const relativeDrop = (difficulty: "easy" | "medium" | "hard") =>
+      letterMixWeights(repeats, difficulty).e! / letterMixWeights({}, difficulty).e!;
+    expect(relativeDrop("medium")).toBeLessThan(relativeDrop("easy"));
+    expect(relativeDrop("hard")).toBeLessThan(relativeDrop("medium"));
+  });
+
+  it("never zeroes out a letter (board stays generatable)", () => {
+    for (const difficulty of ["easy", "medium", "hard"] as const) {
+      const weights = letterMixWeights({ z: 20 }, difficulty);
+      for (const w of Object.values(weights)) expect(w).toBeGreaterThan(0);
+    }
+  });
+
+  it("generateBoard produces more distinct letters on hard than easy across seeded boards", () => {
+    const dict = createDictionary();
+    const distinctLetters = (letters: string[][]) => new Set(letters.flat()).size;
+    let easySum = 0;
+    let hardSum = 0;
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const easy = generateBoard({ size: 5, dict, difficulty: "easy", seed });
+      const hard = generateBoard({ size: 5, dict, difficulty: "hard", seed });
+      easySum += distinctLetters(easy.letters);
+      hardSum += distinctLetters(hard.letters);
+    }
+    expect(hardSum).toBeGreaterThan(easySum);
   });
 });
 

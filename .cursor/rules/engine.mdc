@@ -7,8 +7,9 @@ alwaysApply: false
 # Engine / dictionary
 
 - Pure TypeScript — no React/DOM.
-- Vitest for path rules, scoring, board gen (incl. gen-within-retry-cap on seeded RNG), dict filters, **minWordLength** (short reject + achievable targets).
+- Vitest for path rules, scoring, board gen (incl. gen-within-retry-cap on seeded RNG), dict filters, **minWordLength** (short reject + achievable targets), letter-variety weighting.
 - Single authoritative thresholds/scoring config object; loosen there if gen flakes — never ad-hoc in UI.
 - `minWordLength` on `GameConfig`: maxScore/targets/allWords/missed filter to ≥ N; targets always ≤ maxScore.
 - Dictionary: enable1 + popular + blocklist → build artifact; load once at app start.
 - **v1 play:** `dict.has` / board `allWords` / targets / missed = **popular only** (casual words). Enable kept in artifact for a future full-dictionary mode.
+- **Board letter mix by difficulty:** `generateBoard({ difficulty })` → `randomBoard` picks each tile from `letterMixWeights(placedCounts, difficulty)` (`config.ts`), which flattens `LETTER_WEIGHTS` per `LETTER_VARIETY[difficulty]` and docks letters already placed this board. Easy ≈ unchanged common bias + light anti-repeat; Hard flattens hardest + docks repeats hardest. `difficulty` defaults to `"medium"` (timed mode has none). Tune only `LETTER_VARIETY`, never a second weight table — verify with the real dict (`createDictionary()`) that thresholds still clear before loosening flatten/repeatPenalty further.

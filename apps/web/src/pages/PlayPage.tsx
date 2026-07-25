@@ -203,6 +203,8 @@ export function PlayPage() {
       dict,
       topology,
       minWordLength,
+      // Timed has no difficulty knob — generateBoard defaults to a medium letter mix.
+      difficulty: launch.mode === "target" ? (launch.difficulty ?? "easy") : undefined,
     });
     const config =
       launch.mode === "target"

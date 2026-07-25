@@ -3,10 +3,11 @@ import {
   BOARD_THRESHOLDS,
   GEN_RETRY_CAP,
   HARD_TARGET_FLOOR,
-  LETTER_WEIGHTS,
   MIN_WORD_LENGTH,
   computeTargets,
+  letterMixWeights,
   thresholdsForMinLength,
+  type Difficulty,
   type GridSize,
   type MinWordLength,
   type WordCountThresholds,
@@ -52,9 +53,19 @@ function meetsThresholds(counts: WordCountThresholds, t: WordCountThresholds, sc
   );
 }
 
-function randomBoard(size: GridSize, rng: Rng): string[][] {
+/**
+ * Fills the board tile by tile, re-weighting after every pick: `letterMixWeights`
+ * flattens toward variety by difficulty and docks letters already placed, so a
+ * single board doesn't lean on the same few common letters.
+ */
+function randomBoard(size: GridSize, rng: Rng, difficulty: Difficulty = "medium"): string[][] {
+  const placedCounts: Record<string, number> = {};
   return Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => pickWeighted(LETTER_WEIGHTS, rng).toUpperCase()),
+    Array.from({ length: size }, () => {
+      const letter = pickWeighted(letterMixWeights(placedCounts, difficulty), rng);
+      placedCounts[letter] = (placedCounts[letter] ?? 0) + 1;
+      return letter.toUpperCase();
+    }),
   );
 }
 
@@ -92,6 +103,8 @@ export type GenerateOptions = {
   dict: Dictionary;
   topology?: GridTopology;
   minWordLength?: MinWordLength;
+  /** Letter variety mix (see `LETTER_VARIETY`). Timed has no difficulty — defaults to "medium". */
+  difficulty?: Difficulty;
   seed?: number;
   rng?: Rng;
   retryCap?: number;
@@ -104,6 +117,7 @@ export type GenerateOptions = {
 export function generateBoard(opts: GenerateOptions): Board {
   const minWordLength = opts.minWordLength ?? MIN_WORD_LENGTH;
   const topology = opts.topology ?? "square";
+  const difficulty = opts.difficulty ?? "medium";
   const rng = opts.rng ?? createSeededRng(opts.seed ?? Date.now());
   const cap = opts.retryCap ?? GEN_RETRY_CAP;
   const thresholds = thresholdsForMinLength(BOARD_THRESHOLDS[topology][opts.size], minWordLength);
@@ -112,7 +126,7 @@ export function generateBoard(opts: GenerateOptions): Board {
   let bestScore = -1;
 
   for (let attempt = 0; attempt < cap; attempt++) {
-    const letters = randomBoard(opts.size, rng);
+    const letters = randomBoard(opts.size, rng, difficulty);
     const board = buildBoard(letters, opts.dict, minWordLength, topology);
     const counts = countByLength(board.allWords);
     // allWords is popular-only; ratio stays as a sanity signal for gen quality

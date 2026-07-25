@@ -120,3 +120,38 @@ export const LETTER_WEIGHTS: Record<string, number> = {
   y: 2.0,
   z: 0.07,
 };
+
+/**
+ * Letter variety by difficulty. Board gen stays common-biased (fast first
+ * success) but blends in more spread as difficulty rises:
+ * - `flatten` (0-1 exponent on `LETTER_WEIGHTS`): lower = flatter distribution
+ *   = rarer letters relatively more likely. 1 = unchanged common bias.
+ * - `repeatPenalty`: how hard an already-placed letter is docked per repeat
+ *   within one board, so a single board doesn't lean on the same few letters
+ *   (Easy still needs a touch of this to avoid mono-vowel soup).
+ */
+export const LETTER_VARIETY: Record<Difficulty, { flatten: number; repeatPenalty: number }> = {
+  easy: { flatten: 0.85, repeatPenalty: 0.35 },
+  medium: { flatten: 0.6, repeatPenalty: 0.55 },
+  hard: { flatten: 0.4, repeatPenalty: 0.75 },
+};
+
+/**
+ * Per-tile pick weights for board gen: flattens `LETTER_WEIGHTS` toward
+ * variety by difficulty, then docks letters already placed on this board so
+ * they don't over-repeat. Never zeroes a letter out — gen thresholds still
+ * decide if the resulting board is solvable enough.
+ */
+export function letterMixWeights(
+  placedCounts: Readonly<Record<string, number>>,
+  difficulty: Difficulty = "medium",
+): Record<string, number> {
+  const { flatten, repeatPenalty } = LETTER_VARIETY[difficulty];
+  const weights: Record<string, number> = {};
+  for (const [letter, weight] of Object.entries(LETTER_WEIGHTS)) {
+    const flattened = weight ** flatten;
+    const repeats = placedCounts[letter] ?? 0;
+    weights[letter] = flattened / (1 + repeatPenalty * repeats);
+  }
+  return weights;
+}
