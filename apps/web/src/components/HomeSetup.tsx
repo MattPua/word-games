@@ -1,18 +1,6 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  Droplets,
-  Eye,
-  Music,
-  Music2,
-  Smile,
-  Type,
-  Volume2,
-  VolumeX,
-  Warmth,
-} from "lucide-react";
+import { Music, Music2, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { IconTooltip } from "@/components/ui/tooltip";
 import { SegmentGroup } from "@/components/SegmentGroup";
 
