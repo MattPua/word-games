@@ -9,20 +9,11 @@ import {
   applyPathCell,
   cellKey,
   type Cell,
+  type LetterGridProps,
 } from "./pathCells";
 
-export type { Cell };
+export type { Cell, LetterGridProps };
 export { applyPathCell, cellKey, cellsEqual, isAdjacent } from "./pathCells";
-
-export type LetterGridProps = {
-  letters: string[][];
-  selected?: Cell[];
-  onPathChange?: (path: Cell[]) => void;
-  onPathEnd?: (path: Cell[]) => void;
-  /** Staggered tile drop when round is won. */
-  dropping?: boolean;
-  className?: string;
-};
 
 /** Square letter board with pointer-driven path selection (RN / Expo). */
 export function LetterGrid({

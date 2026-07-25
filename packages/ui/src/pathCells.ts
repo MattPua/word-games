@@ -1,5 +1,15 @@
 export type Cell = { row: number; col: number };
 
+export type LetterGridProps = {
+  letters: string[][];
+  selected?: Cell[];
+  onPathChange?: (path: Cell[]) => void;
+  onPathEnd?: (path: Cell[]) => void;
+  /** Staggered tile drop when round is won. */
+  dropping?: boolean;
+  className?: string;
+};
+
 export function cellKey(c: Cell) {
   return `${c.row},${c.col}`;
 }

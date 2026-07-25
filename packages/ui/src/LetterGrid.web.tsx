@@ -4,7 +4,7 @@ import {
   cellKey,
   type Cell,
   type LetterGridProps,
-} from "./LetterGrid";
+} from "./pathCells";
 
 export type { Cell, LetterGridProps };
 export { applyPathCell } from "./pathCells";
