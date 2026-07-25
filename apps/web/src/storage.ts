@@ -315,17 +315,17 @@ export function formatHighScoreLabel(scoreKey: string): string {
     const min = (minPart ?? "").replace(/^min/, "") || "?";
     const shape = topology === "hex" ? "B-comb" : "square";
     if (mode === "target") {
-      return `${size}×${size} ${shape} · target · ${detail} · ${min}+`;
+      return `${size}×${size} ${shape} · Goal · ${detail} · ${min}+`;
     }
-    return `${size}×${size} ${shape} · timed · ${detail}s · ${min}+`;
+    return `${size}×${size} ${shape} · Timed · ${detail}s · ${min}+`;
   }
   if (parts.length < 5) return scoreKey;
   const [, size, mode, detail, minPart] = parts;
   const min = (minPart ?? "").replace(/^min/, "") || "?";
   if (mode === "target") {
-    return `${size}×${size} target · ${detail} · ${min}+`;
+    return `${size}×${size} Goal · ${detail} · ${min}+`;
   }
-  return `${size}×${size} timed · ${detail}s · ${min}+`;
+  return `${size}×${size} Timed · ${detail}s · ${min}+`;
 }
 
 export function formatWhen(iso: string): string {

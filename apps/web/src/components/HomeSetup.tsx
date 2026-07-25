@@ -174,7 +174,7 @@ export function HomeSetup({
           [
             {
               value: "target" as const,
-              title: "Target",
+              title: "Goal",
               blurb: "Clear the couch",
               Glyph: TargetGlyph,
             },
