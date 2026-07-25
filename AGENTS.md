@@ -1,6 +1,6 @@
 # Couch Potato
 
-Swipe adjacent letters on a square grid. Casual word game — short sessions, fast first success, no hints.
+Swipe adjacent letters on a square or honeycomb grid. Casual word game — short sessions, fast first success, no hints.
 
 ## Brand
 
@@ -13,7 +13,8 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 
 ## Game rules (engine owns these)
 
-- Grids 4×4 / 5×5 / 6×6; **8-way** adjacency; **no tile reuse in one swipe**
+- Grids 4×4 / 5×5 / 6×6; topology **square** (8-way) or **hex / B-comb** (6-way odd-r); **no tile reuse in one swipe**
+- **Rotate:** same letters, new view — square **90° CW**; hex rect **180°** (lattice-preserving). Clears in-progress path. Glyphs stay upright.
 - Tiles stay for the round (reusable across words)
 - Min word length: global floor **3**; per-game setup may raise to **4** or **5**
 - No duplicate words per round
@@ -25,7 +26,7 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 
 ## Product surface
 
-- Local profiles only (no cloud/export/sync); high scores per profile × grid × mode × difficulty/duration
+- Local profiles only (no cloud/export/sync); high scores per profile × grid × **topology** × mode × difficulty/duration
 - **Potato Board** (personal local stats on Profiles): games/words totals, bests with timestamps, recent runs (last 20). Not a cloud leaderboard. (“Alita Board” speech → this.)
 - Web share from results (Web Share API + clipboard fallback)
 - SEO: title/description/OG/Twitter + JSON-LD (`WebApplication` / `VideoGame`)
@@ -40,7 +41,7 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 - Loading / empty / 404–500 voice live in `packages/ui` (`LoadingPotato`, `EmptyState`) + thin web pages
 - Pointer Events for swipe paths (web); Hammer.js = reference only
 - CSS/NativeWind motion first; no anime.js unless a real gap
-- **UI/UX brand pass** only after playable home→play→results + swipe QA (dedicated milestone — don’t block core)
+- Play chrome is tactile (cream pillow tiles, sage frame) — keep iterating polish; don’t regress to flat robot UI
 
 ## Code style
 
