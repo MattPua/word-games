@@ -160,6 +160,7 @@ export function loadLastRun(): LastRun | null {
 export type PlayLaunch = {
   mode: "target" | "timed";
   grid: 4 | 5 | 6;
+  minWordLength?: 3 | 4 | 5;
   difficulty?: "easy" | "medium" | "hard";
   duration?: 30 | 60 | 90 | 120;
 };
@@ -177,5 +178,5 @@ export function loadLaunch(): PlayLaunch {
   } catch {
     /* ignore */
   }
-  return { mode: "target", grid: 4, difficulty: "easy" };
+  return { mode: "target", grid: 4, difficulty: "easy", minWordLength: 3 };
 }
