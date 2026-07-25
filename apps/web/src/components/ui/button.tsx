@@ -32,6 +32,7 @@ const buttonVariants = cva(
         sm: "min-h-9 h-9 rounded-xl px-3 text-xs",
         lg: "min-h-12 h-12 rounded-ui px-8 text-base tracking-wide",
         icon: "h-11 w-11 min-h-11",
+        "icon-sm": "h-9 w-9 min-h-9 rounded-xl",
       },
     },
     defaultVariants: {

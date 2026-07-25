@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { RotateCcw, RotateCw, Volume2, VolumeX } from "lucide-react";
 import {
   ConfettiBurst,
   LetterGrid,
@@ -268,10 +269,11 @@ export function PlayPage() {
         <View className="flex-row items-center gap-1">
           <Button
             variant="ghost"
-            size="sm"
+            size="icon-sm"
             disabled={celebrate}
             aria-pressed={!sound}
             aria-label={sound ? "Mute sound" : "Unmute sound"}
+            title={sound ? "Mute sound" : "Unmute sound"}
             onClick={() => {
               const next = !sound;
               setSound(next);
@@ -279,7 +281,7 @@ export function PlayPage() {
               setEnabled(next);
             }}
           >
-            {sound ? "Sound" : "Muted"}
+            {sound ? <Volume2 /> : <VolumeX />}
           </Button>
           <Button
             variant="ghost"
@@ -346,26 +348,28 @@ export function PlayPage() {
         }
       />
 
-      <div className="mt-4 flex w-full gap-2">
+      <div className="mt-4 flex w-full justify-center gap-2">
         <Button
           variant="secondary"
-          className="flex-1"
+          size="icon"
           disabled={celebrate || boardTurning}
           onClick={() => rotate(-1)}
           aria-label="Rotate board counter-clockwise"
+          title="Rotate left"
           data-testid="rotate-ccw"
         >
-          Rotate left
+          <RotateCcw className="size-5" />
         </Button>
         <Button
           variant="secondary"
-          className="flex-1"
+          size="icon"
           disabled={celebrate || boardTurning}
           onClick={() => rotate(1)}
           aria-label="Rotate board clockwise"
+          title="Rotate right"
           data-testid="rotate-cw"
         >
-          Rotate right
+          <RotateCw className="size-5" />
         </Button>
       </div>
     </Shell>
