@@ -575,7 +575,8 @@ export function PlayPage() {
         }
       />
 
-      <div className="mt-4 flex w-full justify-center gap-2">
+      {/* One row: rotate controls flank a centered last-catch slot — never grows board height. */}
+      <div className="mt-4 flex w-full shrink-0 items-center justify-center gap-2">
         <IconTooltip label="Spin left">
           <Button
             variant="secondary"
@@ -588,6 +589,21 @@ export function PlayPage() {
             <RotateCcw className="size-5" />
           </Button>
         </IconTooltip>
+
+        <div className="flex min-h-11 min-w-0 flex-1 items-center justify-center">
+          {lastFound ? (
+            <div key={lastFound.id} className="cp-last-found cp-catch-in" role="status">
+              <span className="cp-last-found-label">Last catch</span>
+              <span className="cp-last-found-word">{lastFound.word}</span>
+              {lastFound.points > 0 ? (
+                <span className="cp-last-found-pts" aria-label={`${lastFound.points} points`}>
+                  {lastFound.points}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
         <IconTooltip label="Spin right">
           <Button
             variant="secondary"
@@ -600,20 +616,6 @@ export function PlayPage() {
             <RotateCw className="size-5" />
           </Button>
         </IconTooltip>
-      </div>
-
-      <div className="mt-4 flex min-h-11 w-full items-center justify-center">
-        {lastFound ? (
-          <div key={lastFound.id} className="cp-last-found cp-catch-in" role="status">
-            <span className="cp-last-found-label">Last catch</span>
-            <span className="cp-last-found-word">{lastFound.word}</span>
-            {lastFound.points > 0 ? (
-              <span className="cp-last-found-pts" aria-label={`${lastFound.points} points`}>
-                {lastFound.points}
-              </span>
-            ) : null}
-          </div>
-        ) : null}
       </div>
 
       <Dialog

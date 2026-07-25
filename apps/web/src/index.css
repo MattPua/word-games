@@ -145,8 +145,13 @@
     }
   }
 
-  /* Outer chrome only — box-shadow lives here so CSS rotate never twirls the cast shadow. */
+  /* Outer chrome only — box-shadow lives here so CSS rotate never twirls the cast shadow.
+     `flex-shrink: 0` is load-bearing: the board's height comes from its own aspect-ratio
+     content, not a flex-basis, so a default-shrink flex column would squash it (clipping
+     the bottom tile row against `overflow: hidden`) whenever a sibling grows. Board size
+     must never yield to other play-screen chrome — see AGENTS.md / ui.mdc. */
   .cp-board-frame {
+    flex-shrink: 0;
     border-radius: calc(var(--radius) + 0.55rem);
     padding: 0.7rem;
     overflow: hidden;
@@ -308,9 +313,11 @@
     box-shadow: 0 2px 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
   }
 
-  /* Last accepted word, sticky under the board until the next catch — quiet vs. the live word pill above */
+  /* Last accepted word — shares a row with the rotate controls, so it must fit in the
+     slot between them rather than pushing board height (see `.cp-board-frame` note). */
   .cp-last-found {
     display: inline-flex;
+    max-width: 100%;
     align-items: center;
     gap: 0.5rem;
     border-radius: 9999px;
@@ -330,11 +337,15 @@
   }
 
   .cp-last-found-word {
+    overflow: hidden;
+    min-width: 0;
     font-family: Grandstander, system-ui, sans-serif;
     font-size: 0.95rem;
     font-weight: 700;
     letter-spacing: 0.01em;
     color: var(--foreground);
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .cp-last-found-pts {
