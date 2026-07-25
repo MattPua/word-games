@@ -40,22 +40,50 @@ export function isAdjacent(a: Cell, b: Cell) {
 }
 
 /**
+ * Edge margin (each side) for backtrack hysteresis.
+ * Pointer must be inside the inner (1 - 2·margin) square to pop/truncate —
+ * corner grazes while aiming at a diagonal neighbor do not backtrack.
+ */
+export const BACKTRACK_EDGE_MARGIN = 0.28;
+
+/** True when normalized tile coords (0–1) sit in the backtrack center zone. */
+export function isInBacktrackZone(nx: number, ny: number, margin = BACKTRACK_EDGE_MARGIN): boolean {
+  return nx >= margin && nx <= 1 - margin && ny >= margin && ny <= 1 - margin;
+}
+
+export type ApplyPathCellOptions = {
+  /**
+   * When false, revisiting an earlier cell is ignored (no pop/truncate).
+   * LetterGrid sets this from center-zone hit testing so diagonal transit
+   * that clips a previous tile corner does not false-backtrack.
+   * Default true (unit tests / callers without geometry).
+   */
+  allowBacktrack?: boolean;
+};
+
+/**
  * Grow path, or truncate when revisiting an earlier cell (swipe backtrack).
+ * Order: append adjacent-new → pop/truncate when allowed → else ignore.
  * Returns null when the path is unchanged.
  */
 export function applyPathCell(
   path: Cell[],
   cell: Cell,
   adjacent: (a: Cell, b: Cell) => boolean = isAdjacent,
+  options?: ApplyPathCellOptions,
 ): Cell[] | null {
   const last = path[path.length - 1];
   if (last && cellsEqual(last, cell)) return null;
 
   const existing = path.findIndex((c) => cellsEqual(c, cell));
-  if (existing >= 0) {
-    return path.slice(0, existing + 1);
+
+  // Prefer append: adjacent to last and not already on path.
+  if (existing < 0) {
+    if (last && !adjacent(last, cell)) return null;
+    return [...path, cell];
   }
 
-  if (last && !adjacent(last, cell)) return null;
-  return [...path, cell];
+  // Previous or earlier cell → pop / truncate only when committed.
+  if (options?.allowBacktrack === false) return null;
+  return path.slice(0, existing + 1);
 }

@@ -9,7 +9,9 @@ import {
 import {
   applyPathCell,
   cellKey,
+  cellsEqual,
   isAdjacent,
+  isInBacktrackZone,
   type Cell,
   type LetterGridProps,
 } from "./pathCells";
@@ -18,8 +20,7 @@ export type { Cell, LetterGridProps };
 export { applyPathCell } from "./pathCells";
 
 /** Pointy-top hex clip (CSS %). */
-const HEX_CLIP =
-  "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
+const HEX_CLIP = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
 
 /** Approximate cell center % for path stroke (odd-r offset). */
 function cellCenter(
@@ -76,9 +77,11 @@ export function LetterGrid({
   }, [interactive]);
 
   const touch = useCallback(
-    (cell: Cell) => {
+    (cell: Cell, allowBacktrack: boolean) => {
       if (!interactiveRef.current) return;
-      const next = applyPathCell(pathRef.current, cell, adjacentFn);
+      const next = applyPathCell(pathRef.current, cell, adjacentFn, {
+        allowBacktrack,
+      });
       if (!next) return;
       pathRef.current = next;
       onPathChange?.(next);
@@ -86,18 +89,27 @@ export function LetterGrid({
     [onPathChange, adjacentFn],
   );
 
-  const hit = useCallback((clientX: number, clientY: number): Cell | null => {
-    const stack = document.elementsFromPoint(clientX, clientY);
-    for (const el of stack) {
-      const tile = (el as Element).closest?.("[data-tile]") as HTMLElement | null;
-      if (!tile) continue;
-      const row = Number(tile.dataset.row);
-      const col = Number(tile.dataset.col);
-      if (Number.isNaN(row) || Number.isNaN(col)) continue;
-      return { row, col };
-    }
-    return null;
-  }, []);
+  /** Tile under point + whether pointer is in backtrack center zone. */
+  const hit = useCallback(
+    (clientX: number, clientY: number): { cell: Cell; allowBacktrack: boolean } | null => {
+      const stack = document.elementsFromPoint(clientX, clientY);
+      for (const el of stack) {
+        const tile = (el as Element).closest?.("[data-tile]") as HTMLElement | null;
+        if (!tile) continue;
+        const row = Number(tile.dataset.row);
+        const col = Number(tile.dataset.col);
+        if (Number.isNaN(row) || Number.isNaN(col)) continue;
+        const rect = tile.getBoundingClientRect();
+        const allowBacktrack =
+          rect.width > 0 &&
+          rect.height > 0 &&
+          isInBacktrackZone((clientX - rect.left) / rect.width, (clientY - rect.top) / rect.height);
+        return { cell: { row, col }, allowBacktrack };
+      }
+      return null;
+    },
+    [],
+  );
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!interactiveRef.current) return;
@@ -108,15 +120,18 @@ export function LetterGrid({
     pathRef.current = [];
     onPathChange?.([]);
     e.currentTarget.setPointerCapture(e.pointerId);
-    const cell = hit(e.clientX, e.clientY);
-    if (cell) touch(cell);
+    const found = hit(e.clientX, e.clientY);
+    if (found) touch(found.cell, true);
   };
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragging.current || pointerId.current !== e.pointerId) return;
     e.preventDefault();
-    const cell = hit(e.clientX, e.clientY);
-    if (cell) touch(cell);
+    const found = hit(e.clientX, e.clientY);
+    if (!found) return;
+    // New adjacent cells append on full tile; backtrack needs center zone.
+    const onPath = pathRef.current.some((c) => cellsEqual(c, found.cell));
+    touch(found.cell, !onPath || found.allowBacktrack);
   };
 
   const endPointer = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -204,27 +219,20 @@ export function LetterGrid({
           touchAction: "none",
           WebkitUserSelect: "none",
           pointerEvents: interactive ? undefined : "none",
-          ...(hex
-            ? { aspectRatio: `${n + 0.5} / ${0.75 * (n - 1) + 1}` }
-            : null),
+          ...(hex ? { aspectRatio: `${n + 0.5} / ${0.75 * (n - 1) + 1}` } : null),
         }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endPointer}
         onPointerCancel={endPointer}
       >
-        <svg
-          className="pointer-events-none absolute inset-0 z-[5] h-full w-full"
-          aria-hidden
-        >
+        <svg className="pointer-events-none absolute inset-0 z-[5] h-full w-full" aria-hidden>
           {connectors}
           {rings}
         </svg>
         <div
           className={
-            hex
-              ? "relative z-10 h-full w-full"
-              : "relative z-10 flex h-full w-full flex-col"
+            hex ? "relative z-10 h-full w-full" : "relative z-10 flex h-full w-full flex-col"
           }
         >
           {letters.map((row, rowIndex) => (
@@ -235,11 +243,8 @@ export function LetterGrid({
               style={
                 hex
                   ? {
-                      top: `${(rowIndex * 0.75) / (0.75 * (n - 1) + 1) * 100}%`,
-                      left:
-                        rowIndex % 2 === 1
-                          ? `${(0.5 / (n + 0.5)) * 100}%`
-                          : 0,
+                      top: `${((rowIndex * 0.75) / (0.75 * (n - 1) + 1)) * 100}%`,
+                      left: rowIndex % 2 === 1 ? `${(0.5 / (n + 0.5)) * 100}%` : 0,
                       width: `${(n / (n + 0.5)) * 100}%`,
                       height: `${(1 / (0.75 * (n - 1) + 1)) * 100}%`,
                     }
@@ -247,9 +252,7 @@ export function LetterGrid({
               }
             >
               {row.map((letter, colIndex) => {
-                const active = selectedSet.has(
-                  cellKey({ row: rowIndex, col: colIndex }),
-                );
+                const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
                 return (
                   <div
                     key={`${rowIndex}-${colIndex}`}

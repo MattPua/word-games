@@ -1,20 +1,17 @@
 import { useCallback, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  type LayoutChangeEvent,
-  type GestureResponderEvent,
-} from "react-native";
+import { View, Text, type LayoutChangeEvent, type GestureResponderEvent } from "react-native";
 import {
   applyPathCell,
   cellKey,
+  cellsEqual,
   isAdjacent,
+  isInBacktrackZone,
   type Cell,
   type LetterGridProps,
 } from "./pathCells";
 
 export type { Cell, LetterGridProps };
-export { applyPathCell, cellKey, cellsEqual, isAdjacent } from "./pathCells";
+export { applyPathCell, cellKey, cellsEqual, isAdjacent, isInBacktrackZone } from "./pathCells";
 
 /** Square letter board with pointer-driven path selection (RN / Expo). */
 export function LetterGrid({
@@ -33,23 +30,30 @@ export function LetterGrid({
   const selectedSet = new Set(selected.map(cellKey));
 
   const hitTest = useCallback(
-    (pageX: number, pageY: number): Cell | null => {
+    (pageX: number, pageY: number): { cell: Cell; allowBacktrack: boolean } | null => {
       if (!layout.w || !size) return null;
       const localX = pageX - layout.x;
       const localY = pageY - layout.y;
       if (localX < 0 || localY < 0 || localX > layout.w || localY > layout.h) {
         return null;
       }
-      const col = Math.min(size - 1, Math.floor((localX / layout.w) * size));
-      const row = Math.min(size - 1, Math.floor((localY / layout.h) * size));
-      return { row, col };
+      const colF = (localX / layout.w) * size;
+      const rowF = (localY / layout.h) * size;
+      const col = Math.min(size - 1, Math.floor(colF));
+      const row = Math.min(size - 1, Math.floor(rowF));
+      return {
+        cell: { row, col },
+        allowBacktrack: isInBacktrackZone(colF - col, rowF - row),
+      };
     },
     [layout, size],
   );
 
   const touch = useCallback(
-    (cell: Cell) => {
-      const next = applyPathCell(pathRef.current, cell, adjacentFn);
+    (cell: Cell, allowBacktrack: boolean) => {
+      const next = applyPathCell(pathRef.current, cell, adjacentFn, {
+        allowBacktrack,
+      });
       if (!next) return;
       pathRef.current = next;
       onPathChange?.(next);
@@ -60,9 +64,7 @@ export function LetterGrid({
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
     const target = e.target as unknown as {
-      measureInWindow?: (
-        cb: (x: number, y: number, w: number, h: number) => void,
-      ) => void;
+      measureInWindow?: (cb: (x: number, y: number, w: number, h: number) => void) => void;
     };
     target.measureInWindow?.((x, y) => {
       setLayout({ w: width, h: height, x, y });
@@ -77,15 +79,17 @@ export function LetterGrid({
     pathRef.current = [];
     onPathChange?.([]);
     const { pageX, pageY } = e.nativeEvent;
-    const cell = hitTest(pageX, pageY);
-    if (cell) touch(cell);
+    const found = hitTest(pageX, pageY);
+    if (found) touch(found.cell, true);
   };
 
   const onMove = (e: GestureResponderEvent) => {
     if (!dragging.current) return;
     const { pageX, pageY } = e.nativeEvent;
-    const cell = hitTest(pageX, pageY);
-    if (cell) touch(cell);
+    const found = hitTest(pageX, pageY);
+    if (!found) return;
+    const onPath = pathRef.current.some((c) => cellsEqual(c, found.cell));
+    touch(found.cell, !onPath || found.allowBacktrack);
   };
 
   const onEnd = () => {
@@ -112,9 +116,7 @@ export function LetterGrid({
         {letters.map((row, rowIndex) => (
           <View key={rowIndex} className="flex-1 flex-row">
             {row.map((letter, colIndex) => {
-              const active = selectedSet.has(
-                cellKey({ row: rowIndex, col: colIndex }),
-              );
+              const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
               return (
                 <View
                   key={`${rowIndex}-${colIndex}`}
