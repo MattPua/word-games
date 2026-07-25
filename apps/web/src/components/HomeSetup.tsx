@@ -554,7 +554,7 @@ export function HomePlayBar({
             aria-label={musicLabel}
             onClick={onToggleMenuMusic}
           >
-            {menuMusic ? <Music2 /> : <MusicOff />}
+            {menuMusic ? <Music2 className="cp-icon-anim-note" /> : <MusicOff />}
           </Button>
         </IconTooltip>
         <IconTooltip label={soundLabel}>
@@ -566,7 +566,7 @@ export function HomePlayBar({
             aria-label={soundLabel}
             onClick={onToggleSound}
           >
-            {sound ? <Volume2 /> : <VolumeX />}
+            {sound ? <Volume2 className="cp-icon-anim-wave" /> : <VolumeX />}
           </Button>
         </IconTooltip>
       </div>

@@ -308,6 +308,50 @@
     box-shadow: 0 2px 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
   }
 
+  /* Last accepted word, sticky under the board until the next catch — quiet vs. the live word pill above */
+  .cp-last-found {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.4rem 0.9rem;
+    background: color-mix(in srgb, var(--muted) 50%, var(--card));
+    border: 1.5px solid color-mix(in srgb, var(--primary) 20%, var(--border));
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--border) 55%, transparent);
+  }
+
+  .cp-last-found-label {
+    font-family: Grandstander, system-ui, sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .cp-last-found-word {
+    font-family: Grandstander, system-ui, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: var(--foreground);
+  }
+
+  .cp-last-found-pts {
+    display: inline-flex;
+    min-width: 1.3rem;
+    height: 1.3rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0 0.3rem;
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    font-family: Grandstander, system-ui, sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
   /* Home lobby tagline — always under wordmark (see unlayered `.cp-lobby-brand`) */
   .cp-lobby-tagline {
     margin-top: 0.25rem;
@@ -589,6 +633,21 @@
     animation: cp-select-pop 0.32s cubic-bezier(0.34, 1.45, 0.64, 1);
   }
 
+  @keyframes cp-catch-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .cp-catch-in {
+    animation: cp-catch-in 0.32s cubic-bezier(0.34, 1.35, 0.64, 1) both;
+  }
+
   @keyframes cp-tooltip-in {
     from {
       opacity: 0;
@@ -613,6 +672,34 @@
         0 0 0 2px var(--background),
         0 0 0 6px color-mix(in srgb, var(--secondary) 80%, transparent),
         0 3px 0 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
+    }
+  }
+
+  /*
+   * On-state icon motion (jam note bob, SFX wave pulse). Shared utility
+   * classes, not scoped to `.cp-icon-btn`, so any active toggle can opt in.
+   * Only render icons with these classes while the feature is on.
+   */
+  @keyframes cp-icon-note-bob {
+    0%,
+    100% {
+      transform: rotate(-6deg) translateY(0);
+    }
+    30% {
+      transform: rotate(8deg) translateY(-1px);
+    }
+    60% {
+      transform: rotate(-2deg) translateY(0);
+    }
+  }
+
+  @keyframes cp-icon-wave-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.18);
     }
   }
 
@@ -648,12 +735,25 @@
     .cp-icon-btn[aria-pressed="true"] {
       animation: cp-icon-on-pulse 2.2s ease-in-out infinite;
     }
+
+    .cp-icon-anim-note {
+      animation: cp-icon-note-bob 1.4s ease-in-out infinite;
+      transform-origin: 65% 100%;
+    }
+
+    .cp-icon-anim-wave {
+      animation: cp-icon-wave-pulse 1.6s ease-in-out infinite;
+      transform-origin: center;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .cp-option-swap,
     .cp-select-pop,
-    .cp-icon-btn[aria-pressed="true"] {
+    .cp-catch-in,
+    .cp-icon-btn[aria-pressed="true"],
+    .cp-icon-anim-note,
+    .cp-icon-anim-wave {
       animation: none;
     }
 

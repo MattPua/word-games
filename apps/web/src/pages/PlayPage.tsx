@@ -142,6 +142,10 @@ export function PlayPage() {
   const [state, setState] = useState<GameState | null>(null);
   const [path, setPath] = useState<Cell[]>([]);
   const [flash, setFlash] = useState("");
+  const [lastFound, setLastFound] = useState<{ id: number; word: string; points: number } | null>(
+    null,
+  );
+  const lastFoundIdRef = useRef(0);
   const [firstWord, setFirstWord] = useState(true);
   const [celebrate, setCelebrate] = useState(false);
   const prefs = useMemo(() => loadDevicePrefs(), []);
@@ -450,13 +454,19 @@ export function PlayPage() {
         <View className="min-w-0 flex-1 flex-row items-center gap-3">
           {remaining != null ? (
             <View className={hudBubbleClass} accessibilityLabel={`${remaining} points to clear`}>
-              <Text className="font-display text-lg font-bold leading-none" style={{ color: "inherit" }}>
+              <Text
+                className="font-display text-lg font-bold leading-none"
+                style={{ color: "inherit" }}
+              >
                 {remaining} pts
               </Text>
             </View>
           ) : secs != null ? (
             <View className={hudBubbleClass} accessibilityLabel={`${secs} seconds left`}>
-              <Text className="font-display text-lg font-bold leading-none" style={{ color: "inherit" }}>
+              <Text
+                className="font-display text-lg font-bold leading-none"
+                style={{ color: "inherit" }}
+              >
                 {secs}s
               </Text>
             </View>
@@ -480,7 +490,7 @@ export function PlayPage() {
               aria-label={sound ? "SFX on" : "SFX off"}
               onClick={() => setSoundOn(!sound)}
             >
-              {sound ? <Volume2 /> : <VolumeX />}
+              {sound ? <Volume2 className="cp-icon-anim-wave" /> : <VolumeX />}
             </Button>
           </IconTooltip>
           <IconTooltip label="Pause">
@@ -538,6 +548,12 @@ export function PlayPage() {
                     word: result.word,
                     points: result.points,
                   });
+                  lastFoundIdRef.current += 1;
+                  setLastFound({
+                    id: lastFoundIdRef.current,
+                    word: result.word.toUpperCase(),
+                    points: result.points,
+                  });
                   const boardCleared =
                     next.board.allWords.length > 0 &&
                     next.found.length === next.board.allWords.length;
@@ -584,6 +600,20 @@ export function PlayPage() {
             <RotateCw className="size-5" />
           </Button>
         </IconTooltip>
+      </div>
+
+      <div className="mt-4 flex min-h-11 w-full items-center justify-center">
+        {lastFound ? (
+          <div key={lastFound.id} className="cp-last-found cp-catch-in" role="status">
+            <span className="cp-last-found-label">Last catch</span>
+            <span className="cp-last-found-word">{lastFound.word}</span>
+            {lastFound.points > 0 ? (
+              <span className="cp-last-found-pts" aria-label={`${lastFound.points} points`}>
+                {lastFound.points}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <Dialog
