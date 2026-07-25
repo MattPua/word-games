@@ -52,49 +52,53 @@ export function HomePage() {
   };
 
   return (
-    <Shell className="cp-fade-up">
-      <View className="mb-4 items-center">
-        <View className="cp-logo-float">
-          <Logo size={72} />
+    <Shell className="overflow-hidden pb-0 cp-fade-up">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <View className="mb-4 items-center">
+          <View className="cp-logo-float">
+            <Logo size={72} />
+          </View>
+          <Text className="cp-display mt-2">Couch Potato</Text>
+          <Text className="mt-1 max-w-[18rem] text-center font-body text-sm leading-relaxed text-muted-foreground">
+            Swipe letters. Find words. Stay on the couch.
+          </Text>
         </View>
-        <Text className="cp-display mt-2">Couch Potato</Text>
-        <Text className="mt-1 max-w-[18rem] text-center font-body text-sm leading-relaxed text-muted-foreground">
-          Swipe letters. Find words. Stay on the couch.
-        </Text>
-      </View>
 
-      <View className="mb-3 flex-row items-center justify-between">
-        <Text className="font-body text-sm font-semibold text-foreground">
-          Spud: {profile.name}
-        </Text>
-        <IconTooltip label="Couch crew">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Couch crew"
-            onClick={() => navigate({ to: "/profiles" })}
-          >
-            <Users />
-          </Button>
-        </IconTooltip>
-      </View>
+        <View className="mb-3 flex-row items-center justify-between">
+          <Text className="font-body text-sm font-semibold text-foreground">
+            Spud: {profile.name}
+          </Text>
+          <IconTooltip label="Couch crew">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Couch crew"
+              onClick={() => navigate({ to: "/profiles" })}
+            >
+              <Users />
+            </Button>
+          </IconTooltip>
+        </View>
 
-      <HomeSetup
-        mode={mode}
-        grid={grid}
-        topology={topology}
-        minWordLength={minWordLength}
-        difficulty={difficulty}
-        duration={duration}
-        showWordsLeft={showWordsLeft}
-        onMode={setMode}
-        onGrid={setGrid}
-        onTopology={setTopology}
-        onMinWordLength={setMinWordLength}
-        onDifficulty={setDifficulty}
-        onDuration={setDuration}
-        onShowWordsLeft={toggleWordsLeft}
-      />
+        <HomeSetup
+          mode={mode}
+          grid={grid}
+          topology={topology}
+          minWordLength={minWordLength}
+          difficulty={difficulty}
+          duration={duration}
+          showWordsLeft={showWordsLeft}
+          onMode={setMode}
+          onGrid={setGrid}
+          onTopology={setTopology}
+          onMinWordLength={setMinWordLength}
+          onDifficulty={setDifficulty}
+          onDuration={setDuration}
+          onShowWordsLeft={toggleWordsLeft}
+        />
+        {/* Spacer so last cards clear the fade above Play */}
+        <div className="h-3" aria-hidden />
+      </div>
 
       <HomePlayBar onPlay={play} sound={sound} onToggleSound={toggleSound} />
     </Shell>

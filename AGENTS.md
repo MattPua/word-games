@@ -9,6 +9,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - **Color roles:** `primary` = sage (actions, path); `secondary` = potato gold (badges, selected lobby cards, secondary buttons); `accent` = soft sage wash; `muted` = soft sage-gray surfaces. Prefer `bg-secondary` / `text-secondary` over ad-hoc potato hex. See `.cursor/rules/ui.mdc`.
 - Mobile-first; desktop = centered narrow play column
 - **Container queries = web-only**; shared layout uses flex + max-width
+- **Viewport shell:** root `h-dvh` + `Shell` column; scroll in `flex-1 min-h-0 overflow-y-auto`, sticky actions (lobby Play) outside the scroller — see `.cursor/rules/ui.mdc`
 - **Motion:** meaningful interactivity should show the change (short CSS/NativeWind transitions — segments, presses, score ticks, screen enters). Whimsical + performant; few intentional motions, not noise; respect `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.
 - **UI inspiration:** [TypeUI](https://www.typeui.sh/) principles (tokens first → hierarchy / type rhythm / interaction feedback) + tactile word-game craft (pillow cream tiles, thick sage board frame, path + select rings, word pill + potato score badge). Keep cream/sage/potato — never purple demo clones. See `.cursor/rules/ui.mdc`.
 - **Copy / voice:** prefer **gaming terminology** (Play, lobby, run, haul, SFX, spin) over sterile app/form words (Submit, Settings, Confirm). Whimsical Couch Potato — clear for casual players, not esports jargon. Icon tooltips match. Details: `.cursor/rules/ui.mdc`.

@@ -29,7 +29,7 @@ export function ResultsPage() {
 
   if (!run) {
     return (
-      <Shell>
+      <Shell className="overflow-y-auto">
         <EmptyState
           showLogo
           title="No crumbs on the couch yet"
@@ -50,7 +50,7 @@ export function ResultsPage() {
     run.reason === "won" ? "Couch clear!" : run.reason === "timeout" ? "Time's up" : "Run ended";
 
   return (
-    <Shell>
+    <Shell className="overflow-y-auto">
       <Text className="mb-1 font-display text-3xl text-foreground">{reasonLabel}</Text>
       <Text className="mb-4 font-display text-4xl text-primary">{run.score}</Text>
       {run.isHighScore && <Text className="mb-4 font-body text-path">New personal best!</Text>}

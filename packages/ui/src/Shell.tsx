@@ -4,11 +4,15 @@ export type ShellProps = ViewProps & {
   className?: string;
 };
 
-/** Mobile-first max-width play column — transparent so room atmosphere shows. */
+/**
+ * Mobile-first max-width play column — fills the viewport shell (root `h-dvh`).
+ * Lobby: `overflow-hidden` + scrollable main (`flex-1 min-h-0 overflow-y-auto`) +
+ * shrink-0 footer. Long pages: pass `overflow-y-auto`.
+ */
 export function Shell({ className = "", children, ...rest }: ShellProps) {
   return (
     <View
-      className={`cp-shell mx-auto w-full max-w-md flex-1 bg-transparent px-4 pb-6 ${className}`}
+      className={`cp-shell mx-auto flex h-full min-h-0 w-full max-w-md flex-1 flex-col bg-transparent px-4 pb-6 ${className}`}
       {...rest}
     >
       {children}

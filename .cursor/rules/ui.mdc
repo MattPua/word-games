@@ -26,4 +26,5 @@ alwaysApply: false
 - **Home lobby IA:** toy cards/tiles (`HomeSetup`) — not stacked MODE/GRID label+segment rows. Hierarchy: mode cards → board picker → challenge → collapsed word length → Scout (words-left HUD) → dominant Play.
 - **Play HUD IA:** one top row — primary status (`N pts` remaining for target, or timer for timed) + compact icon cluster (scout / mute / pause); scout count as muted “N left” in that row only when on; no stacked haul/score pills (per-word pts live on the word-bubble badge); progress under the row for target; spin stays by the board.
 - **Container queries = web-only.** Cross-platform layout: flex + max-width. No `@container` in pure RN views.
+- **Viewport shells:** root `h-dvh overflow-hidden` → `Shell` fills height (`flex flex-col min-h-0`). Scroll inside a child (`flex-1 min-h-0 overflow-y-auto`), not body alone — lobby keeps Play+mute as a shrink-0 footer outside that scroller.
 - UI changes require interactive verify (pointer swipe for play) — see `.cursor/skills/verify-ui`.

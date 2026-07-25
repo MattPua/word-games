@@ -16,7 +16,7 @@ function RootLayout() {
 
   return (
     <TooltipProvider delayDuration={400} skipDelayDuration={200}>
-      <div className="min-h-full bg-background text-foreground">
+      <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
         <Outlet />
       </div>
     </TooltipProvider>
