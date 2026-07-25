@@ -1,0 +1,62 @@
+# Parallel process dashboard — `bun run mprocs`
+# Inspired by PostHog: https://github.com/PostHog/code/blob/main/mprocs.yaml
+# Press `g` to cycle sidebar grouping. Restart a finished proc with `r`.
+
+procs:
+  web:
+    shell: bun run web
+    groups:
+      layer: Apps
+
+  web-preview:
+    shell: bun run --filter @couch-potato/web build && bun run --filter @couch-potato/web preview
+    autostart: false
+    groups:
+      layer: Apps
+
+  mobile:
+    shell: bun run mobile
+    autostart: false
+    groups:
+      layer: Apps
+
+  mobile-web:
+    shell: bun run mobile:web
+    autostart: false
+    groups:
+      layer: Apps
+
+  test-engine:
+    shell: bun run --filter @couch-potato/game-engine test
+    autostart: false
+    groups:
+      layer: Test
+
+  test-dict:
+    shell: bun run --filter @couch-potato/dictionary test
+    autostart: false
+    groups:
+      layer: Test
+
+  test-web:
+    shell: bun run --filter @couch-potato/web test
+    autostart: false
+    groups:
+      layer: Test
+
+  dict-build:
+    shell: bun run --filter @couch-potato/dictionary build
+    autostart: false
+    groups:
+      layer: Tools
+
+  typecheck:
+    shell: bun run typecheck
+    autostart: false
+    groups:
+      layer: Tools
+
+default_group: layer
+
+group_order:
+  layer: [Apps, Test, Tools]

@@ -27,4 +27,10 @@ bun run --filter @couch-potato/dictionary build
 bun run web
 ```
 
+Or run everything from one TUI (web autostarts; tests / mobile / typecheck on demand):
+
+```sh
+bun run mprocs
+```
+
 See [AGENTS.md](./AGENTS.md).

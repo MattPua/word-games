@@ -8,7 +8,8 @@
     "mobile:web": "bun run --filter @couch-potato/mobile web",
     "build": "bun run --filter @couch-potato/dictionary build && bun run --filter @couch-potato/web build",
     "test": "bun run --filter '*' test",
-    "typecheck": "bun run --filter '*' typecheck"
+    "typecheck": "bun run --filter '*' typecheck",
+    "mprocs": "mprocs"
   },
   "catalog": {
     "typescript": "^5.8.2",
@@ -23,6 +24,7 @@
     "@types/react-dom": "19.0.6"
   },
   "devDependencies": {
+    "mprocs": "0.9.6",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
