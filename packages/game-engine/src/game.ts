@@ -8,6 +8,7 @@ import {
 } from "./config";
 import type { Board } from "./generate";
 import { isValidPath, wordFromPath, type Cell } from "./path";
+import { compareWordsByLengthThenAlpha } from "./wordLists";
 
 export type GameMode = "target" | "timed";
 export type EndReason = "won" | "timeout" | "quit";
@@ -114,7 +115,7 @@ export function missedLongWords(
   const floor = Math.max(5, state.config.minWordLength);
   return state.board.allWords
     .filter((w) => !found.has(w) && w.length >= floor && dict.isPopular(w))
-    .sort((a, b) => b.length - a.length || a.localeCompare(b))
+    .sort(compareWordsByLengthThenAlpha)
     .slice(0, limit);
 }
 

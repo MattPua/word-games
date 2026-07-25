@@ -45,3 +45,10 @@ export {
   type GameState,
   type SubmitResult,
 } from "./game";
+
+export {
+  compareWordsByLengthThenAlpha,
+  sortWordsByLengthThenAlpha,
+  groupWordsByLength,
+  type WordLengthGroup,
+} from "./wordLists";

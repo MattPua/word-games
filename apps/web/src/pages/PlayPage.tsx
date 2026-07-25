@@ -17,6 +17,7 @@ import {
   highScoreKey,
   missedLongWords,
   quitGame,
+  sortWordsByLengthThenAlpha,
   submitPath,
   tickTimer,
   wordFromPath,
@@ -123,7 +124,7 @@ export function PlayPage() {
         : `${s.config.duration}s · ${s.config.minWordLength}+`;
     saveLastRun({
       score: s.score,
-      found: [...s.found].sort((a, b) => b.length - a.length),
+      found: sortWordsByLengthThenAlpha(s.found),
       missed,
       reason: s.ended!,
       mode: s.config.mode,

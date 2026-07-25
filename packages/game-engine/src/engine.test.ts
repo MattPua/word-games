@@ -13,6 +13,10 @@ import {
 } from "./game";
 import { isValidPath, wordFromPath } from "./path";
 import { createSeededRng } from "./rng";
+import {
+  groupWordsByLength,
+  sortWordsByLengthThenAlpha,
+} from "./wordLists";
 
 const miniDict = createDictionary(
   [
@@ -72,6 +76,24 @@ describe("scoring", () => {
     expect(scoreWord(3)).toBe(1);
     expect(scoreWord(5)).toBe(3);
     expect(scoreWord(2)).toBe(0);
+  });
+});
+
+describe("wordLists", () => {
+  it("sorts longest first then A→Z", () => {
+    expect(sortWordsByLengthThenAlpha(["cat", "seat", "ate", "tea"])).toEqual([
+      "seat",
+      "ate",
+      "cat",
+      "tea",
+    ]);
+  });
+
+  it("groups by length with A→Z inside", () => {
+    expect(groupWordsByLength(["tea", "seat", "cat", "ate", "east"])).toEqual([
+      { length: 4, words: ["east", "seat"] },
+      { length: 3, words: ["ate", "cat", "tea"] },
+    ]);
   });
 });
 

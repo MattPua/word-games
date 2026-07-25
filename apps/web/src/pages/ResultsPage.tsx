@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { track } from "../analytics";
 import { loadLastRun, saveLaunch, type PlayLaunch } from "../storage";
 import { Button } from "@/components/ui/button";
+import { WordGroups } from "../components/WordGroups";
 
 async function shareScore(text: string) {
   try {
@@ -63,9 +64,7 @@ export function ResultsPage() {
 
       <Text className="mb-2 font-display text-lg text-foreground">Found</Text>
       {run.found.length ? (
-        <Text className="mb-4 font-body text-muted-foreground">
-          {run.found.join(", ")}
-        </Text>
+        <WordGroups words={run.found} className="mb-4" />
       ) : (
         <EmptyState
           title="Nada. Not even 'the'."
@@ -78,9 +77,7 @@ export function ResultsPage() {
         Missed longs
       </Text>
       {run.missed.length ? (
-        <Text className="mb-6 font-body text-muted-foreground">
-          {run.missed.join(", ")}
-        </Text>
+        <WordGroups words={run.missed} className="mb-6" />
       ) : (
         <EmptyState
           title="You cleaned the couch"
