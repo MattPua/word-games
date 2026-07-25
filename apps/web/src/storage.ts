@@ -313,7 +313,7 @@ export function formatHighScoreLabel(scoreKey: string): string {
   if (parts.length >= 6) {
     const [, size, topology, mode, detail, minPart] = parts;
     const min = (minPart ?? "").replace(/^min/, "") || "?";
-    const shape = topology === "hex" ? "B-comb" : "square";
+    const shape = topology === "hex" ? "Honeycomb" : "square";
     if (mode === "target") {
       return `${size}×${size} ${shape} · Goal · ${detail} · ${min}+`;
     }

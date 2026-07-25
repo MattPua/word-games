@@ -252,7 +252,7 @@ export function HomeSetup({
         <div className="mb-3 flex items-end justify-between gap-2">
           <h2 className="font-display text-base font-bold text-foreground">Your board</h2>
           <p className="font-body text-xs text-muted-foreground">
-            {grid}×{grid} · {topology === "square" ? "Square" : "B-comb"}
+            {grid}×{grid} · {topology === "square" ? "Square" : "Honeycomb"}
           </p>
         </div>
 
@@ -297,7 +297,7 @@ export function HomeSetup({
               },
               {
                 value: "hex" as const,
-                label: "B-comb",
+                label: "Honeycomb",
                 Icon: () => <HexMini n={3} />,
               },
             ] as const

@@ -1,6 +1,6 @@
 import type { Cell } from "./path";
 
-/** Square = 8-way; hex = honeycomb ("B-comb") odd-r offset, 6-way. */
+/** Square = 8-way; hex = Honeycomb (odd-r offset), 6-way. */
 export type GridTopology = "square" | "hex";
 
 export const GRID_TOPOLOGIES = ["square", "hex"] as const;
