@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Droplets,
@@ -195,6 +196,8 @@ export function HomeSetup({
   onDuration,
   onShowWordsLeft,
 }: HomeSetupProps) {
+  const [wordLengthOpen, setWordLengthOpen] = useState(false);
+
   return (
     <div className="flex flex-col gap-5">
       {/* Mode: two big choice cards */}
@@ -229,7 +232,7 @@ export function HomeSetup({
             >
               <span
                 className={cn(
-                  "text-muted-foreground transition-colors",
+                  "cp-lobby-glyph text-muted-foreground",
                   active && "text-secondary",
                 )}
               >
@@ -270,8 +273,8 @@ export function HomeSetup({
               >
                 <span
                   className={cn(
-                    "text-muted-foreground transition-colors",
-                    active && "text-foreground",
+                    "cp-lobby-glyph text-muted-foreground",
+                    active && "text-secondary",
                   )}
                 >
                   {topology === "square" ? <SquareMini n={n} /> : <HexMini n={n} />}
@@ -311,7 +314,12 @@ export function HomeSetup({
                   active && "cp-lobby-chip-active cp-select-pop",
                 )}
               >
-                <span className={cn("scale-75 text-muted-foreground", active && "text-foreground")}>
+                <span
+                  className={cn(
+                    "cp-lobby-glyph scale-75 text-muted-foreground",
+                    active && "text-secondary",
+                  )}
+                >
                   <Icon />
                 </span>
                 <span className="font-display text-sm font-bold">{label}</span>
@@ -356,11 +364,17 @@ export function HomeSetup({
                   <span
                     className={cn(
                       "cp-lobby-glyph text-muted-foreground",
-                      active && (value === "hard" ? "text-secondary-foreground" : "text-primary"),
+                      active &&
+                        (value === "hard" ? "text-secondary-foreground" : "text-secondary"),
                     )}
                     aria-hidden
                   >
-                    <Icon className="size-5" strokeWidth={2.25} />
+                    <Icon
+                      className="size-5"
+                      strokeWidth={2.25}
+                      fill={active ? "currentColor" : "none"}
+                      fillOpacity={active ? 0.22 : 0}
+                    />
                   </span>
                   <span className="font-display text-sm font-bold">{label}</span>
                   <span className="font-body text-[0.65rem] leading-tight text-muted-foreground">
@@ -393,32 +407,55 @@ export function HomeSetup({
         )}
       </section>
 
-      {/* Secondary: word length collapsed */}
-      <details className="cp-lobby-more group">
-        <summary className="cp-lobby-more-summary">
-          <span className="flex items-center gap-2">
+      {/* Secondary: min length (animated accordion) */}
+      <div className="cp-lobby-more group" data-state={wordLengthOpen ? "open" : "closed"}>
+        <button
+          type="button"
+          className="cp-lobby-more-summary w-full"
+          aria-expanded={wordLengthOpen}
+          aria-controls="lobby-word-length-panel"
+          id="lobby-word-length-trigger"
+          onClick={() => setWordLengthOpen((o) => !o)}
+        >
+          <span className="flex min-w-0 items-start gap-2">
             <Type
-              className="cp-lobby-glyph size-4 shrink-0 text-muted-foreground"
+              className="cp-lobby-glyph mt-0.5 size-4 shrink-0 text-muted-foreground group-data-[state=open]:text-secondary"
               strokeWidth={2.25}
               aria-hidden
             />
-            <span className="font-display text-sm font-bold text-foreground">Word length</span>
+            <span className="flex min-w-0 flex-col gap-0.5 text-left">
+              <span className="font-display text-sm font-bold text-foreground">Min length</span>
+              <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
+                Only count words this long or longer
+              </span>
+            </span>
           </span>
-          <span className="font-body text-xs text-muted-foreground">{minWordLength}+ letters</span>
-        </summary>
-        <div className="pt-3">
-          <SegmentGroup
-            value={minWordLength}
-            onChange={onMinWordLength}
-            options={[
-              { value: 3, label: "3+" },
-              { value: 4, label: "4+" },
-              { value: 5, label: "5+" },
-            ]}
-            className="mb-0"
-          />
+          <span className="font-body text-xs tabular-nums text-muted-foreground">
+            {minWordLength}+
+          </span>
+        </button>
+        <div
+          id="lobby-word-length-panel"
+          role="region"
+          aria-labelledby="lobby-word-length-trigger"
+          className="cp-lobby-more-panel"
+        >
+          <div className="cp-lobby-more-panel-inner">
+            <div className="pt-3">
+              <SegmentGroup
+                value={minWordLength}
+                onChange={onMinWordLength}
+                options={[
+                  { value: 3, label: "3+" },
+                  { value: 4, label: "4+" },
+                  { value: 5, label: "5+" },
+                ]}
+                className="mb-0"
+              />
+            </div>
+          </div>
         </div>
-      </details>
+      </div>
 
       {/* Words left HUD (default off) */}
       <label
