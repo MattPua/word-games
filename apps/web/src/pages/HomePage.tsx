@@ -1,5 +1,5 @@
 import { Text, View } from "react-native";
-import { Users } from "lucide-react";
+import { Medal, Users } from "lucide-react";
 import { Logo, Shell } from "@couch-potato/ui";
 import {
   getActiveProfile,
@@ -22,7 +22,7 @@ import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
 export function HomePage() {
   const navigate = useNavigate();
   const profile = getActiveProfile();
-  const [mode, setMode] = useState<"target" | "timed">("target");
+  const [mode, setMode] = useState<"target" | "timed" | "survival">("target");
   const [grid, setGrid] = useState<4 | 5 | 6>(4);
   const [topology, setTopology] = useState<"square" | "hex">("square");
   const [minWordLength, setMinWordLength] = useState<3 | 4 | 5>(3);
@@ -35,9 +35,9 @@ export function HomePage() {
 
   const play = () => {
     const launch: PlayLaunch =
-      mode === "target"
-        ? { mode, grid, topology, difficulty, minWordLength }
-        : { mode, grid, topology, duration, minWordLength };
+      mode === "timed"
+        ? { mode, grid, topology, duration, minWordLength }
+        : { mode, grid, topology, difficulty, minWordLength };
     saveLaunch(launch);
     track("game_started", { mode, grid, topology, minWordLength });
     navigate({ to: "/play" });
@@ -83,17 +83,28 @@ export function HomePage() {
           >
             Spud: {profile.name}
           </Text>
-          <IconTooltip label="Couch crew">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="shrink-0"
-              aria-label="Couch crew"
-              onClick={() => navigate({ to: "/profiles" })}
-            >
-              <Users />
-            </Button>
-          </IconTooltip>
+          <View className="shrink-0 flex-row items-center gap-1">
+            <IconTooltip label="Couch medals">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Couch medals"
+                onClick={() => navigate({ to: "/achievements" })}
+              >
+                <Medal />
+              </Button>
+            </IconTooltip>
+            <IconTooltip label="Couch crew">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Couch crew"
+                onClick={() => navigate({ to: "/profiles" })}
+              >
+                <Users />
+              </Button>
+            </IconTooltip>
+          </View>
         </View>
 
         <HomeSetup

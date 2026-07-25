@@ -1,3 +1,14 @@
+import {
+  applyRunToAchievements,
+  defaultAchievementCounts,
+  normalizeAchievementCounts,
+  withGamesPlayed,
+  type AchievementContext,
+  type AchievementCounts,
+  type StageUp,
+  type TrackId,
+} from "./achievements";
+
 export type HighScoreEntry = {
   score: number;
   at: string; // ISO
@@ -10,7 +21,7 @@ export type GameHistoryEntry = {
   id: string;
   at: string;
   score: number;
-  mode: "target" | "timed";
+  mode: "target" | "timed" | "survival";
   grid: number;
   minWordLength: 3 | 4 | 5;
   difficulty?: "easy" | "medium" | "hard";
@@ -27,6 +38,8 @@ export type Profile = {
   history: GameHistoryEntry[];
   gamesPlayed: number;
   wordsFound: number;
+  /** Couch medals progression — see `achievements.ts` for the authoritative math. */
+  achievements: AchievementCounts;
 };
 
 /** `system` follows OS `prefers-color-scheme`; `light`/`dark` are explicit user overrides. */
@@ -90,6 +103,7 @@ function normalizeProfile(p: Partial<Profile> & { id: string; name: string }): P
     history: Array.isArray(p.history) ? p.history : [],
     gamesPlayed: p.gamesPlayed ?? 0,
     wordsFound: p.wordsFound ?? 0,
+    achievements: normalizeAchievementCounts(p.achievements),
   };
 }
 
@@ -104,6 +118,7 @@ export function defaultBlob(): StoredBlob {
         history: [],
         gamesPlayed: 0,
         wordsFound: 0,
+        achievements: defaultAchievementCounts(),
       },
     ],
     prefs: {
@@ -176,23 +191,39 @@ export function recordGameStats(wordsFound: number) {
   saveStore(store);
 }
 
-/** Persist one finished run onto the active profile (history + counters + highs). */
+/** Persist one finished run onto the active profile (history + counters + highs + medals). */
 export function recordFinishedRun(input: {
   score: number;
   scoreKey: string;
-  mode: "target" | "timed";
+  mode: "target" | "timed" | "survival";
   grid: number;
   minWordLength: 3 | 4 | 5;
   difficulty?: "easy" | "medium" | "hard";
   duration?: 30 | 60 | 90 | 120;
   reason: "won" | "timeout" | "quit";
   wordsFound: number;
-}): { isHighScore: boolean } {
+  /** Words found this run (any case) — feeds word collector + length-haul tracks. */
+  words?: string[];
+  /** Survival extension point: how long the run lasted, ms. */
+  survivalDurationMs?: number;
+}): {
+  isHighScore: boolean;
+  achievements: AchievementContext;
+  stageUps: StageUp[];
+  touched: TrackId[];
+} {
   const isHighScore = upsertHighScore(input.scoreKey, input.score);
   recordGameStats(input.wordsFound);
   const store = loadStore();
   const profile = store.profiles.find((p) => p.id === store.prefs.activeProfileId);
-  if (!profile) return { isHighScore };
+  if (!profile) {
+    return {
+      isHighScore,
+      achievements: withGamesPlayed(defaultAchievementCounts(), 0),
+      stageUps: [],
+      touched: [],
+    };
+  }
   const entry: GameHistoryEntry = {
     id: runId(),
     at: new Date().toISOString(),
@@ -208,8 +239,28 @@ export function recordFinishedRun(input: {
   };
   const history = [entry, ...(profile.history ?? [])].slice(0, HISTORY_CAP);
   profile.history = history;
+
+  // `profile.gamesPlayed` was already bumped by `recordGameStats` above (reloaded
+  // fresh here), so it's already the post-run tally the "Couch sessions" track wants.
+  const { next, stageUps, touched } = applyRunToAchievements(
+    normalizeAchievementCounts(profile.achievements),
+    {
+      mode: input.mode,
+      points: input.score,
+      words: input.words ?? [],
+      durationSurvivedMs: input.survivalDurationMs,
+    },
+    profile.gamesPlayed,
+  );
+  profile.achievements = next;
+
   saveStore(store);
-  return { isHighScore };
+  return {
+    isHighScore,
+    achievements: withGamesPlayed(next, profile.gamesPlayed),
+    stageUps,
+    touched,
+  };
 }
 
 export function setSoundEnabled(enabled: boolean) {
@@ -252,6 +303,7 @@ export function createProfile(name: string): Profile {
     history: [],
     gamesPlayed: 0,
     wordsFound: 0,
+    achievements: defaultAchievementCounts(),
   };
   store.profiles.push(profile);
   store.prefs.activeProfileId = profile.id;
@@ -273,7 +325,7 @@ export type LastRun = {
   found: string[];
   missed: string[];
   reason: "won" | "timeout" | "quit";
-  mode: "target" | "timed";
+  mode: "target" | "timed" | "survival";
   grid: number;
   topology?: "square" | "hex";
   detail: string;
@@ -281,6 +333,12 @@ export type LastRun = {
   minWordLength: 3 | 4 | 5;
   difficulty?: "easy" | "medium" | "hard";
   duration?: 30 | 60 | 90 | 120;
+  /** Couch medals snapshot for this run — powers the results "Couch medals" peek. */
+  achievements?: {
+    snapshot: AchievementContext;
+    stageUps: StageUp[];
+    touched: TrackId[];
+  };
 };
 
 const LAST_RUN = "couch-potato:last-run";
@@ -299,7 +357,7 @@ export function loadLastRun(): LastRun | null {
 }
 
 export type PlayLaunch = {
-  mode: "target" | "timed";
+  mode: "target" | "timed" | "survival";
   grid: 4 | 5 | 6;
   topology?: "square" | "hex";
   minWordLength?: 3 | 4 | 5;
@@ -326,7 +384,7 @@ export function loadLaunch(): PlayLaunch {
 /** Human label from engine highScoreKey (strips profile id prefix). */
 export function formatHighScoreLabel(scoreKey: string): string {
   const parts = scoreKey.split(":");
-  // profileId:size:topology:target:difficulty:minN  OR  …:timed:duration:minN
+  // profileId:size:topology:target|survival:difficulty:minN  OR  …:timed:duration:minN
   // Legacy (no topology): profileId:size:target:…
   if (parts.length >= 6) {
     const [, size, topology, mode, detail, minPart] = parts;
@@ -335,6 +393,9 @@ export function formatHighScoreLabel(scoreKey: string): string {
     if (mode === "target") {
       return `${size}×${size} ${shape} · Goal · ${detail} · ${min}+`;
     }
+    if (mode === "survival") {
+      return `${size}×${size} ${shape} · Survival · ${detail} · ${min}+`;
+    }
     return `${size}×${size} ${shape} · Timed · ${detail}s · ${min}+`;
   }
   if (parts.length < 5) return scoreKey;
@@ -342,6 +403,9 @@ export function formatHighScoreLabel(scoreKey: string): string {
   const min = (minPart ?? "").replace(/^min/, "") || "?";
   if (mode === "target") {
     return `${size}×${size} Goal · ${detail} · ${min}+`;
+  }
+  if (mode === "survival") {
+    return `${size}×${size} Survival · ${detail} · ${min}+`;
   }
   return `${size}×${size} Timed · ${detail}s · ${min}+`;
 }

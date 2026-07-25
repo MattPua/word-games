@@ -16,13 +16,14 @@ import {
   VolumeX,
   WholeWord,
 } from "lucide-react";
+import { SURVIVAL_START_SECONDS } from "@couch-potato/game-engine";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { IconTooltip } from "@/components/ui/tooltip";
 import { MusicOff } from "@/icons/MusicOff";
 
-type Mode = "target" | "timed";
+type Mode = "target" | "timed" | "survival";
 type Topology = "square" | "hex";
 type Difficulty = "easy" | "medium" | "hard";
 type Grid = 4 | 5 | 6;
@@ -175,6 +176,22 @@ function TimedGlyph() {
   );
 }
 
+function SurvivalGlyph() {
+  return (
+    <svg viewBox="0 0 40 40" className="h-9 w-9" aria-hidden>
+      <circle cx="20" cy="20" r="13" fill="none" stroke="currentColor" strokeWidth="2.5" />
+      <path
+        d="M12 20h3.5l2-5.5 3 11 2.5-7.5h4.5"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
 const DIFFICULTY: {
   value: Difficulty;
   label: string;
@@ -227,7 +244,7 @@ export function HomeSetup({
       <div className="cp-lobby-columns flex flex-col gap-5">
         {/* Primary: what am I playing (left / first on wide) */}
         <div className="cp-lobby-primary flex flex-col gap-5">
-          <div role="group" aria-label="Game mode" className="grid grid-cols-2 gap-2.5">
+          <div role="group" aria-label="Game mode" className="grid grid-cols-3 gap-2.5">
             {(
               [
                 {
@@ -241,6 +258,12 @@ export function HomeSetup({
                   title: "Timed",
                   blurb: "Beat the clock",
                   Glyph: TimedGlyph,
+                },
+                {
+                  value: "survival" as const,
+                  title: "Survival",
+                  blurb: "Keep the clock fed",
+                  Glyph: SurvivalGlyph,
                 },
               ] as const
             ).map(({ value, title, blurb, Glyph }) => {
@@ -359,19 +382,23 @@ export function HomeSetup({
           {/* Challenge: difficulty or duration */}
           <section
             key={mode}
-            aria-label={mode === "target" ? "Challenge" : "Sprint"}
+            aria-label={mode === "timed" ? "Sprint" : "Challenge"}
             className="cp-lobby-panel cp-option-swap"
           >
             <div className="mb-3 flex items-end justify-between gap-2">
-              <LobbySectionTitle icon={mode === "target" ? Gauge : Timer}>
-                {mode === "target" ? "How hard?" : "How long?"}
+              <LobbySectionTitle icon={mode === "timed" ? Timer : Gauge}>
+                {mode === "timed" ? "How long?" : "How hard?"}
               </LobbySectionTitle>
               {mode === "timed" ? (
                 <p className="font-body text-xs text-muted-foreground">{duration}s sprint</p>
+              ) : mode === "survival" ? (
+                <p className="font-body text-xs text-muted-foreground">
+                  {SURVIVAL_START_SECONDS[difficulty]}s start clock
+                </p>
               ) : null}
             </div>
 
-            {mode === "target" ? (
+            {mode !== "timed" ? (
               <div role="group" aria-label="Challenge" className="grid grid-cols-3 gap-2">
                 {DIFFICULTY.map(({ value, label, hint, Icon }) => {
                   const active = difficulty === value;

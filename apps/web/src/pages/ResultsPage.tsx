@@ -1,8 +1,8 @@
 import { Text, View } from "react-native";
-import { type ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown, Share2, Sofa } from "lucide-react";
-import { ConfettiBurst, EmptyState, PotatoSprite, Shell } from "@couch-potato/ui";
+import { ConfettiBurst, EmptyState, PotatoSprite } from "@couch-potato/ui";
 import { play } from "cuelume";
 import { toast } from "sonner";
 import { track } from "../analytics";
@@ -10,6 +10,8 @@ import { PRODUCT_NAME } from "../seo";
 import { loadLastRun, saveLaunch, type PlayLaunch } from "../storage";
 import { Button } from "@/components/ui/button";
 import { WordGroups } from "../components/WordGroups";
+import { ResultsMedals } from "../components/ResultsMedals";
+import { ScrollShell } from "../components/ScrollShell";
 
 const MISSED_COLLAPSE_THRESHOLD = 8;
 const CONFETTI_DELAY_MS = 150;
@@ -56,23 +58,6 @@ function useCountUp(target: number, durationMs = 650) {
   return value;
 }
 
-/** Full-width viewport scroll; narrow content stays in centered `Shell`. */
-function ResultsScrollShell({
-  children,
-  shellClassName = "",
-}: {
-  children: ReactNode;
-  shellClassName?: string;
-}) {
-  return (
-    <View className="flex min-h-0 w-full flex-1 flex-col">
-      <div className="cp-shell-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <Shell className={`h-auto min-h-full flex-none ${shellClassName}`.trim()}>{children}</Shell>
-      </div>
-    </View>
-  );
-}
-
 export function ResultsPage() {
   const navigate = useNavigate();
   const run = loadLastRun();
@@ -92,7 +77,7 @@ export function ResultsPage() {
 
   if (!run) {
     return (
-      <ResultsScrollShell>
+      <ScrollShell>
         <EmptyState
           showLogo
           title="No crumbs on the couch yet"
@@ -101,7 +86,7 @@ export function ResultsPage() {
         <Button className="mt-4 w-full" onClick={() => navigate({ to: "/" })}>
           Back to lobby
         </Button>
-      </ResultsScrollShell>
+      </ScrollShell>
     );
   }
 
@@ -110,10 +95,16 @@ export function ResultsPage() {
   }`;
 
   const reasonLabel =
-    run.reason === "won" ? "Couch clear!" : run.reason === "timeout" ? "Time's up!" : "Run ended";
+    run.reason === "won"
+      ? "Couch clear!"
+      : run.reason === "timeout"
+        ? run.mode === "survival"
+          ? "Clock ran dry"
+          : "Time's up!"
+        : "Run ended";
 
   return (
-    <ResultsScrollShell shellClassName="relative">
+    <ScrollShell shellClassName="relative">
       <ConfettiBurst active={celebrate} durationMs={CONFETTI_DURATION_MS} />
 
       <View className="mb-6 items-center cp-fade-up">
@@ -150,6 +141,14 @@ export function ResultsPage() {
           )}
         </View>
       </View>
+
+      {run.achievements ? (
+        <ResultsMedals
+          snapshot={run.achievements.snapshot}
+          stageUps={run.achievements.stageUps}
+          touched={run.achievements.touched}
+        />
+      ) : null}
 
       <View className="cp-lobby-card mb-4 p-4 cp-fade-up cp-stagger-1">
         <Text className="mb-2 font-display text-lg text-foreground">Your haul</Text>
@@ -242,6 +241,6 @@ export function ResultsPage() {
           Back to lobby
         </Button>
       </View>
-    </ResultsScrollShell>
+    </ScrollShell>
   );
 }

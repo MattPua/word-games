@@ -46,8 +46,10 @@ import {
   scoreWord,
   sortWordsByLengthThenAlpha,
   submitPath,
+  SURVIVAL_START_SECONDS,
   tickTimer,
   wordFromPath,
+  type GameConfig,
   type GameState,
   type GridTopology,
   type MinWordLength,
@@ -98,6 +100,17 @@ function hudTimerUrgency(secs: number, durationSec: number): 0 | 1 | 2 {
   if (secs <= criticalThreshold) return 2;
   if (secs <= warnThreshold) return 1;
   return 0;
+}
+
+/**
+ * Urgency baseline seconds by mode — timed uses the fixed sprint length,
+ * survival uses its starting clock (refills don't reset the baseline, so
+ * urgency still reads relative to how stingy that difficulty starts).
+ */
+function timerBaselineSeconds(config: GameConfig): number | null {
+  if (config.mode === "timed") return config.duration;
+  if (config.mode === "survival") return SURVIVAL_START_SECONDS[config.difficulty];
+  return null;
 }
 
 /** Couch break pref row: feature name + Switch (on = secondary). */
@@ -185,6 +198,9 @@ export function PlayPage() {
   const rotateStepsRef = useRef<1 | -1>(1);
   const hudSignalRef = useRef<{ remaining: number | null; score: number } | null>(null);
   const timerUrgencyRef = useRef<0 | 1 | 2>(0);
+  /** Survival: total clock ever granted (start + all refills) so we can derive time survived at the end. */
+  const survivalBudgetMsRef = useRef(0);
+  const [survivalBump, setSurvivalBump] = useState<{ id: number; seconds: number } | null>(null);
 
   const openPause = () => {
     setPath([]);
@@ -236,20 +252,31 @@ export function PlayPage() {
       topology,
       minWordLength,
       // Timed has no difficulty knob — generateBoard defaults to a medium letter mix.
-      difficulty: launch.mode === "target" ? (launch.difficulty ?? "easy") : undefined,
+      difficulty:
+        launch.mode === "target" || launch.mode === "survival"
+          ? (launch.difficulty ?? "easy")
+          : undefined,
     });
-    const config =
+    const config: GameConfig =
       launch.mode === "target"
         ? {
             mode: "target" as const,
             difficulty: launch.difficulty ?? "easy",
             minWordLength,
           }
-        : {
-            mode: "timed" as const,
-            duration: launch.duration ?? 60,
-            minWordLength,
-          };
+        : launch.mode === "survival"
+          ? {
+              mode: "survival" as const,
+              difficulty: launch.difficulty ?? "easy",
+              minWordLength,
+            }
+          : {
+              mode: "timed" as const,
+              duration: launch.duration ?? 60,
+              minWordLength,
+            };
+    survivalBudgetMsRef.current =
+      config.mode === "survival" ? SURVIVAL_START_SECONDS[config.difficulty] * 1000 : 0;
     setState(createGame(board, config));
   }, [dict, launch, topology]);
 
@@ -307,12 +334,12 @@ export function PlayPage() {
   }, []);
 
   useEffect(() => {
-    if (!state || state.config.mode !== "timed" || state.ended || paused) return;
+    if (!state || state.remainingMs == null || state.ended || paused) return;
     const id = window.setInterval(() => {
       setState((s) => (s ? tickTimer(s, 250) : s));
     }, 250);
     return () => window.clearInterval(id);
-  }, [state?.config.mode, state?.ended, paused]);
+  }, [state?.remainingMs == null, state?.ended, paused]);
 
   useEffect(() => {
     if (!state) return;
@@ -329,9 +356,11 @@ export function PlayPage() {
   }, [state?.remaining, state?.score]);
 
   useEffect(() => {
-    if (!state || state.config.mode !== "timed" || state.remainingMs == null) return;
+    if (!state || state.remainingMs == null) return;
+    const baselineSec = timerBaselineSeconds(state.config);
+    if (baselineSec == null) return;
     const secs = Math.ceil(state.remainingMs / 1000);
-    const urgency = hudTimerUrgency(secs, state.config.duration);
+    const urgency = hudTimerUrgency(secs, baselineSec);
     const prev = timerUrgencyRef.current;
     timerUrgencyRef.current = urgency;
     if (urgency <= prev || urgency === 0) return;
@@ -363,22 +392,35 @@ export function PlayPage() {
   const finish = async (s: GameState) => {
     const profile = getActiveProfile();
     const key = highScoreKey(profile.id, s.board.size, s.config, s.board.topology);
-    const { isHighScore: isHigh } = recordFinishedRun({
+    const difficulty =
+      s.config.mode === "target" || s.config.mode === "survival" ? s.config.difficulty : undefined;
+    const survivalDurationMs =
+      s.config.mode === "survival" ? survivalBudgetMsRef.current - (s.remainingMs ?? 0) : undefined;
+    const {
+      isHighScore: isHigh,
+      achievements: achievementsSnapshot,
+      stageUps,
+      touched,
+    } = recordFinishedRun({
       score: s.score,
       scoreKey: key,
       mode: s.config.mode,
       grid: s.board.size,
       minWordLength: s.config.minWordLength,
-      difficulty: s.config.mode === "target" ? s.config.difficulty : undefined,
+      difficulty,
       duration: s.config.mode === "timed" ? s.config.duration : undefined,
       reason: s.ended!,
       wordsFound: s.found.length,
+      words: s.found,
+      survivalDurationMs,
     });
     const missed = missedLongWords(s, dict);
     const detail =
       s.config.mode === "target"
         ? `${s.config.difficulty} · ${s.config.minWordLength}+`
-        : `${s.config.duration}s · ${s.config.minWordLength}+`;
+        : s.config.mode === "survival"
+          ? `Survival · ${s.config.difficulty} · ${s.config.minWordLength}+`
+          : `${s.config.duration}s · ${s.config.minWordLength}+`;
     saveLastRun({
       score: s.score,
       found: sortWordsByLengthThenAlpha(s.found),
@@ -389,8 +431,12 @@ export function PlayPage() {
       detail,
       isHighScore: isHigh,
       minWordLength: s.config.minWordLength,
-      difficulty: s.config.mode === "target" ? s.config.difficulty : undefined,
+      difficulty,
       duration: s.config.mode === "timed" ? s.config.duration : undefined,
+      achievements:
+        stageUps.length || touched.length
+          ? { snapshot: achievementsSnapshot, stageUps, touched }
+          : undefined,
     });
     track("game_completed", {
       reason: s.ended!,
@@ -432,10 +478,9 @@ export function PlayPage() {
   const heatProgress =
     remaining != null && target > 0 ? Math.min(1, Math.max(0, 1 - remaining / target)) : 0;
   const heatTier = remaining != null ? hudHeatTier(heatProgress) : 0;
+  const timerBaselineSec = timerBaselineSeconds(state.config);
   const timerUrgency =
-    secs != null && state.config.mode === "timed"
-      ? hudTimerUrgency(secs, state.config.duration)
-      : 0;
+    secs != null && timerBaselineSec != null ? hudTimerUrgency(secs, timerBaselineSec) : 0;
   const hudBubbleClass = [
     "cp-hud-bubble",
     heatTier > 0 ? `cp-hud-heat-${heatTier}` : "",
@@ -526,6 +571,15 @@ export function PlayPage() {
               </Text>
             </View>
           ) : null}
+          {survivalBump ? (
+            <span
+              key={survivalBump.id}
+              className="cp-survival-bump cp-catch-in"
+              aria-label={`Plus ${survivalBump.seconds} seconds`}
+            >
+              +{survivalBump.seconds}s
+            </span>
+          ) : null}
           {showWordsLeft ? (
             <Text
               className="font-display text-sm font-semibold text-muted-foreground"
@@ -575,7 +629,9 @@ export function PlayPage() {
         hint={
           remaining != null
             ? `Clear the couch · ${state.config.minWordLength}+`
-            : `${state.config.minWordLength}+ letters`
+            : state.config.mode === "survival"
+              ? `Keep the clock fed · ${state.config.minWordLength}+`
+              : `${state.config.minWordLength}+ letters`
         }
         className="mb-4"
       />
@@ -609,6 +665,13 @@ export function PlayPage() {
                     word: result.word.toUpperCase(),
                     points: result.points,
                   });
+                  if (result.bonusSeconds) {
+                    survivalBudgetMsRef.current += result.bonusSeconds * 1000;
+                    setSurvivalBump({ id: lastFoundIdRef.current, seconds: result.bonusSeconds });
+                    setHudPulse(true);
+                    window.setTimeout(() => setHudPulse(false), 420);
+                    window.setTimeout(() => setSurvivalBump(null), 900);
+                  }
                   const boardCleared =
                     next.board.allWords.length > 0 &&
                     next.found.length === next.board.allWords.length;
