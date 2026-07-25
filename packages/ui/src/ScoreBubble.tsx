@@ -8,7 +8,7 @@ export type ScoreBubbleProps = {
   className?: string;
 };
 
-/** Sage word pill + potato score badge — tactile play chrome. */
+/** Sage word pill + secondary (potato gold) score badge — tactile play chrome. */
 export function ScoreBubble({
   word,
   hint = "Swipe letters",
@@ -31,7 +31,7 @@ export function ScoreBubble({
       </View>
       {show && points > 0 ? (
         <View className="cp-score-badge" accessibilityLabel={`${points} points`}>
-          <Text className="font-display text-sm font-bold text-foreground">{points}</Text>
+          <Text className="font-display text-sm font-bold text-secondary-foreground">{points}</Text>
         </View>
       ) : null}
     </View>

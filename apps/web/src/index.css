@@ -28,11 +28,11 @@
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
     background-color: var(--background);
-    /* Atmospheric living-room wash — cream + sage + potato (not flat void / not purple) */
+    /* Atmospheric living-room wash — cream + sage + secondary potato gold (not flat void / not purple) */
     background-image:
       radial-gradient(
         ellipse 90% 55% at 50% -10%,
-        color-mix(in srgb, var(--potato) 38%, transparent),
+        color-mix(in srgb, var(--secondary) 38%, transparent),
         transparent 68%
       ),
       radial-gradient(
@@ -225,12 +225,12 @@
     align-items: center;
     justify-content: center;
     border-radius: 9999px;
-    background: var(--potato);
-    color: var(--foreground);
+    background: var(--secondary);
+    color: var(--secondary-foreground);
     font-family: Grandstander, system-ui, sans-serif;
     font-size: 0.85rem;
     font-weight: 700;
-    box-shadow: 0 2px 0 color-mix(in srgb, var(--potato) 55%, #2c322e);
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
   }
 
   /* Home lobby — toy cards / tiles, not form label rows */
@@ -256,15 +256,15 @@
   }
 
   .cp-lobby-card-active {
-    border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+    border-color: color-mix(in srgb, var(--secondary) 55%, var(--border));
     background: linear-gradient(
       165deg,
       color-mix(in srgb, var(--card) 70%, #fff) 0%,
-      color-mix(in srgb, var(--accent) 22%, var(--card)) 100%
+      color-mix(in srgb, var(--secondary) 22%, var(--card)) 100%
     );
     box-shadow:
-      0 3px 0 color-mix(in srgb, var(--primary) 45%, #2c322e),
-      0 8px 18px color-mix(in srgb, var(--primary) 18%, transparent);
+      0 3px 0 color-mix(in srgb, var(--secondary) 45%, #2c322e),
+      0 8px 18px color-mix(in srgb, var(--secondary) 18%, transparent);
   }
 
   .cp-lobby-panel {
@@ -280,7 +280,7 @@
   .cp-lobby-challenge {
     border-radius: calc(var(--radius) - 0.25rem);
     border: 1.5px solid transparent;
-    background: color-mix(in srgb, var(--secondary) 70%, transparent);
+    background: color-mix(in srgb, var(--muted) 70%, transparent);
     color: var(--foreground);
     transition:
       transform 0.18s ease,
@@ -292,7 +292,7 @@
   .cp-lobby-tile:hover,
   .cp-lobby-chip:hover,
   .cp-lobby-challenge:hover {
-    background: color-mix(in srgb, var(--secondary) 95%, var(--card));
+    background: color-mix(in srgb, var(--muted) 95%, var(--card));
   }
 
   .cp-lobby-tile:active,
@@ -312,11 +312,11 @@
   }
 
   .cp-lobby-challenge-hard {
-    border-color: color-mix(in srgb, var(--potato) 55%, var(--border));
-    background: color-mix(in srgb, var(--potato) 28%, var(--card));
+    border-color: color-mix(in srgb, var(--secondary) 55%, var(--border));
+    background: color-mix(in srgb, var(--secondary) 28%, var(--card));
     box-shadow:
-      0 2px 0 color-mix(in srgb, var(--potato) 55%, #2c322e),
-      0 6px 12px color-mix(in srgb, var(--potato) 18%, transparent);
+      0 2px 0 color-mix(in srgb, var(--secondary) 55%, #2c322e),
+      0 6px 12px color-mix(in srgb, var(--secondary) 18%, transparent);
   }
 
   .cp-lobby-more {

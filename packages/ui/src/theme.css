@@ -1,4 +1,13 @@
-/* Sage Garden (tweakcn) tweaked — light-first Couch Potato */
+/*
+ * Sage Garden (tweakcn) tweaked — light-first Couch Potato
+ *
+ * Token roles:
+ *   primary   = sage — main actions, path, board chrome
+ *   secondary = potato gold — warm brand accent (badges, selected lobby cards, secondary buttons)
+ *   accent    = soft sage — hover/soft highlight wash (not a second brand)
+ *   muted     = soft sage-gray surfaces (chips, segment track, ghost hover)
+ *   --potato  = alias of secondary (prefer bg-secondary / text-secondary in new code)
+ */
 :root {
   --background: #f3f0e8;
   --foreground: #2c322e;
@@ -8,9 +17,9 @@
   --popover-foreground: #2c322e;
   --primary: #7c9082;
   --primary-foreground: #f8f7f4;
-  --secondary: #e8eee9;
-  --secondary-foreground: #3d4a41;
-  --muted: #eef1ec;
+  --secondary: #e0b070;
+  --secondary-foreground: #2c322e;
+  --muted: #e8eee9;
   --muted-foreground: #6b756e;
   --accent: #a8c5a8;
   --accent-foreground: #2c322e;
@@ -20,7 +29,7 @@
   --input: #d8e0d9;
   --ring: #7c9082;
   --path: #5f9e6e;
-  --potato: #e0b070;
+  --potato: var(--secondary);
   --radius: 1.15rem;
   /* Tactile board (cream/sage — not purple clones) */
   --tile: #fff8eb;
@@ -41,9 +50,9 @@
   --popover-foreground: #eef1ec;
   --primary: #9aaf9e;
   --primary-foreground: #1c1f1d;
-  --secondary: #343a36;
-  --secondary-foreground: #eef1ec;
-  --muted: #2f3531;
+  --secondary: #e0b070;
+  --secondary-foreground: #1c1f1d;
+  --muted: #343a36;
   --muted-foreground: #a8b0aa;
   --accent: #5f7366;
   --accent-foreground: #eef1ec;
@@ -53,7 +62,7 @@
   --input: #3d4440;
   --ring: #9aaf9e;
   --path: #7cbf88;
-  --potato: #e0b070;
+  --potato: var(--secondary);
   --radius: 1.15rem;
   --tile: #3a403b;
   --tile-edge: #2a2f2b;

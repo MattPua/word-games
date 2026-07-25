@@ -195,7 +195,7 @@ export function HomeSetup({
               )}
             >
               <span
-                className={cn("text-muted-foreground transition-colors", active && "text-primary")}
+                className={cn("text-muted-foreground transition-colors", active && "text-secondary")}
               >
                 <Glyph />
               </span>

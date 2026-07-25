@@ -257,7 +257,7 @@ export function PlayPage() {
           </View>
         ) : (
           <View className="cp-hud-bubble min-w-[4.5rem]">
-            <Text className="font-display text-lg font-bold text-potato">{state.score}</Text>
+            <Text className="font-display text-lg font-bold text-secondary">{state.score}</Text>
           </View>
         )}
         <View className="flex-row items-center gap-1">

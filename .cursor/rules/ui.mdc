@@ -7,6 +7,12 @@ alwaysApply: false
 # UI
 
 - Whimsical light-first (+ soft dark); **Grandstander** + **Lexend**; Sage Garden tokens from `packages/ui` theme (cream / sage / potato gold — **never** purple/indigo clones).
+- **Token roles** (`packages/ui/src/theme.css` + `tailwind-preset`):
+  - **primary** = sage — main actions, path, board chrome
+  - **secondary** = potato gold — warm brand accent (score badge, selected mode cards, secondary buttons, hard challenge)
+  - **accent** = soft sage — hover/soft wash only (not a second brand)
+  - **muted** = soft sage-gray — chip/segment tracks, ghost hover
+  - Prefer `bg-secondary` / `text-secondary` / `text-secondary-foreground`; `--potato` is an alias of secondary (legacy)
 - **UI inspiration (steal craft, keep brand):**
   - [TypeUI](https://www.typeui.sh/) thinking: design-system tokens first, then hierarchy / spacing rhythm / type leading / interaction feedback as the reasoning layer. Steep display→label contrast; motion for entrance, feedback, transition only; depth via luminance + surface — not flat robot UI.
   - Tactile word-game refs (user CleanShot set): pillow cream tiles, thick rounded board frame, circular select + juicy path stroke, word pill + score badge, atmospheric background. No Scrabble TW/TL multipliers.

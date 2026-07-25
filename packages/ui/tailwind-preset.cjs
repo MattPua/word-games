@@ -37,7 +37,8 @@ module.exports = {
         input: "var(--input)",
         ring: "var(--ring)",
         path: "var(--path)",
-        potato: "var(--potato)",
+        /** @deprecated prefer secondary — alias of potato gold */
+        potato: "var(--secondary)",
         tile: "var(--tile)",
         "board-well": "var(--board-well)",
         "board-frame": "var(--board-frame)",
