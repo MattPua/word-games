@@ -76,17 +76,18 @@ function hudHeatTier(progress: number): 0 | 1 | 2 | 3 {
   return 0;
 }
 
-
 /** Couch break pref row: feature name + Switch (on = secondary). */
 function PausePrefRow({
   id,
   label,
+  description,
   checked,
   onCheckedChange,
   Icon,
 }: {
   id: string;
   label: string;
+  description?: string;
   checked: boolean;
   onCheckedChange: (next: boolean) => void;
   Icon?: LucideIcon;
@@ -101,18 +102,25 @@ function PausePrefRow({
           : "border-border bg-card/80 hover:border-primary/40",
       )}
     >
-      <span className="flex items-center gap-2.5">
+      <span className="flex min-w-0 items-start gap-2.5">
         {Icon ? (
           <Icon
             className={cn(
-              "cp-lobby-glyph size-4 shrink-0",
+              "cp-lobby-glyph mt-0.5 size-4 shrink-0",
               checked ? "text-secondary-foreground" : "text-muted-foreground",
             )}
             strokeWidth={2.25}
             aria-hidden
           />
         ) : null}
-        <span className="font-display text-sm font-bold text-foreground">{label}</span>
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="font-display text-sm font-bold text-foreground">{label}</span>
+          {description ? (
+            <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
+              {description}
+            </span>
+          ) : null}
+        </span>
       </span>
       <Switch
         id={id}
@@ -232,7 +240,11 @@ export function PlayPage() {
     w.__cpSetRemaining = (remaining: number) => {
       setState((s) =>
         s && s.remaining != null
-          ? { ...s, remaining: Math.max(0, Math.floor(remaining)), score: Math.max(s.score, (s.target ?? 0) - Math.max(0, Math.floor(remaining))) }
+          ? {
+              ...s,
+              remaining: Math.max(0, Math.floor(remaining)),
+              score: Math.max(s.score, (s.target ?? 0) - Math.max(0, Math.floor(remaining))),
+            }
           : s,
       );
     };
@@ -601,12 +613,7 @@ export function PlayPage() {
             <Button data-pause-resume className="w-full justify-start" onClick={closePause}>
               Resume
             </Button>
-            <PausePrefRow
-              id="pause-sfx"
-              label="SFX"
-              checked={sound}
-              onCheckedChange={setSoundOn}
-            />
+            <PausePrefRow id="pause-sfx" label="SFX" checked={sound} onCheckedChange={setSoundOn} />
             <PausePrefRow
               id="pause-lobby-jam"
               label="Lobby jam"
@@ -615,7 +622,8 @@ export function PlayPage() {
             />
             <PausePrefRow
               id="pause-words-left"
-              label="Words left"
+              label="Show words left"
+              description="During play, show a running count of words still to find"
               Icon={Eye}
               checked={showWordsLeft}
               onCheckedChange={setWordsLeftOn}

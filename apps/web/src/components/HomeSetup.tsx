@@ -475,9 +475,9 @@ export function HomeSetup({
             aria-hidden
           />
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="font-display text-sm font-bold text-foreground">Words left</span>
+            <span className="font-display text-sm font-bold text-foreground">Show words left</span>
             <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
-              How many words you haven't found yet
+              During play, show a running count of words still to find
             </span>
           </span>
         </span>
@@ -485,7 +485,7 @@ export function HomeSetup({
           id="lobby-words-left"
           checked={showWordsLeft}
           onCheckedChange={onShowWordsLeft}
-          aria-label={`Words left ${showWordsLeft ? "on" : "off"}`}
+          aria-label={`Show words left ${showWordsLeft ? "on" : "off"}`}
         />
       </label>
     </div>
