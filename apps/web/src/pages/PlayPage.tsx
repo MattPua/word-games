@@ -151,7 +151,6 @@ export function PlayPage() {
   const [menuMusic, setMenuMusic] = useState(prefs.menuMusicEnabled);
   const [showWordsLeft, setShowWordsLeftState] = useState(prefs.showWordsLeft);
   const [paused, setPaused] = useState(false);
-  const [confirmEnd, setConfirmEnd] = useState(false);
   const [boardTurnDeg, setBoardTurnDeg] = useState(0);
   const [boardTurning, setBoardTurning] = useState(false);
   const [hudPulse, setHudPulse] = useState(false);
@@ -164,12 +163,10 @@ export function PlayPage() {
 
   const openPause = () => {
     setPath([]);
-    setConfirmEnd(false);
     setPaused(true);
   };
 
   const closePause = () => {
-    setConfirmEnd(false);
     setPaused(false);
   };
 
@@ -660,36 +657,16 @@ export function PlayPage() {
               checked={showWordsLeft}
               onCheckedChange={setWordsLeftOn}
             />
-            {confirmEnd ? (
-              <div className="flex flex-col gap-2 rounded-ui border-2 border-border bg-muted/40 p-3">
-                <p className="font-body text-sm text-muted-foreground">
-                  End this run and see your haul?
-                </p>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" onClick={() => setConfirmEnd(false)}>
-                    Keep going
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    className="flex-1"
-                    onClick={() => {
-                      closePause();
-                      setState(quitGame(state));
-                    }}
-                  >
-                    End run
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={() => setConfirmEnd(true)}
-              >
-                End run
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => {
+                closePause();
+                setState(quitGame(state));
+              }}
+            >
+              End run
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
