@@ -1,0 +1,62 @@
+import { Text, View } from "react-native";
+import { ChevronRight, Medal } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  allTrackProgress,
+  type AchievementContext,
+  type StageUp,
+  type TrackId,
+} from "../achievements";
+import { AchievementTrackRow } from "./achievementUi";
+import { Button } from "@/components/ui/button";
+
+const MAX_ROWS = 4;
+
+/** Results "Couch medals" peek — stage-ups first, then whatever else moved this run. */
+export function ResultsMedals({
+  snapshot,
+  stageUps,
+  touched,
+}: {
+  snapshot: AchievementContext;
+  stageUps: StageUp[];
+  touched: TrackId[];
+}) {
+  const navigate = useNavigate();
+  const leveledIds = new Set(stageUps.map((s) => s.id));
+  const restIds = touched.filter((id) => !leveledIds.has(id));
+  const rowIds = [...stageUps.map((s) => s.id), ...restIds].slice(0, MAX_ROWS);
+  if (rowIds.length === 0) return null;
+
+  const progressById = new Map(allTrackProgress(snapshot).map((p) => [p.track.id, p]));
+
+  return (
+    <View className="cp-lobby-card mb-4 p-4 cp-fade-up cp-stagger-1">
+      <View className="mb-3 flex-row items-center justify-between gap-2">
+        <View className="flex-row items-center gap-2">
+          <Medal className="cp-lobby-glyph size-4 text-secondary" strokeWidth={2.25} aria-hidden />
+          <Text className="font-display text-lg text-foreground">Couch medals</Text>
+        </View>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-auto gap-1 px-1.5 py-1 text-xs"
+          onClick={() => navigate({ to: "/achievements" })}
+        >
+          See all
+          <ChevronRight className="size-3.5" aria-hidden />
+        </Button>
+      </View>
+
+      <View className="gap-3">
+        {rowIds.map((id) => {
+          const progress = progressById.get(id);
+          if (!progress) return null;
+          return (
+            <AchievementTrackRow key={id} progress={progress} justLeveled={leveledIds.has(id)} />
+          );
+        })}
+      </View>
+    </View>
+  );
+}

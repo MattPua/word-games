@@ -11,6 +11,7 @@ import { HomePage } from "./pages/HomePage";
 import { PlayPage } from "./pages/PlayPage";
 import { ResultsPage } from "./pages/ResultsPage";
 import { ProfilesPage } from "./pages/ProfilesPage";
+import { AchievementsPage } from "./pages/AchievementsPage";
 import { loadDevicePrefs } from "./storage";
 import { applyMenuMusicEnabled, menuMusicSceneForPath, setMenuMusicScene } from "./menuMusic";
 import { applyTheme } from "./theme";
@@ -88,9 +89,17 @@ const profilesRoute = createRoute({
   head: () => pageHead("Couch crew"),
 });
 
+const achievementsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/achievements",
+  component: AchievementsPage,
+  head: () => pageHead("Couch medals"),
+});
+
 export const routeTree = rootRoute.addChildren([
   indexRoute,
   playRoute,
   resultsRoute,
   profilesRoute,
+  achievementsRoute,
 ]);
