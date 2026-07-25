@@ -8,8 +8,8 @@ import { ProfilesPage } from "./pages/ProfilesPage";
 import { loadDevicePrefs } from "./storage";
 import {
   applyMenuMusicEnabled,
-  isMenuRoute,
-  setMenuMusicRouteActive,
+  menuMusicSceneForPath,
+  setMenuMusicScene,
 } from "./menuMusic";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -24,7 +24,7 @@ function RootLayout() {
   }, []);
 
   useEffect(() => {
-    setMenuMusicRouteActive(isMenuRoute(pathname));
+    setMenuMusicScene(menuMusicSceneForPath(pathname));
   }, [pathname]);
 
   return (
