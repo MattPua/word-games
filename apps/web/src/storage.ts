@@ -31,7 +31,7 @@ export type Profile = {
 
 export type DevicePrefs = {
   soundEnabled: boolean;
-  /** Looping lobby jam (home / couch crew / quiet on play). Separate from SFX. Default on. */
+  /** Looping background music (home / couch crew / quiet on play). Separate from SFX. Default on. */
   menuMusicEnabled: boolean;
   /** Unfound valid words on the board (not target pts remaining). Default off = discovery. */
   showWordsLeft: boolean;

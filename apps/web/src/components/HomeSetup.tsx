@@ -538,20 +538,20 @@ export function HomePlayBar({
   onToggleMenuMusic: () => void;
 }) {
   const soundLabel = sound ? "SFX on" : "SFX off";
-  const jamLabel = menuMusic ? "Lobby jam on" : "Lobby jam off";
+  const musicLabel = menuMusic ? "Music on" : "Music off";
   return (
     <div className="cp-lobby-play shrink-0 -mx-4 border-t border-border/40 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] px-4 backdrop-blur-sm">
       <div className="cp-lobby-play-inner flex items-center gap-2">
         <Button size="lg" className="flex-1 text-lg" onClick={onPlay}>
           Play
         </Button>
-        <IconTooltip label={jamLabel}>
+        <IconTooltip label={musicLabel}>
           <Button
             variant="outline"
             size="icon"
             className="h-12 w-12 shrink-0"
             aria-pressed={menuMusic}
-            aria-label={jamLabel}
+            aria-label={musicLabel}
             onClick={onToggleMenuMusic}
           >
             {menuMusic ? <Music2 /> : <MusicOff />}

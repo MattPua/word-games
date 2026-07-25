@@ -617,8 +617,8 @@ export function PlayPage() {
             </Button>
             <PausePrefRow id="pause-sfx" label="SFX" checked={sound} onCheckedChange={setSoundOn} />
             <PausePrefRow
-              id="pause-lobby-jam"
-              label="Lobby jam"
+              id="pause-background-music"
+              label="Background music"
               checked={menuMusic}
               onCheckedChange={setMenuMusicOn}
             />

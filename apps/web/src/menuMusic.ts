@@ -1,8 +1,8 @@
-/** Lobby / crew / play looping jam — separate from cuelume SFX. */
+/** Lobby / crew / play background music — separate from cuelume SFX. */
 
 const SRC = "/audio/menu-bgm.mp3";
 const VOLUME_LOBBY = 0.35;
-/** Quieter under play SFX so jam stays bed, not lead. */
+/** Quieter under play SFX so BGM stays bed, not lead. */
 const VOLUME_PLAY = 0.12;
 const FADE_MS = 450;
 
@@ -115,7 +115,7 @@ function syncPlayback() {
   }
 }
 
-/** Pref: lobby jam on/off (persisted separately from SFX). */
+/** Pref: background music on/off (persisted separately from SFX). */
 export function applyMenuMusicEnabled(next: boolean) {
   enabled = next;
   syncPlayback();
