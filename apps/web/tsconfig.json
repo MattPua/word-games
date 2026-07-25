@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "nativewind",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "nativewind/types"],
+    "paths": {
+      "@couch-potato/ui": ["../../packages/ui/src"],
+      "@couch-potato/game-engine": ["../../packages/game-engine/src"],
+      "@couch-potato/dictionary": ["../../packages/dictionary/src"]
+    }
+  },
+  "include": ["src", "nativewind-env.d.ts"]
+}

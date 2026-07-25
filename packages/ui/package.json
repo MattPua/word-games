@@ -9,7 +9,7 @@
     ".": "./src/index.ts",
     "./theme.css": "./src/theme.css",
     "./logo.svg": "./src/logo.svg",
-    "./tailwind-preset": "./tailwind-preset.js"
+    "./tailwind-preset": "./tailwind-preset.cjs"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"
