@@ -13,6 +13,7 @@ alwaysApply: false
   - **accent** = soft sage — hover/soft wash only (not a second brand)
   - **muted** = soft sage-gray — chip/segment tracks, ghost hover
   - Prefer `bg-secondary` / `text-secondary` / `text-secondary-foreground`; `--potato` is an alias of secondary (legacy)
+  - **Palette locked to the logo mascot** (`packages/ui/src/logo.png`, potato-on-armchair): sampled chair sage `#9aad86` (lit) / `#717d66` (shadow) / `#c1d1ab` (highlight) → olive/warm, not minty; sampled potato gold `#d3b062` / `#ad804b` → muted tan, not peachy-orange. `--primary #859075`, `--secondary #d8b05b`, `--accent #b5c5a0`, board `#444a3c`/`#6a735d`/`#a1af8e`. Re-sample from the logo before nudging further; don't drift back cooler/pinker.
 - **UI inspiration (steal craft, keep brand):**
   - [TypeUI](https://www.typeui.sh/) thinking: design-system tokens first, then hierarchy / spacing rhythm / type leading / interaction feedback as the reasoning layer. Steep display→label contrast; motion for entrance, feedback, transition only; depth via luminance + surface — not flat robot UI.
   - Tactile word-game refs (user CleanShot set): pillow cream tiles, thick rounded board frame, circular select (square) / hex tile tint + drop-shadow ring (Honeycomb) + juicy path stroke, word pill + score badge, atmospheric background. No Scrabble TW/TL multipliers. Hex select is the clipped tile itself (`HEX_CLIP`) so `--cp-tile-gap` gutters cannot offset a separate overlay; path SVG shares `.cp-board-play` with the tile grid.

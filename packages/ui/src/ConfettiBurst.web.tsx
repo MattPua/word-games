@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-const COLORS = ["#7c9082", "#e4b574", "#f8f7f4", "#a8c5a8", "#c9924a", "#5f9e6e"];
+const COLORS = ["#859075", "#d8b05b", "#f8f7f4", "#b5c5a0", "#ad804b", "#5f9e6e"];
 
 type Particle = {
   x: number;

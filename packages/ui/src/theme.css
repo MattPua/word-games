@@ -1,5 +1,10 @@
 /*
  * Sage Garden (tweakcn) tweaked — light-first Couch Potato
+ * Palette locked to the potato-on-armchair logo (packages/ui/src/logo.png):
+ * sampled chair sage ≈ #9aad86 (lit) / #717d66 (shadow) / #c1d1ab (highlight),
+ * potato gold ≈ #d3b062 / #ad804b (muted, olive-tan — not peachy-orange).
+ * Greens run olive/warm (R and G close, B pulled down); gold runs muted tan
+ * (less blue than a candy-orange gold). See AGENTS.md Brand + ui.mdc.
  *
  * Token roles:
  *   primary   = sage — main actions, path, board chrome
@@ -15,19 +20,19 @@
   --card-foreground: #2c322e;
   --popover: #fffcf5;
   --popover-foreground: #2c322e;
-  --primary: #7c9082;
+  --primary: #859075;
   --primary-foreground: #f8f7f4;
-  --secondary: #e0b070;
+  --secondary: #d8b05b;
   --secondary-foreground: #2c322e;
-  --muted: #e8eee9;
-  --muted-foreground: #6b756e;
-  --accent: #a8c5a8;
+  --muted: #e8eee6;
+  --muted-foreground: #6b756a;
+  --accent: #b5c5a0;
   --accent-foreground: #2c322e;
   --destructive: #c45c4a;
   --destructive-foreground: #f8f7f4;
-  --border: #d8e0d9;
-  --input: #d8e0d9;
-  --ring: #7c9082;
+  --border: #d8e0d3;
+  --input: #d8e0d3;
+  --ring: #859075;
   --path: #5f9e6e;
   --potato: var(--secondary);
   --radius: 1.15rem;
@@ -35,9 +40,9 @@
   --tile: #fff8eb;
   --tile-edge: #e5d9c4;
   --tile-ink: #1f2923;
-  --board-well: #5f7366;
-  --board-frame: #3d4a41;
-  --board-rim: #9aaf9e;
+  --board-well: #6a735d;
+  --board-frame: #444a3c;
+  --board-rim: #a1af8e;
   --hud-bubble: color-mix(in srgb, var(--card) 88%, transparent);
 }
 
@@ -48,28 +53,28 @@
   --card-foreground: #eef1ec;
   --popover: #2a2f2b;
   --popover-foreground: #eef1ec;
-  --primary: #9aaf9e;
+  --primary: #a1af8e;
   --primary-foreground: #1c1f1d;
-  --secondary: #e0b070;
+  --secondary: #d8b05b;
   --secondary-foreground: #1c1f1d;
-  --muted: #343a36;
-  --muted-foreground: #a8b0aa;
-  --accent: #5f7366;
+  --muted: #343a34;
+  --muted-foreground: #a8b0a4;
+  --accent: #6a735d;
   --accent-foreground: #eef1ec;
   --destructive: #e07a6a;
   --destructive-foreground: #1c1f1d;
-  --border: #3d4440;
-  --input: #3d4440;
-  --ring: #9aaf9e;
+  --border: #3d4438;
+  --input: #3d4438;
+  --ring: #a1af8e;
   --path: #7cbf88;
   --potato: var(--secondary);
   --radius: 1.15rem;
   --tile: #3a403b;
   --tile-edge: #2a2f2b;
   --tile-ink: #eef1ec;
-  --board-well: #232826;
-  --board-frame: #1a1e1b;
-  --board-rim: #5f7366;
+  --board-well: #252820;
+  --board-frame: #1c1e18;
+  --board-rim: #6a735d;
   --hud-bubble: color-mix(in srgb, var(--card) 80%, transparent);
 }
 

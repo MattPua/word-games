@@ -5,7 +5,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 ## Brand
 
 - Name: **Couch Potato** — pixel potato-on-couch PNG (`packages/ui/src/logo.png`; web `/logo.png`). Brand mark + favicon: **transparent** (cream-matted alpha — not black RGB under alpha). `apple-touch-icon.png` / `og.png`: same art on **opaque cream** (platforms paint transparent as black).
-- Whimsical **light-first** (+ soft dark); Sage Garden tokens (tweaked); **Grandstander** (display) + **Lexend** (body/tiles)
+- Whimsical **light-first** (+ soft dark); Sage Garden tokens (tweaked); **Grandstander** (display) + **Lexend** (body/tiles). Palette sampled + locked from the logo mascot (olive sage, muted tan potato gold) — see `.cursor/rules/ui.mdc` token roles.
 - **Color roles:** `primary` = sage (actions, path); `secondary` = potato gold (badges, selected lobby cards, secondary buttons); `accent` = soft sage wash; `muted` = soft sage-gray surfaces. Prefer `bg-secondary` / `text-secondary` over ad-hoc potato hex. See `.cursor/rules/ui.mdc`.
 - Mobile-first; play/results = centered narrow `max-w-md` column; **web lobby** widens on md+ (`cp-shell-lobby` — see `.cursor/rules/ui.mdc`)
 - **Container queries = web-only**; shared layout uses flex + max-width
