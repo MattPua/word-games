@@ -61,6 +61,8 @@ TPP DRY: one authoritative place per piece of knowledge. No over-abstraction, no
 
 UI work is **not done** until interactively verified in a running local app (pointer swipe across tiles — not click-only). See `.cursor/skills/verify-ui`. Engine-only → Vitest; UI → Vitest **and** interactive check.
 
+**Browser QA:** `chrome-devtools` MCP is configured (`~/.cursor/mcp.json`) to attach to one shared debuggable Chrome (`--browserUrl`, port 9222) instead of launching a new Chrome App per call — see `.cursor/skills/verify-ui` for the start script and etiquette (reuse it, don't spin up a parallel Playwright browser when devtools suffices, don't fight another run's open tabs).
+
 **Mobile:** agent default is **Expo web** (`bun run mobile:web`) + Playwright smoke — see `.cursor/skills/verify-mobile`. Optional iOS Simulator boot when native launch matters. Full play QA remains on web until Expo play ships.
 
 ## Living agent docs
