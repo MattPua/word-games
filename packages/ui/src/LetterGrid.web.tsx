@@ -6,46 +6,26 @@ import {
   type PointerEvent as ReactPointerEvent,
   type TransitionEvent as ReactTransitionEvent,
 } from "react";
+import { cellCenter, HEX_CLIP, HEX_TILE_POINTS, hexAspect, hexRowStyle } from "./hexLayout";
 import {
   applyPathCell,
   cellKey,
   cellsEqual,
   isAdjacent,
   isInBacktrackZone,
+  isInTileHitZone,
   type Cell,
   type LetterGridProps,
 } from "./pathCells";
 
 export type { Cell, LetterGridProps };
 export { applyPathCell } from "./pathCells";
-
-/** Pointy-top hex clip (CSS %). */
-const HEX_CLIP = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
-
-/** Approximate cell center % for path stroke (odd-r offset). */
-function cellCenter(
-  row: number,
-  col: number,
-  n: number,
-  topology: "square" | "hex",
-): { x: number; y: number } {
-  if (topology !== "hex") {
-    return {
-      x: ((col + 0.5) / n) * 100,
-      y: ((row + 0.5) / n) * 100,
-    };
-  }
-  const xPitch = 100 / (n + 0.5);
-  const yPitch = 100 / (0.75 * (n - 1) + 1);
-  return {
-    x: (col + 0.5 + (row % 2 === 1 ? 0.5 : 0)) * xPitch,
-    y: (row * 0.75 + 0.5) * yPitch,
-  };
-}
+export { cellCenter, HEX_CLIP, hexAspect } from "./hexLayout";
 
 /**
  * Web LetterGrid — tactile cream tiles in a thick sage frame.
- * Path stroke + circular select tint; letters stay readable.
+ * Path stroke + topology-matched select tint (circle / on-tile hex); letters stay readable.
+ * Hex select lives on the tile box so `--cp-tile-gap` / well padding cannot offset it.
  */
 export function LetterGrid({
   letters,
@@ -89,7 +69,7 @@ export function LetterGrid({
     [onPathChange, adjacentFn],
   );
 
-  /** Tile under point + whether pointer is in backtrack center zone. */
+  /** Tile under point + hit/backtrack zones (edge inset = swipe gutter). */
   const hit = useCallback(
     (clientX: number, clientY: number): { cell: Cell; allowBacktrack: boolean } | null => {
       const stack = document.elementsFromPoint(clientX, clientY);
@@ -100,11 +80,12 @@ export function LetterGrid({
         const col = Number(tile.dataset.col);
         if (Number.isNaN(row) || Number.isNaN(col)) continue;
         const rect = tile.getBoundingClientRect();
-        const allowBacktrack =
-          rect.width > 0 &&
-          rect.height > 0 &&
-          isInBacktrackZone((clientX - rect.left) / rect.width, (clientY - rect.top) / rect.height);
-        return { cell: { row, col }, allowBacktrack };
+        if (rect.width <= 0 || rect.height <= 0) continue;
+        const nx = (clientX - rect.left) / rect.width;
+        const ny = (clientY - rect.top) / rect.height;
+        // Margin gap + edge inset — skip fringe so diagonals don’t clip neighbors.
+        if (!isInTileHitZone(nx, ny)) continue;
+        return { cell: { row, col }, allowBacktrack: isInBacktrackZone(nx, ny) };
       }
       return null;
     },
@@ -153,6 +134,7 @@ export function LetterGrid({
 
   const onSpinTransitionEnd = (e: ReactTransitionEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget) return;
+    // Only the board transform — ignore letter counter-rotate bubbles (filtered by target).
     if (e.propertyName !== "transform") return;
     if (!boardTurning) return;
     onBoardTurnEnd?.();
@@ -163,6 +145,7 @@ export function LetterGrid({
   } as CSSProperties;
 
   const n = letters.length;
+  const aspect = hex ? hexAspect(n) : { w: 1, h: 1 };
   const connectors =
     selected.length > 1
       ? selected.slice(1).map((cell, i) => {
@@ -172,32 +155,35 @@ export function LetterGrid({
           return (
             <line
               key={`${cellKey(prev)}-${cellKey(cell)}`}
-              x1={`${a.x}%`}
-              y1={`${a.y}%`}
-              x2={`${b.x}%`}
-              y2={`${b.y}%`}
+              x1={a.x}
+              y1={a.y}
+              x2={b.x}
+              y2={b.y}
               stroke="var(--path)"
               strokeWidth="10"
               strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
               opacity="0.72"
             />
           );
         })
       : null;
 
-  const rings =
-    selected.length > 0
+  /** Square select rings only — hex select is painted on each tile (gap-proof). */
+  const squareRings =
+    !hex && selected.length > 0
       ? selected.map((cell) => {
           const c = cellCenter(cell.row, cell.col, n, topology);
           return (
             <circle
               key={`ring-${cellKey(cell)}`}
-              cx={`${c.x}%`}
-              cy={`${c.y}%`}
-              r="7%"
+              cx={c.x}
+              cy={c.y}
+              r={6.5}
               fill="color-mix(in srgb, var(--path) 28%, transparent)"
               stroke="var(--path)"
               strokeWidth="2.5"
+              vectorEffect="non-scaling-stroke"
               opacity="0.9"
             />
           );
@@ -214,72 +200,92 @@ export function LetterGrid({
         role="grid"
         aria-label="Letter grid"
         aria-busy={boardTurning || undefined}
-        className={`cp-board-well relative w-full select-none ${hex ? "" : "aspect-square"}`}
+        className="cp-board-well relative w-full select-none"
         style={{
           touchAction: "none",
           WebkitUserSelect: "none",
           pointerEvents: interactive ? undefined : "none",
-          ...(hex ? { aspectRatio: `${n + 0.5} / ${0.75 * (n - 1) + 1}` } : null),
         }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endPointer}
         onPointerCancel={endPointer}
       >
-        <svg className="pointer-events-none absolute inset-0 z-[5] h-full w-full" aria-hidden>
-          {connectors}
-          {rings}
-        </svg>
+        {/* Play surface = tile layout box (inside well pad). Path SVG shares this box. */}
         <div
-          className={
-            hex ? "relative z-10 h-full w-full" : "relative z-10 flex h-full w-full flex-col"
-          }
+          className="cp-board-play relative w-full"
+          style={{
+            aspectRatio: hex ? `${aspect.w} / ${aspect.h}` : "1",
+          }}
         >
-          {letters.map((row, rowIndex) => (
-            <div
-              key={rowIndex}
-              className={hex ? "absolute flex" : "flex flex-1 flex-row"}
-              role="row"
-              style={
-                hex
-                  ? {
-                      top: `${((rowIndex * 0.75) / (0.75 * (n - 1) + 1)) * 100}%`,
-                      left: rowIndex % 2 === 1 ? `${(0.5 / (n + 0.5)) * 100}%` : 0,
-                      width: `${(n / (n + 0.5)) * 100}%`,
-                      height: `${(1 / (0.75 * (n - 1) + 1)) * 100}%`,
-                    }
-                  : undefined
-              }
-            >
-              {row.map((letter, colIndex) => {
-                const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
-                return (
-                  <div
-                    key={`${rowIndex}-${colIndex}`}
-                    role="gridcell"
-                    data-tile
-                    data-row={rowIndex}
-                    data-col={colIndex}
-                    data-testid={`tile-${rowIndex}-${colIndex}`}
-                    className={`cp-tile ${active ? "cp-tile-active cp-tile-selected" : ""} ${
-                      dropping ? "cp-tile-drop" : ""
-                    }`}
-                    style={{
-                      ...(hex ? { clipPath: HEX_CLIP, borderRadius: 0 } : null),
-                      ...(dropping
-                        ? {
-                            animationDelay: `${(rowIndex * n + colIndex) * 28}ms`,
-                          }
-                        : null),
-                      zIndex: active ? 6 : 1,
-                    }}
-                  >
-                    <span className="cp-tile-letter">{letter}</span>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+          <svg
+            className="pointer-events-none absolute inset-0 z-[5] h-full w-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden
+          >
+            {connectors}
+            {squareRings}
+          </svg>
+          <div
+            className={
+              hex ? "relative z-10 h-full w-full" : "relative z-10 flex h-full w-full flex-col"
+            }
+          >
+            {letters.map((row, rowIndex) => (
+              <div
+                key={rowIndex}
+                className={hex ? "absolute flex" : "flex flex-1 flex-row"}
+                role="row"
+                style={hex ? hexRowStyle(rowIndex, n) : undefined}
+              >
+                {row.map((letter, colIndex) => {
+                  const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
+                  return (
+                    <div
+                      key={`${rowIndex}-${colIndex}`}
+                      role="gridcell"
+                      data-tile
+                      data-row={rowIndex}
+                      data-col={colIndex}
+                      data-testid={`tile-${rowIndex}-${colIndex}`}
+                      className={`cp-tile ${hex ? "cp-tile-hex" : ""} ${
+                        active ? "cp-tile-active cp-tile-selected" : ""
+                      } ${dropping ? "cp-tile-drop" : ""}`}
+                      style={{
+                        ...(hex ? { clipPath: HEX_CLIP, borderRadius: 0 } : null),
+                        ...(dropping
+                          ? {
+                              animationDelay: `${(rowIndex * n + colIndex) * 28}ms`,
+                            }
+                          : null),
+                        zIndex: active ? 6 : 1,
+                      }}
+                    >
+                      {hex && active ? (
+                        <svg
+                          className="cp-hex-select"
+                          viewBox="0 0 100 100"
+                          preserveAspectRatio="none"
+                          aria-hidden
+                        >
+                          <polygon
+                            points={HEX_TILE_POINTS}
+                            fill="color-mix(in srgb, var(--path) 28%, transparent)"
+                            stroke="var(--path)"
+                            strokeWidth="3"
+                            vectorEffect="non-scaling-stroke"
+                            opacity="0.95"
+                          />
+                        </svg>
+                      ) : null}
+                      <span className="cp-tile-letter">{letter}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

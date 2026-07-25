@@ -40,6 +40,18 @@ export function isAdjacent(a: Cell, b: Cell) {
 }
 
 /**
+ * Edge inset (each side) for tile hit acceptance.
+ * Gutter / near-edge hits are ignored so diagonal swipes don’t clip neighbors.
+ * Visual gap (CSS tile margin) + this inset = dead zone between letters.
+ */
+export const TILE_HIT_EDGE_INSET = 0.1;
+
+/** True when normalized cell/tile coords (0–1) are clearly inside the tile. */
+export function isInTileHitZone(nx: number, ny: number, inset = TILE_HIT_EDGE_INSET): boolean {
+  return nx >= inset && nx <= 1 - inset && ny >= inset && ny <= 1 - inset;
+}
+
+/**
  * Edge margin (each side) for backtrack hysteresis.
  * Pointer must be inside the inner (1 - 2·margin) square to pop/truncate —
  * corner grazes while aiming at a diagonal neighbor do not backtrack.

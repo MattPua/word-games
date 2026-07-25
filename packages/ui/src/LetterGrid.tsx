@@ -1,11 +1,13 @@
 import { useCallback, useRef, useState } from "react";
 import { View, Text, type LayoutChangeEvent, type GestureResponderEvent } from "react-native";
+import { HEX_CLIP } from "./hexLayout";
 import {
   applyPathCell,
   cellKey,
   cellsEqual,
   isAdjacent,
   isInBacktrackZone,
+  isInTileHitZone,
   type Cell,
   type LetterGridProps,
 } from "./pathCells";
@@ -21,6 +23,7 @@ export function LetterGrid({
   onPathEnd,
   dropping = false,
   className = "",
+  topology = "square",
   isAdjacent: adjacentFn = isAdjacent,
 }: LetterGridProps) {
   const size = letters.length;
@@ -28,6 +31,7 @@ export function LetterGrid({
   const dragging = useRef(false);
   const pathRef = useRef<Cell[]>([]);
   const selectedSet = new Set(selected.map(cellKey));
+  const hex = topology === "hex";
 
   const hitTest = useCallback(
     (pageX: number, pageY: number): { cell: Cell; allowBacktrack: boolean } | null => {
@@ -41,9 +45,13 @@ export function LetterGrid({
       const rowF = (localY / layout.h) * size;
       const col = Math.min(size - 1, Math.floor(colF));
       const row = Math.min(size - 1, Math.floor(rowF));
+      const nx = colF - col;
+      const ny = rowF - row;
+      // Full-cell pitch includes gutters — only accept clear interior hits.
+      if (!isInTileHitZone(nx, ny)) return null;
       return {
         cell: { row, col },
-        allowBacktrack: isInBacktrackZone(colF - col, rowF - row),
+        allowBacktrack: isInBacktrackZone(nx, ny),
       };
     },
     [layout, size],
@@ -121,14 +129,23 @@ export function LetterGrid({
                 <View
                   key={`${rowIndex}-${colIndex}`}
                   testID={`tile-${rowIndex}-${colIndex}`}
-                  className={`cp-tile ${active ? "cp-tile-active" : ""}`}
+                  className={`cp-tile ${hex ? "cp-tile-hex" : ""} ${active ? "cp-tile-active" : ""}`}
                   style={
-                    dropping
-                      ? {
-                          transform: [{ translateY: 800 }],
-                          opacity: 0,
-                        }
-                      : undefined
+                    {
+                      margin: 5,
+                      ...(hex
+                        ? {
+                            clipPath: HEX_CLIP,
+                            borderRadius: 0,
+                          }
+                        : null),
+                      ...(dropping
+                        ? {
+                            transform: [{ translateY: 800 }],
+                            opacity: 0,
+                          }
+                        : null),
+                    } as object
                   }
                 >
                   <Text className="cp-tile-letter">{letter}</Text>

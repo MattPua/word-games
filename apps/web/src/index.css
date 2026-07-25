@@ -110,31 +110,38 @@
       inset 0 1px 0 color-mix(in srgb, #fff 25%, transparent);
   }
 
-  /* Physical board turn — container spins; glyphs counter-rotate to stay upright. */
+  /* Physical board turn — container spins; glyphs counter-rotate to stay upright.
+     Duration must match BOARD_SPIN_MS in PlayPage. Idle `transition: none` avoids
+     reverse-spin when remapping (reset angle + letters in one paint). */
   .cp-board-spin {
     --cp-board-turn: 0deg;
     transform: rotate(var(--cp-board-turn));
     transform-origin: center center;
-    will-change: transform;
+    transition: none;
   }
 
   .cp-board-spin.is-turning {
-    transition: transform 420ms cubic-bezier(0.33, 1, 0.32, 1);
+    will-change: transform;
+    transition: transform 300ms cubic-bezier(0.2, 0.9, 0.3, 1);
   }
 
   .cp-board-spin .cp-tile-letter {
     transform: rotate(calc(-1 * var(--cp-board-turn)));
+    transition: none;
   }
 
   .cp-board-spin.is-turning .cp-tile-letter {
-    transition: transform 420ms cubic-bezier(0.33, 1, 0.32, 1);
+    transition: transform 300ms cubic-bezier(0.2, 0.9, 0.3, 1);
   }
 
   .cp-board-well {
+    /* Bump `--cp-tile-gap` for swipe gutters — hex select is on-tile, stays flush. */
+    --cp-board-pad: 0.45rem;
+    --cp-tile-gap: 0.32rem;
     border-radius: var(--radius);
     background: var(--board-well);
     box-shadow: inset 0 3px 10px color-mix(in srgb, #000 28%, transparent);
-    padding: 0.45rem;
+    padding: var(--cp-board-pad);
     cursor: grab;
   }
 
@@ -148,7 +155,8 @@
     flex: 1;
     align-items: center;
     justify-content: center;
-    margin: 0.2rem;
+    /* Wider gutters cut accidental neighbor swipes; margin is outside hit box. */
+    margin: var(--cp-tile-gap);
     border-radius: calc(var(--radius) - 0.15rem);
     cursor: inherit;
     border: 1.5px solid color-mix(in srgb, var(--tile-edge) 80%, #000);
@@ -170,12 +178,25 @@
   }
 
   .cp-tile-letter {
+    position: relative;
+    z-index: 1;
     pointer-events: none;
     font-family: Lexend, system-ui, sans-serif;
     font-weight: 700;
     font-size: clamp(1.35rem, 6.5vw, 1.85rem);
     line-height: 1;
     letter-spacing: 0.02em;
+  }
+
+  /* Hex select: same box + clip as cream tile — survives larger `--cp-tile-gap`. */
+  .cp-hex-select {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
   }
 
   .cp-tile-active {
@@ -190,6 +211,17 @@
       0 2px 0 color-mix(in srgb, var(--path) 70%, #2c322e),
       inset 0 1px 0 color-mix(in srgb, #fff 50%, transparent);
     transform: scale(1.02);
+  }
+
+  /* Hex tiles: clip-path kills square ring; select SVG is a child of the tile. */
+  .cp-tile-hex {
+    border-radius: 0;
+  }
+
+  .cp-tile-hex.cp-tile-active {
+    box-shadow:
+      0 2px 0 color-mix(in srgb, var(--path) 70%, #2c322e),
+      inset 0 1px 0 color-mix(in srgb, #fff 50%, transparent);
   }
 
   .cp-word-pill {
