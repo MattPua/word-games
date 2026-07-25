@@ -48,6 +48,8 @@ import { playAcceptedWordSound } from "../wordAcceptSound";
 
 const WIN_FLOURISH_MS = 1300;
 const BOARD_CLEAR_FLASH_MS = 1400;
+/** Must match `.cp-board-spin.is-turning` in `apps/web/src/index.css`. */
+const BOARD_SPIN_MS = 300;
 
 const REJECT_FLASH: Record<"short" | "invalid" | "duplicate", string> = {
   short: "Too short",
@@ -233,40 +235,44 @@ export function PlayPage() {
     rotateFallbackRef.current = null;
   };
 
+  /** Remap letters + clear CSS turn in one paint — idle has `transition: none` so no reverse spin. */
   const finishBoardTurn = () => {
     if (!rotatingRef.current) return;
     const steps = rotateStepsRef.current;
     clearRotateFallback();
-    applyRotate(steps);
     rotatingRef.current = false;
     rotateStepsRef.current = 1;
+    // Drop `is-turning` before angle reset so transform snaps with remapped letters.
     setBoardTurning(false);
     setBoardTurnDeg(0);
+    applyRotate(steps);
   };
 
   const rotate = (dir: 1 | -1) => {
     if (celebrate || rotatingRef.current) return;
     setPath([]);
-    const stepDeg = dir * 90;
     const reduceMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduceMotion) {
+    // Hex: 90° container spin can't land on odd-r honeycomb — remap only (still letters-only).
+    if (reduceMotion || topology === "hex") {
       applyRotate(dir);
       return;
     }
+    const stepDeg = dir * 90;
     rotatingRef.current = true;
     rotateStepsRef.current = dir;
     setBoardTurning(true);
-    // Ensure the browser applies `is-turning` before the angle changes.
+    // One frame so `is-turning` (transition on) applies before the angle changes.
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => setBoardTurnDeg(stepDeg));
+      if (!rotatingRef.current) return;
+      setBoardTurnDeg(stepDeg);
+      // Primary unlock = animation end (transitionend may also finish early).
+      clearRotateFallback();
+      rotateFallbackRef.current = window.setTimeout(() => {
+        if (rotatingRef.current) finishBoardTurn();
+      }, BOARD_SPIN_MS);
     });
-    // Fallback if transitionend is skipped (tab background, etc.).
-    clearRotateFallback();
-    rotateFallbackRef.current = window.setTimeout(() => {
-      if (rotatingRef.current) finishBoardTurn();
-    }, 520);
   };
 
   return (
