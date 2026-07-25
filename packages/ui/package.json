@@ -9,6 +9,9 @@
     ".": "./src/index.ts",
     "./theme.css": "./src/theme.css",
     "./logo.png": "./src/logo.png",
+    "./logo-celebrate.png": "./src/logo-celebrate.png",
+    "./logo-sprite.png": "./src/logo-sprite.png",
+    "./logo-sprite.json": "./src/logo-sprite.json",
     "./tailwind-preset": "./tailwind-preset.js"
   },
   "scripts": {
