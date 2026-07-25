@@ -40,8 +40,8 @@ module.exports = {
         potato: "var(--potato)",
       },
       fontFamily: {
-        display: ["Fredoka", "system-ui", "sans-serif"],
-        body: ["Nunito", "system-ui", "sans-serif"],
+        display: ["Grandstander", "system-ui", "sans-serif"],
+        body: ["Lexend", "system-ui", "sans-serif"],
       },
       borderRadius: {
         ui: "var(--radius)",

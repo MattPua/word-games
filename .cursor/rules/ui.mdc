@@ -6,7 +6,7 @@ alwaysApply: false
 
 # UI
 
-- Whimsical light-first (+ soft dark); Fredoka + Nunito; Sage Garden tokens from `packages/ui` theme.
+- Whimsical light-first (+ soft dark); **Grandstander** + **Lexend**; Sage Garden tokens from `packages/ui` theme.
 - **Motion:** any meaningful interactivity should show the change — short CSS/NativeWind transitions/feedback (segment pill slide, select pop, Target↔Timed swap, button press, path/score ticks, screen enter). Keep whimsical, light, performant. Prefer CSS; don’t animate everything mindlessly; honor `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.
 - **Web chrome:** shadcn/ui (Radix + Tailwind) is the preferred base for Button/input/dialog/toast — customize, don’t hand-roll duplicates. Game board (`LetterGrid`, path, tile drop, confetti) stays custom.
 - `packages/ui` RN Button = Expo/RN path; web app chrome → shadcn once initialized. Don’t maintain two competing web Buttons.

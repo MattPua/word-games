@@ -5,7 +5,7 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 ## Brand
 
 - Name: **Couch Potato** — silly potato-on-couch SVG (`packages/ui`)
-- Whimsical **light-first** (+ soft dark); Sage Garden tokens (tweaked); **Fredoka** + **Nunito**
+- Whimsical **light-first** (+ soft dark); Sage Garden tokens (tweaked); **Grandstander** (display) + **Lexend** (body/tiles)
 - Mobile-first; desktop = centered narrow play column
 - **Container queries = web-only**; shared layout uses flex + max-width
 - **Motion:** meaningful interactivity should show the change (short CSS/NativeWind transitions — segments, presses, score ticks, screen enters). Whimsical + performant; few intentional motions, not noise; respect `prefers-reduced-motion`. No anime.js unless CSS can’t cover it.
@@ -34,7 +34,7 @@ Swipe adjacent letters on a square grid. Casual word game — short sessions, fa
 ## Stack
 
 - Bun workspaces (**catalog** for shared dep versions); Vitest; Vite + TanStack Router → Vercel
-- **Web chrome:** prefer **shadcn/ui** (DOM) for buttons/inputs/toasts — Sage Garden tokens + Fredoka/Nunito. Game board stays custom (`LetterGrid`, path, confetti) in `packages/ui`.
+- **Web chrome:** prefer **shadcn/ui** (DOM) for buttons/inputs/toasts — Sage Garden tokens + Grandstander/Lexend. Game board stays custom (`LetterGrid`, path, confetti) in `packages/ui`.
 - `packages/ui`: game + shared presentational (grid, loading/empty, logo); RN Button remains for Expo later — **web screens should not add a second hand-rolled chrome Button** once shadcn is wired.
 - Loading / empty / 404–500 voice live in `packages/ui` (`LoadingPotato`, `EmptyState`) + thin web pages
 - Pointer Events for swipe paths (web); Hammer.js = reference only
@@ -49,6 +49,8 @@ TPP DRY: one authoritative place per piece of knowledge. No over-abstraction, no
 
 UI work is **not done** until interactively verified in a running local app (pointer swipe across tiles — not click-only). See `.cursor/skills/verify-ui`. Engine-only → Vitest; UI → Vitest **and** interactive check.
 
+**Mobile:** agent default is **Expo web** (`bun run mobile:web`) + Playwright smoke — see `.cursor/skills/verify-mobile`. Optional iOS Simulator boot when native launch matters. Full play QA remains on web until Expo play ships.
+
 ## Living agent docs
 
 When the user locks a new decision, update `AGENTS.md` / `.cursor/rules/` / `.cursor/skills/` in the same turn. See `.cursor/skills/sync-agent-docs` and `.cursor/rules/agent-docs.mdc`.
@@ -60,4 +62,4 @@ Hints, cloud, combos/multipliers, Next.js, Web Worker for gen, daily/streaks, fa
 ## Pointers
 
 - Rules: `.cursor/rules/` (`coding`, `agent-docs`, `ui`, `engine`)
-- Skills: `.cursor/skills/` (`verify-ui`, `cuelume`, `sync-agent-docs`, `new-mode-or-scoring`)
+- Skills: `.cursor/skills/` (`verify-ui`, `verify-mobile`, `cuelume`, `sync-agent-docs`, `new-mode-or-scoring`)

@@ -36,8 +36,8 @@
         "@couch-potato/dictionary": "workspace:*",
         "@couch-potato/game-engine": "workspace:*",
         "@couch-potato/ui": "workspace:*",
-        "@fontsource/fredoka": "^5.2.5",
-        "@fontsource/nunito": "^5.2.5",
+        "@fontsource/grandstander": "^5.3.0",
+        "@fontsource/lexend": "^5.3.0",
         "@radix-ui/react-slot": "^1.3.3",
         "@tanstack/react-router": "^1.114.25",
         "class-variance-authority": "^0.7.1",
@@ -477,9 +477,9 @@
 
     "@expo/xcpretty": ["@expo/xcpretty@4.4.4", "", { "dependencies": { "@babel/code-frame": "^7.20.0", "chalk": "^4.1.0", "js-yaml": "^4.1.0" }, "bin": { "excpretty": "build/cli.js" } }, "sha512-4aQzz9vgxcNXFfo/iyNgDDYfsU5XGKKxWxZopw0cVotHiW+U8IJbIxMaxsINs6bHhtkG3StKNPcOrn3eBuxKPw=="],
 
-    "@fontsource/fredoka": ["@fontsource/fredoka@5.3.0", "", {}, "sha512-s2IhjQ50wDnKkkaKmjhtL0rxQg6ITsVusiipM3m7zUwVZZbbCKsscNDkngwp28xVzfIt7neWrkgU1qKqyTycQg=="],
+    "@fontsource/grandstander": ["@fontsource/grandstander@5.3.0", "", {}, "sha512-H5JYRYKhDYrIJWYcLMzoiTSiokIKzD0/Ndi5CB5wQzeeoRokigLuS6EPwlgNjhUypaIsoA0Xa9gZMA8EGLlSdQ=="],
 
-    "@fontsource/nunito": ["@fontsource/nunito@5.3.0", "", {}, "sha512-vw9TaTQJ/zpEpKrsODuPmOvaVjXgdda6B+xXA4YqjrdeJ62MLgVoDerdRXFQHyBnSCt2yQ2nHKCHPP/Pv7Xq4Q=="],
+    "@fontsource/lexend": ["@fontsource/lexend@5.3.0", "", {}, "sha512-4igbsooynC6xwfagkAW6eo9JMrw8ALFGkWn1YChYmYchufMJSPgWihD+cy5ruX5YX/gDk/gllcl1Oj7q6KUZmw=="],
 
     "@isaacs/fs-minipass": ["@isaacs/fs-minipass@4.0.1", "", { "dependencies": { "minipass": "^7.0.4" } }, "sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w=="],
 
