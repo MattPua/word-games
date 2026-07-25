@@ -327,40 +327,30 @@ export function PlayPage() {
     <Shell className="relative overflow-hidden cp-fade-up">
       <ConfettiBurst active={celebrate} durationMs={WIN_FLOURISH_MS} />
 
-      <View className="mb-4 flex-row items-center justify-between gap-2">
-        <View className="min-w-0 flex-1 flex-row flex-wrap items-center gap-2">
+      {/* One calm top row: primary status + optional scout count + icon cluster */}
+      <View className="mb-3 flex-row items-center justify-between gap-3">
+        <View className="min-w-0 flex-1 flex-row items-center gap-3">
           {remaining != null ? (
             <View className="cp-hud-bubble" accessibilityLabel={`${remaining} points to clear`}>
               <Text className="font-display text-lg font-bold text-foreground">
                 {remaining} pts
               </Text>
             </View>
-          ) : (
-            <View className="cp-hud-bubble" accessibilityLabel={`Haul ${state.score}`}>
-              <Text className="font-display text-lg font-bold text-foreground">{state.score}</Text>
-            </View>
-          )}
-          {showWordsLeft ? (
-            <View
-              className="cp-hud-bubble"
-              accessibilityLabel={`${wordsLeft} words left on the board`}
-            >
-              <Text className="font-display text-lg font-bold text-foreground">
-                {wordsLeft} words
-              </Text>
-            </View>
-          ) : null}
-          {secs != null ? (
-            <View className="cp-hud-bubble">
+          ) : secs != null ? (
+            <View className="cp-hud-bubble" accessibilityLabel={`${secs} seconds left`}>
               <Text className="font-display text-lg font-bold text-foreground">{secs}s</Text>
             </View>
-          ) : remaining != null ? (
-            <View className="cp-hud-bubble min-w-[4.5rem]">
-              <Text className="font-display text-lg font-bold text-secondary">{state.score}</Text>
-            </View>
+          ) : null}
+          {showWordsLeft ? (
+            <Text
+              className="font-display text-sm font-semibold text-muted-foreground"
+              accessibilityLabel={`${wordsLeft} words left on the board`}
+            >
+              {wordsLeft} left
+            </Text>
           ) : null}
         </View>
-        <View className="flex-row items-center gap-1">
+        <View className="shrink-0 flex-row items-center gap-0.5">
           <IconTooltip label={showWordsLeft ? "Hide words left" : "Show words left"}>
             <Button
               variant="ghost"
