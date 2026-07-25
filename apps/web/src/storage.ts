@@ -140,6 +140,9 @@ export type LastRun = {
   grid: number;
   detail: string;
   isHighScore: boolean;
+  minWordLength: 3 | 4 | 5;
+  difficulty?: "easy" | "medium" | "hard";
+  duration?: 30 | 60 | 90 | 120;
 };
 
 const LAST_RUN = "couch-potato:last-run";

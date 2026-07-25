@@ -101,6 +101,9 @@ export function ResultsPage() {
           const launch: PlayLaunch = {
             mode: run.mode,
             grid: run.grid as 4 | 5 | 6,
+            minWordLength: run.minWordLength ?? 3,
+            difficulty: run.difficulty,
+            duration: run.duration,
           };
           saveLaunch(launch);
           navigate({ to: "/play" });

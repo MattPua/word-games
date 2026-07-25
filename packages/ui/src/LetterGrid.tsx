@@ -5,31 +5,32 @@ import {
   type LayoutChangeEvent,
   type GestureResponderEvent,
 } from "react-native";
+import {
+  applyPathCell,
+  cellKey,
+  type Cell,
+} from "./pathCells";
 
-export type Cell = { row: number; col: number };
+export type { Cell };
+export { applyPathCell, cellKey, cellsEqual, isAdjacent } from "./pathCells";
 
 export type LetterGridProps = {
   letters: string[][];
   selected?: Cell[];
   onPathChange?: (path: Cell[]) => void;
   onPathEnd?: (path: Cell[]) => void;
+  /** Staggered tile drop when round is won. */
+  dropping?: boolean;
   className?: string;
 };
 
-function cellKey(c: Cell) {
-  return `${c.row},${c.col}`;
-}
-
-function isAdjacent(a: Cell, b: Cell) {
-  return Math.max(Math.abs(a.row - b.row), Math.abs(a.col - b.col)) === 1;
-}
-
-/** Square letter board with pointer-driven path selection. */
+/** Square letter board with pointer-driven path selection (RN / Expo). */
 export function LetterGrid({
   letters,
   selected = [],
   onPathChange,
   onPathEnd,
+  dropping = false,
   className = "",
 }: LetterGridProps) {
   const size = letters.length;
@@ -53,14 +54,10 @@ export function LetterGrid({
     [layout, size],
   );
 
-  const append = useCallback(
+  const touch = useCallback(
     (cell: Cell) => {
-      const path = pathRef.current;
-      const last = path[path.length - 1];
-      if (last && last.row === cell.row && last.col === cell.col) return;
-      if (path.some((c) => c.row === cell.row && c.col === cell.col)) return;
-      if (last && !isAdjacent(last, cell)) return;
-      const next = [...path, cell];
+      const next = applyPathCell(pathRef.current, cell);
+      if (!next) return;
       pathRef.current = next;
       onPathChange?.(next);
     },
@@ -69,9 +66,10 @@ export function LetterGrid({
 
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
-    // measureInWindow for page coords — RN-web provides it on View
     const target = e.target as unknown as {
-      measureInWindow?: (cb: (x: number, y: number, w: number, h: number) => void) => void;
+      measureInWindow?: (
+        cb: (x: number, y: number, w: number, h: number) => void,
+      ) => void;
     };
     target.measureInWindow?.((x, y) => {
       setLayout({ w: width, h: height, x, y });
@@ -84,16 +82,17 @@ export function LetterGrid({
   const onStart = (e: GestureResponderEvent) => {
     dragging.current = true;
     pathRef.current = [];
+    onPathChange?.([]);
     const { pageX, pageY } = e.nativeEvent;
     const cell = hitTest(pageX, pageY);
-    if (cell) append(cell);
+    if (cell) touch(cell);
   };
 
   const onMove = (e: GestureResponderEvent) => {
     if (!dragging.current) return;
     const { pageX, pageY } = e.nativeEvent;
     const cell = hitTest(pageX, pageY);
-    if (cell) append(cell);
+    if (cell) touch(cell);
   };
 
   const onEnd = () => {
@@ -119,20 +118,26 @@ export function LetterGrid({
       {letters.map((row, rowIndex) => (
         <View key={rowIndex} className="flex-1 flex-row">
           {row.map((letter, colIndex) => {
-            const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
+            const active = selectedSet.has(
+              cellKey({ row: rowIndex, col: colIndex }),
+            );
             return (
               <View
                 key={`${rowIndex}-${colIndex}`}
                 testID={`tile-${rowIndex}-${colIndex}`}
-                className={`m-0.5 flex-1 items-center justify-center rounded-ui border border-border ${
-                  active ? "bg-path" : "bg-card"
+                className={`m-0.5 flex-1 items-center justify-center rounded-ui border-2 ${
+                  active ? "border-path bg-secondary" : "border-border bg-card"
                 }`}
+                style={
+                  dropping
+                    ? {
+                        transform: [{ translateY: 800 }],
+                        opacity: 0,
+                      }
+                    : undefined
+                }
               >
-                <Text
-                  className={`font-body text-2xl font-extrabold ${
-                    active ? "text-primary-foreground" : "text-foreground"
-                  }`}
-                >
+                <Text className="font-body text-2xl font-extrabold text-foreground">
                   {letter}
                 </Text>
               </View>

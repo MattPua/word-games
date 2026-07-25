@@ -1,50 +1,36 @@
 import { useCallback, useRef, type PointerEvent as ReactPointerEvent } from "react";
-import type { Cell, LetterGridProps } from "./LetterGrid";
+import {
+  applyPathCell,
+  cellKey,
+  type Cell,
+  type LetterGridProps,
+} from "./LetterGrid";
 
 export type { Cell, LetterGridProps };
-
-function cellKey(c: Cell) {
-  return `${c.row},${c.col}`;
-}
-
-function isAdjacent(a: Cell, b: Cell) {
-  return Math.max(Math.abs(a.row - b.row), Math.abs(a.col - b.col)) === 1;
-}
-
-function readCell(el: Element | null): Cell | null {
-  const tile = el?.closest?.("[data-tile]") as HTMLElement | null;
-  if (!tile) return null;
-  const row = Number(tile.dataset.row);
-  const col = Number(tile.dataset.col);
-  if (Number.isNaN(row) || Number.isNaN(col)) return null;
-  return { row, col };
-}
+export { applyPathCell } from "./pathCells";
 
 /**
- * Web LetterGrid — native Pointer Events + elementFromPoint hit-testing.
- * Path updates live on pointermove; touch-action: none prevents scroll steal.
+ * Web LetterGrid — Pointer Events + elementFromPoint.
+ * Path stroke sits behind tiles; selection tint keeps letters readable.
+ * Revisiting an earlier path cell truncates (backtrack undo).
  */
 export function LetterGrid({
   letters,
   selected = [],
   onPathChange,
   onPathEnd,
+  dropping = false,
   className = "",
 }: LetterGridProps) {
-  const rootRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const pathRef = useRef<Cell[]>([]);
   const pointerId = useRef<number | null>(null);
   const selectedSet = new Set(selected.map(cellKey));
 
-  const append = useCallback(
+  const touch = useCallback(
     (cell: Cell) => {
-      const path = pathRef.current;
-      const last = path[path.length - 1];
-      if (last && last.row === cell.row && last.col === cell.col) return;
-      if (path.some((c) => c.row === cell.row && c.col === cell.col)) return;
-      if (last && !isAdjacent(last, cell)) return;
-      const next = [...path, cell];
+      const next = applyPathCell(pathRef.current, cell);
+      if (!next) return;
       pathRef.current = next;
       onPathChange?.(next);
     },
@@ -54,8 +40,12 @@ export function LetterGrid({
   const hit = useCallback((clientX: number, clientY: number): Cell | null => {
     const stack = document.elementsFromPoint(clientX, clientY);
     for (const el of stack) {
-      const cell = readCell(el);
-      if (cell) return cell;
+      const tile = (el as Element).closest?.("[data-tile]") as HTMLElement | null;
+      if (!tile) continue;
+      const row = Number(tile.dataset.row);
+      const col = Number(tile.dataset.col);
+      if (Number.isNaN(row) || Number.isNaN(col)) continue;
+      return { row, col };
     }
     return null;
   }, []);
@@ -69,14 +59,14 @@ export function LetterGrid({
     onPathChange?.([]);
     e.currentTarget.setPointerCapture(e.pointerId);
     const cell = hit(e.clientX, e.clientY);
-    if (cell) append(cell);
+    if (cell) touch(cell);
   };
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragging.current || pointerId.current !== e.pointerId) return;
     e.preventDefault();
     const cell = hit(e.clientX, e.clientY);
-    if (cell) append(cell);
+    if (cell) touch(cell);
   };
 
   const endPointer = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -92,12 +82,11 @@ export function LetterGrid({
     pathRef.current = [];
   };
 
-  // SVG connectors between selected cell centers (cheap visual)
+  const n = letters.length;
   const connectors =
     selected.length > 1
       ? selected.slice(1).map((cell, i) => {
           const prev = selected[i]!;
-          const n = letters.length;
           const x1 = ((prev.col + 0.5) / n) * 100;
           const y1 = ((prev.row + 0.5) / n) * 100;
           const x2 = ((cell.col + 0.5) / n) * 100;
@@ -110,9 +99,9 @@ export function LetterGrid({
               x2={`${x2}%`}
               y2={`${y2}%`}
               stroke="var(--path)"
-              strokeWidth="6"
+              strokeWidth="5"
               strokeLinecap="round"
-              opacity="0.85"
+              opacity="0.55"
             />
           );
         })
@@ -120,7 +109,6 @@ export function LetterGrid({
 
   return (
     <div
-      ref={rootRef}
       role="grid"
       aria-label="Letter grid"
       className={`relative aspect-square w-full select-none ${className}`}
@@ -130,13 +118,14 @@ export function LetterGrid({
       onPointerUp={endPointer}
       onPointerCancel={endPointer}
     >
+      {/* Path behind tiles so glyphs stay readable */}
       <svg
-        className="pointer-events-none absolute inset-0 z-10 h-full w-full"
+        className="pointer-events-none absolute inset-0 z-0 h-full w-full"
         aria-hidden
       >
         {connectors}
       </svg>
-      <div className="relative z-0 flex h-full w-full flex-col">
+      <div className="relative z-10 flex h-full w-full flex-col">
         {letters.map((row, rowIndex) => (
           <div key={rowIndex} className="flex flex-1 flex-row" role="row">
             {row.map((letter, colIndex) => {
@@ -151,15 +140,26 @@ export function LetterGrid({
                   data-row={rowIndex}
                   data-col={colIndex}
                   data-testid={`tile-${rowIndex}-${colIndex}`}
-                  className={`m-0.5 flex flex-1 items-center justify-center rounded-ui border border-border ${
-                    active ? "bg-path" : "bg-card"
-                  }`}
+                  className={`m-0.5 flex flex-1 items-center justify-center rounded-ui border-2 ${
+                    active
+                      ? "border-path bg-secondary"
+                      : "border-border bg-card"
+                  } ${dropping ? "cp-tile-drop" : ""}`}
+                  style={{
+                    ...(active
+                      ? {
+                          backgroundColor:
+                            "color-mix(in srgb, var(--path) 22%, var(--card))",
+                        }
+                      : null),
+                    ...(dropping
+                      ? {
+                          animationDelay: `${(rowIndex * n + colIndex) * 28}ms`,
+                        }
+                      : null),
+                  }}
                 >
-                  <span
-                    className={`pointer-events-none font-body text-2xl font-extrabold ${
-                      active ? "text-primary-foreground" : "text-foreground"
-                    }`}
-                  >
+                  <span className="pointer-events-none font-body text-2xl font-extrabold text-foreground">
                     {letter}
                   </span>
                 </div>
