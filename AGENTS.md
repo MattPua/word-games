@@ -16,7 +16,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 
 ## Game rules (engine owns these)
 
-- Grids 4×4 / 5×5 / 6×6; topology **square** (8-way) or **hex / B-comb** (6-way odd-r); **no tile reuse in one swipe**
+- Grids 4×4 / 5×5 / 6×6; topology **square** (8-way) or **hex / Honeycomb** (6-way odd-r); **no tile reuse in one swipe**
 - **Rotate:** same letters, new view — **90°** CW or CCW (separate controls). Letters-only remap (never re-gen). **Square:** CSS board spin (~300ms) then remap; input locked mid-spin only — unlock on animation end (no extra beat). Glyphs counter-rotate so they stay upright. **Frame chrome + box-shadow stay on non-rotating `.cp-board-frame`**; only inner `.cp-board-spin` transforms (idle `transition: none` so angle remap doesn’t reverse-spin). **Hex / reduced-motion:** instant remap (90° container spin can’t land on odd-r honeycomb).
 - Tiles stay for the round (reusable across words)
 - Min word length: global floor **3**; per-game setup may raise to **4** or **5**
@@ -38,7 +38,7 @@ Swipe adjacent letters on a square or honeycomb grid. Casual word game — short
 - PostHog stub (`VITE_PUBLIC_POSTHOG_KEY`); no-op without key
 - Sounds: **[cuelume](https://cuelume-site.pages.dev/agents.md)** SFX on web only; mute from **home, play HUD, or pause menu** (`soundEnabled` prefs + `setEnabled`) — see `.cursor/skills/cuelume`. **Lobby jam** (`public/audio/menu-bgm.mp3`, `menuMusicEnabled`) loops on home / couch crew / play (quieter bed under SFX on `/play`; fades out on results); Couch break mute/unmute mid-run; separate toggle from SFX
 - **Status pill heat:** primary pts/timer pill escalates muted → sage/`path` → potato `secondary` as Goal clear progress (`1 − remaining/target`) or timed haul (`score/maxScore`); brief pulse on clear/haul; `prefers-reduced-motion` = color only. See `.cursor/rules/ui.mdc` Play HUD.
-- **Words left** HUD (`showWordsLeft` device pref, default **off**): unfound valid words on the board (`allWords − found`), not target pts remaining; toggle in lobby + Couch break only — play HUD shows muted “N left” readout when on (no eye in the HUD cluster)
+- **Words left** HUD (`showWordsLeft` device pref, default **off**; UI: **Show words left**): unfound valid words on the board (`allWords − found`), not target pts remaining; toggle in lobby + Couch break only — play HUD shows muted “N left” readout when on (no eye in the HUD cluster)
 - **Chrome icons:** prefer lucide for controls/options (sound / lobby jam / pause / rotate / couch crew / share; lobby mode/challenge/board/word length/words left). Always `aria-label` on icon-only; web uses shadcn `IconTooltip` (game voice; see `.cursor/rules/ui.mdc`). Icon-only sizes share `.cp-icon-btn` hover/press/on motion. **Active/selected/on** must be obvious: potato `secondary` or sage `primary` icon color (+ soft fill), ring, and weight, not muted grey with a border-only change. Words-left eye lives in Couch break + lobby Words left row, not the play HUD cluster.
 
 ## Stack
