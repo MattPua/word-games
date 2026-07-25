@@ -45,17 +45,17 @@ export function HomePage() {
 
   return (
     <Shell className="cp-fade-up">
-      <View className="mb-6 items-center">
+      <View className="mb-4 items-center">
         <View className="cp-logo-float">
-          <Logo size={112} />
+          <Logo size={72} />
         </View>
-        <Text className="cp-display mt-3">Couch Potato</Text>
-        <Text className="mt-1.5 max-w-[18rem] text-center font-body text-sm leading-relaxed text-muted-foreground">
+        <Text className="cp-display mt-2">Couch Potato</Text>
+        <Text className="mt-1 max-w-[18rem] text-center font-body text-sm leading-relaxed text-muted-foreground">
           Swipe letters. Find words. Stay on the couch.
         </Text>
       </View>
 
-      <View className="mb-4 flex-row items-center justify-between">
+      <View className="mb-3 flex-row items-center justify-between">
         <Text className="font-body text-sm font-semibold text-foreground">
           Playing as {profile.name}
         </Text>

@@ -8,7 +8,7 @@ export type ShellProps = ViewProps & {
 export function Shell({ className = "", children, ...rest }: ShellProps) {
   return (
     <View
-      className={`mx-auto w-full max-w-md flex-1 bg-transparent px-4 py-6 ${className}`}
+      className={`cp-shell mx-auto w-full max-w-md flex-1 bg-transparent px-4 pb-6 ${className}`}
       {...rest}
     >
       {children}

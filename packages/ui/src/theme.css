@@ -90,6 +90,11 @@
   }
 }
 
+/* Compact top; respect notch without a huge empty band */
+.cp-shell {
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+}
+
 .cp-logo-float {
   animation: cp-soft-float 4.5s ease-in-out infinite;
 }
