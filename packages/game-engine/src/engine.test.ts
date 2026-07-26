@@ -1,6 +1,7 @@
 import { createDictionary } from "@couch-potato/dictionary";
 import { describe, expect, it } from "vitest";
 import {
+  BOARD_THRESHOLDS,
   GEN_RETRY_CAP,
   SURVIVAL_START_SECONDS,
   TARGET_RATIOS,
@@ -9,6 +10,7 @@ import {
   letterMixWeights,
   scoreWord,
   survivalBonusSeconds,
+  thresholdsForDifficulty,
 } from "./config";
 import { findAllWords, findPathForWord } from "./findWords";
 import { buildBoard, generateBoard } from "./generate";
@@ -16,6 +18,7 @@ import {
   createGame,
   highScoreKey,
   missedLongWords,
+  MISSED_OTHER_PER_LENGTH,
   missedOtherWords,
   quitGame,
   submitPath,
@@ -445,8 +448,37 @@ describe("missedOtherWords", () => {
     expect(long.every((w) => leftover.has(w))).toBe(true);
     expect(more.every((w) => leftover.has(w) && !long.includes(w) && w.length >= 4)).toBe(true);
     expect(more.every((w) => w.length >= 4)).toBe(true);
-    const skippedShort = [...leftover].filter((w) => w.length < 4 && !long.includes(w));
-    expect(long.length + more.length + skippedShort.length).toBe(leftover.size);
+  });
+
+  it("caps each length bucket so Results stays scannable", () => {
+    const fours = Array.from({ length: 10 }, (_, i) => `w${String(i).padStart(3, "0")}`);
+    const fives = Array.from({ length: 8 }, (_, i) => `x${String(i).padStart(4, "0")}`);
+    const state = {
+      board: {
+        letters: [["A"]],
+        size: 1 as const,
+        topology: "square" as const,
+        allWords: [...fours, ...fives, "cat"],
+        maxScore: 0,
+        targets: { easy: 0, medium: 0, hard: 0 },
+      },
+      config: {
+        mode: "timed" as const,
+        duration: 60 as const,
+        difficulty: "medium" as const,
+        minWordLength: 3 as const,
+      },
+      score: 0,
+      found: [] as string[],
+      target: null,
+      remaining: null,
+      remainingMs: 60_000,
+      ended: null,
+    };
+    const more = missedOtherWords(state, [], MISSED_OTHER_PER_LENGTH);
+    expect(more.filter((w) => w.length === 4)).toHaveLength(MISSED_OTHER_PER_LENGTH);
+    expect(more.filter((w) => w.length === 5)).toHaveLength(MISSED_OTHER_PER_LENGTH);
+    expect(more.some((w) => w.length === 3)).toBe(false);
   });
 });
 
@@ -470,8 +502,8 @@ describe("computeTargets", () => {
     expect(t.easy).toBeLessThan(t.medium);
     expect(t.medium).toBeLessThan(t.hard);
     expect(t.hard).toBeLessThan(maxScore);
-    // Short-first word p50/~p58/p80 → pts ≈ 0.30/0.40/0.65 (not raw max percentiles)
-    expect(TARGET_RATIOS.easy).toBe(0.3);
+    // Short-first word ~p40/~p58/p80 → pts ≈ 0.25/0.40/0.65 (not raw max percentiles)
+    expect(TARGET_RATIOS.easy).toBe(0.25);
     expect(TARGET_RATIOS.medium).toBe(0.4);
     expect(TARGET_RATIOS.hard).toBe(0.65);
     expect(TARGET_RATIOS.hard).toBeLessThan(0.75);
@@ -873,6 +905,19 @@ describe("letter variety by difficulty", () => {
     expect(hard.e!).toBeGreaterThan(hard.z!);
   });
 
+  it("boosts vowels on Easy relative to Medium (crumb-friendly boards)", () => {
+    const easy = letterMixWeights({}, "easy");
+    const medium = letterMixWeights({}, "medium");
+    const vowelShare = (w: Record<string, number>) => {
+      const vowels = w.a! + w.e! + w.i! + w.o! + w.u!;
+      const all = Object.values(w).reduce((s, n) => s + n, 0);
+      return vowels / all;
+    };
+    expect(vowelShare(easy)).toBeGreaterThan(vowelShare(medium));
+    // Easy e vs a mid consonant should beat Medium's same ratio.
+    expect(easy.e! / easy.t!).toBeGreaterThan(medium.e! / medium.t!);
+  });
+
   it("docks a repeated letter's weight harder on higher difficulties", () => {
     const repeats = { e: 4 };
     const relativeDrop = (difficulty: "easy" | "medium" | "hard") =>
@@ -900,6 +945,35 @@ describe("letter variety by difficulty", () => {
       hardSum += distinctLetters(hard.letters);
     }
     expect(hardSum).toBeGreaterThan(easySum);
+  });
+
+  it("Easy boards place more vowel tiles than Hard on the same seeds", () => {
+    const dict = createDictionary();
+    const vowels = new Set(["A", "E", "I", "O", "U"]);
+    const vowelShare = (letters: string[][]) => {
+      const flat = letters.flat();
+      return flat.filter((c) => vowels.has(c)).length / flat.length;
+    };
+    let easyV = 0;
+    let hardV = 0;
+    for (const seed of [21, 22, 23, 24, 25]) {
+      easyV += vowelShare(generateBoard({ size: 5, dict, difficulty: "easy", seed }).letters);
+      hardV += vowelShare(generateBoard({ size: 5, dict, difficulty: "hard", seed }).letters);
+    }
+    expect(easyV).toBeGreaterThan(hardV);
+  });
+
+  it("Easy softens long-word gen floors while keeping ge3/ge4 and ge6≥1", () => {
+    const base = BOARD_THRESHOLDS.square[5];
+    const easy = thresholdsForDifficulty(base, "easy");
+    expect(easy.ge3).toBe(base.ge3);
+    expect(easy.ge4).toBe(base.ge4);
+    expect(easy.ge5).toBeLessThan(base.ge5);
+    expect(easy.ge6).toBeGreaterThanOrEqual(1);
+    expect(easy.ge6).toBeLessThan(base.ge6);
+    expect(easy.ge7).toBe(0);
+    expect(easy.ge10).toBe(0);
+    expect(thresholdsForDifficulty(base, "medium")).toEqual(base);
   });
 });
 

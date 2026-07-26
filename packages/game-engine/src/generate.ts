@@ -6,6 +6,7 @@ import {
   MIN_WORD_LENGTH,
   computeTargets,
   letterMixWeights,
+  thresholdsForDifficulty,
   thresholdsForMinLength,
   type Difficulty,
   type GridSize,
@@ -138,7 +139,10 @@ export function generateBoard(opts: GenerateOptions): Board {
   const difficulty = opts.difficulty ?? "medium";
   const rng = opts.rng ?? createSeededRng(opts.seed ?? Date.now());
   const cap = opts.retryCap ?? GEN_RETRY_CAP;
-  const thresholds = thresholdsForMinLength(BOARD_THRESHOLDS[topology][opts.size], minWordLength);
+  const thresholds = thresholdsForDifficulty(
+    thresholdsForMinLength(BOARD_THRESHOLDS[topology][opts.size], minWordLength),
+    difficulty,
+  );
 
   let best: Board | null = null;
   let bestScore = -1;
@@ -151,16 +155,25 @@ export function generateBoard(opts: GenerateOptions): Board {
     const popular = popularRatio(board.allWords, opts.dict);
     const hardOk = board.targets.hard <= board.maxScore && board.maxScore > 0;
     const floorOk = board.maxScore >= HARD_TARGET_FLOOR || minWordLength > 3;
-    // Prefer meatier hauls when picking best-effort fallback — weight rare
-    // 8+/10+ finds hard so boards that can land them win the ranking.
-    const longWordBonus =
-      counts.ge5 * 2 +
-      counts.ge6 * 8 +
-      counts.ge7 * 20 +
-      counts.ge8 * 45 +
-      counts.ge10 * 120;
+    // Easy: rank crumb density (short finds) so first points come fast.
+    // Med/Hard: still prefer meatier 8+/10+ hauls when picking fallback.
     const quality =
-      board.allWords.length * 0.4 + popular * 100 + (hardOk && floorOk ? 20 : 0) + longWordBonus;
+      difficulty === "easy"
+        ? board.allWords.length * 0.9 +
+          popular * 100 +
+          (hardOk && floorOk ? 20 : 0) +
+          counts.ge3 * 1.2 +
+          counts.ge4 * 2.5 +
+          counts.ge5 * 1.5 +
+          counts.ge6 * 2
+        : board.allWords.length * 0.4 +
+          popular * 100 +
+          (hardOk && floorOk ? 20 : 0) +
+          counts.ge5 * 2 +
+          counts.ge6 * 8 +
+          counts.ge7 * 20 +
+          counts.ge8 * 45 +
+          counts.ge10 * 120;
 
     if (quality > bestScore) {
       bestScore = quality;

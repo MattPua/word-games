@@ -327,7 +327,7 @@ export function ResultsPage() {
                 />
               </Button>
               <span className="mt-1 font-body text-sm text-muted-foreground">
-                Shorter mid-length finds still hiding (3-letter crumbs stay off). Tap to peek.
+                A few more mid-length finds still hiding. Tap to peek.
               </span>
               <div
                 id="results-more-panel"

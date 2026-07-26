@@ -30,3 +30,11 @@ export function formatRunMeta(run: RunMetaInput): string {
   if (run.mode === "survival") return `Survival · ${diff} · ${min}`;
   return `Goal · ${diff} · ${min}`;
 }
+
+/** Goal stopwatch HUD — always `m:ss` (counts up while unpaused). */
+export function formatElapsedClock(ms: number): string {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}

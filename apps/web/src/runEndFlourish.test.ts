@@ -6,6 +6,6 @@ describe("runEndPill", () => {
     expect(runEndPill("won", "target")).toBe("Couch clear!");
     expect(runEndPill("timeout", "timed")).toBe("Time's up!");
     expect(runEndPill("timeout", "survival")).toBe("Clock ran dry!");
-    expect(runEndPill("quit", "timed")).toBe("Haul locked!");
+    expect(runEndPill("quit", "timed")).toBe("That's a wrap!");
   });
 });

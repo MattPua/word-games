@@ -88,7 +88,7 @@ import {
 import { applyMenuMusicEnabled } from "../menuMusic";
 import { applyTheme, resolveTheme } from "../theme";
 import { playAcceptedWordSound } from "../wordAcceptSound";
-import { formatRunChallengeBadge, formatRunMeta } from "../runMeta";
+import { formatElapsedClock, formatRunChallengeBadge, formatRunMeta } from "../runMeta";
 import { ModeGlyph } from "../modeGlyph";
 import { playLaunchFromSearch } from "../playLaunchSearch";
 import { playRunEndSound, runEndPill, type RunEndReason } from "../runEndFlourish";
@@ -229,9 +229,10 @@ export function PlayPage() {
   };
   /** Survival: total clock ever granted (start + all refills) so we can derive time survived at the end. */
   const survivalBudgetMsRef = useRef(0);
-  /** Goal: wall-clock active play (pause excluded) for Potato Board WPM. */
+  /** Goal: wall-clock active play (pause excluded) for Potato Board WPM + HUD stopwatch. */
   const goalElapsedMsRef = useRef(0);
   const goalTickAtRef = useRef<number | null>(null);
+  const [goalElapsedMs, setGoalElapsedMs] = useState(0);
   const [survivalBump, setSurvivalBump] = useState<{ id: number; seconds: number } | null>(null);
 
   const openPause = () => {
@@ -326,6 +327,7 @@ export function PlayPage() {
       config.mode === "survival" ? SURVIVAL_START_SECONDS[config.difficulty] * 1000 : 0;
     goalElapsedMsRef.current = 0;
     goalTickAtRef.current = null;
+    setGoalElapsedMs(0);
     finished.current = false;
     boardClearedRef.current = false;
     hudSignalRef.current = null;
@@ -466,10 +468,14 @@ export function PlayPage() {
     return () => window.clearInterval(id);
   }, [state?.remainingMs == null, state?.ended, clockPaused]);
 
-  // Goal has no engine clock — accumulate wall time while unpaused for WPM.
+  // Goal has no engine clock — accumulate wall time while unpaused for WPM + HUD.
   useEffect(() => {
     if (!state || state.ended || clockPaused || state.config.mode !== "target") {
-      goalTickAtRef.current = null;
+      if (goalTickAtRef.current != null) {
+        goalElapsedMsRef.current += performance.now() - goalTickAtRef.current;
+        goalTickAtRef.current = null;
+        setGoalElapsedMs(goalElapsedMsRef.current);
+      }
       return;
     }
     goalTickAtRef.current = performance.now();
@@ -479,6 +485,7 @@ export function PlayPage() {
         goalElapsedMsRef.current += now - goalTickAtRef.current;
       }
       goalTickAtRef.current = now;
+      setGoalElapsedMs(goalElapsedMsRef.current);
     }, 250);
     return () => window.clearInterval(id);
   }, [state?.ended, clockPaused, state?.config.mode]);
@@ -794,8 +801,18 @@ export function PlayPage() {
             {/* `.cp-hud-bubble` already bakes in font-display/size/weight — the
                 text just needs to inherit color (bubble sets it per heat tier). */}
             {remaining != null ? (
-              <div className={hudBubbleClass} aria-label={`${remaining} points left to clear`}>
-                <span style={{ color: "inherit" }}>{remaining} points left</span>
+              <div className="flex items-center gap-2.5">
+                <div className={hudBubbleClass} aria-label={`${remaining} points left to clear`}>
+                  <span style={{ color: "inherit" }}>{remaining} points left</span>
+                </div>
+                <span
+                  className="cp-goal-elapsed font-display text-sm font-semibold tabular-nums text-muted-foreground"
+                  role="timer"
+                  aria-label={`Elapsed ${formatElapsedClock(goalElapsedMs)}`}
+                  data-testid="goal-elapsed"
+                >
+                  {formatElapsedClock(goalElapsedMs)}
+                </span>
               </div>
             ) : secs != null && state.remainingMs != null ? (
               <div className="relative shrink-0">

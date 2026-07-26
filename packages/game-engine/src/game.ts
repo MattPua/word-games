@@ -152,15 +152,32 @@ export function missedLongWords(state: GameState, dict: Dictionary, limit = 8): 
 /**
  * Other unfound board words after the long tease — mid-length leftovers.
  * Skips 3-letter crumbs (too many / too noisy for Results). `exclude` = words
- * already shown under Long ones left.
+ * already shown under Long ones left. Cap per length so dense boards don’t
+ * dump a wall of 4-letter chips.
  */
-export function missedOtherWords(state: GameState, exclude: readonly string[] = []): string[] {
+export const MISSED_OTHER_PER_LENGTH = 6;
+
+export function missedOtherWords(
+  state: GameState,
+  exclude: readonly string[] = [],
+  perLength = MISSED_OTHER_PER_LENGTH,
+): string[] {
   const found = new Set(state.found);
   const skip = new Set(exclude);
   const floor = Math.max(4, state.config.minWordLength);
-  return state.board.allWords
+  const sorted = state.board.allWords
     .filter((w) => !found.has(w) && !skip.has(w) && w.length >= floor)
     .sort(compareWordsByLengthThenAlpha);
+
+  const kept: string[] = [];
+  const usedByLen = new Map<number, number>();
+  for (const w of sorted) {
+    const n = usedByLen.get(w.length) ?? 0;
+    if (n >= perLength) continue;
+    usedByLen.set(w.length, n + 1);
+    kept.push(w);
+  }
+  return kept;
 }
 
 export function highScoreKey(

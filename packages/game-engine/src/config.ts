@@ -18,17 +18,18 @@ export function scoreWord(length: number): number {
  * Goal targets as a fraction of board `maxScore` (points, not word count),
  * then **capped** so crumb-dense boards don’t demand triple-digit clears.
  *
- * Challenge ladder ≈ short-first word-coverage percentiles (Easy p50 / Med ~p58 /
+ * Challenge ladder ≈ short-first word-coverage percentiles (Easy ~p40 / Med ~p58 /
  * Hard p80): 3-letter words are 1pt, so pts% ≪ word% under casual short-first
  * play. Monte Carlo over gen boards (~40× 4×4/5×5 square + 5×5 hex): clearing
  * 50/75/80% of words short-first yields ~0.31/0.58/0.65 of maxScore. We ship
- * ratios **0.30 / 0.40 / 0.65**, then clamp with `TARGET_CAPS` — dense 5×5/6×6
- * boards can have maxScore 200–300+ from short crumbs; without a cap, Med still
- * shows ~100+ “pts left” even when only a fraction of words is needed. Caps keep
+ * ratios **0.25 / 0.40 / 0.65** (Easy eased under that p50 estimate so first
+ * clears feel chill), then clamp with `TARGET_CAPS` — dense 5×5/6×6 boards can
+ * have maxScore 200–300+ from short crumbs; without a cap, Med still shows
+ * ~100+ “pts left” even when only a fraction of words is needed. Caps keep
  * Easy < Med < Hard. Scoring stays `length − 2`.
  */
 export const TARGET_RATIOS = {
-  easy: 0.3,
+  easy: 0.25,
   medium: 0.4,
   hard: 0.65,
 } as const;
@@ -38,7 +39,7 @@ export const TARGET_RATIOS = {
  * Tune here when dense boards feel intimidating despite a low ratio.
  */
 export const TARGET_CAPS = {
-  easy: 48,
+  easy: 36,
   medium: 75,
   hard: 105,
 } as const;
@@ -210,31 +211,60 @@ export const LETTER_WEIGHTS: Record<string, number> = {
  * - `flatten` (0-1 exponent on `LETTER_WEIGHTS`): lower = flatter distribution
  *   = rarer letters relatively more likely. 1 = unchanged common bias.
  * - `repeatPenalty`: how hard an already-placed letter is docked per repeat
- *   within one board, so a single board doesn't lean on the same few letters
- *   (Easy still needs a touch of this to avoid mono-vowel soup).
+ *   within one board (Easy is light so vowels can cluster for short finds).
+ * - `vowelBoost`: multiplies a/e/i/o/u after flatten — Easy leans vowel-heavy
+ *   for crumb-first clears; Med/Hard stay neutral (1).
  */
-export const LETTER_VARIETY: Record<Difficulty, { flatten: number; repeatPenalty: number }> = {
-  easy: { flatten: 0.85, repeatPenalty: 0.35 },
-  medium: { flatten: 0.6, repeatPenalty: 0.55 },
-  hard: { flatten: 0.4, repeatPenalty: 0.75 },
+export const LETTER_VARIETY: Record<
+  Difficulty,
+  { flatten: number; repeatPenalty: number; vowelBoost: number }
+> = {
+  easy: { flatten: 0.95, repeatPenalty: 0.22, vowelBoost: 1.55 },
+  medium: { flatten: 0.6, repeatPenalty: 0.55, vowelBoost: 1 },
+  hard: { flatten: 0.4, repeatPenalty: 0.75, vowelBoost: 1 },
 };
+
+const VOWELS = new Set(["a", "e", "i", "o", "u"]);
 
 /**
  * Per-tile pick weights for board gen: flattens `LETTER_WEIGHTS` toward
- * variety by difficulty, then docks letters already placed on this board so
- * they don't over-repeat. Never zeroes a letter out — gen thresholds still
- * decide if the resulting board is solvable enough.
+ * variety by difficulty, boosts vowels on Easy, then docks letters already
+ * placed on this board so they don't over-repeat. Never zeroes a letter out —
+ * gen thresholds still decide if the resulting board is solvable enough.
  */
 export function letterMixWeights(
   placedCounts: Readonly<Record<string, number>>,
   difficulty: Difficulty = "medium",
 ): Record<string, number> {
-  const { flatten, repeatPenalty } = LETTER_VARIETY[difficulty];
+  const { flatten, repeatPenalty, vowelBoost } = LETTER_VARIETY[difficulty];
   const weights: Record<string, number> = {};
   for (const [letter, weight] of Object.entries(LETTER_WEIGHTS)) {
     const flattened = weight ** flatten;
+    const boosted = VOWELS.has(letter) ? flattened * vowelBoost : flattened;
     const repeats = placedCounts[letter] ?? 0;
-    weights[letter] = flattened / (1 + repeatPenalty * repeats);
+    weights[letter] = boosted / (1 + repeatPenalty * repeats);
   }
   return weights;
+}
+
+/**
+ * Ease long-word gen floors on Easy so boards can clear via short crumbs
+ * (larger grids especially). Keeps `ge3`/`ge4`/`total`; `ge6` stays ≥1 when
+ * the base table asks for it — never invents a long-word chase on Easy.
+ */
+export function thresholdsForDifficulty(
+  base: WordCountThresholds,
+  difficulty: Difficulty,
+): WordCountThresholds {
+  if (difficulty !== "easy") return base;
+  return {
+    ge3: base.ge3,
+    ge4: base.ge4,
+    ge5: Math.ceil(base.ge5 * 0.5),
+    ge6: base.ge6 <= 0 ? 0 : Math.max(1, Math.ceil(base.ge6 * 0.35)),
+    ge7: 0,
+    ge8: 0,
+    ge10: 0,
+    total: base.total,
+  };
 }

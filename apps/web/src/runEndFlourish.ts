@@ -7,7 +7,7 @@ export type RunEndMode = "target" | "timed" | "survival";
 export function runEndPill(reason: RunEndReason, mode: RunEndMode): string {
   if (reason === "won") return "Couch clear!";
   if (reason === "timeout") return mode === "survival" ? "Clock ran dry!" : "Time's up!";
-  return "Haul locked!";
+  return "That's a wrap!";
 }
 
 /**

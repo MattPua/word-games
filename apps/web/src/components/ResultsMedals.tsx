@@ -51,7 +51,7 @@ export function ResultsMedals({
         </Button>
       </div>
 
-      <div className="gap-3">
+      <div className="flex flex-col gap-4">
         {rowIds.map((id) => {
           const progress = progressById.get(id);
           if (!progress) return null;

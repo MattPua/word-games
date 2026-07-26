@@ -21,7 +21,7 @@ Soft prefs and rejected paths. **Not** game rules (those stay in `AGENTS.md` / `
 - **Secondary buttons:** soft pale potato wash (not solid `#d8b05b`) + dark ink — light and dark. Solid gold slabs read too heavy (Spin chips).
 - **Page transitions:** View Transitions settle on `.cp-page-body` (`cp-settle` / back) — site bar is outside that group so it stays put between chrome pages.
 - **Results word chips:** stagger drop-in (length row → chips L→R via `.cp-chip-drop-in`); remount when a collapse opens so the beat isn’t wasted while clipped.
-- **Results outcome title:** same voice as Play curtain (`runEndPill`) — never “Run ended”; quit = **Haul locked!** Score hero lands big + counts up with glow.
+- **Results outcome title:** same voice as Play curtain (`runEndPill`) — never “Run ended”; quit = **That's a wrap!** Score hero lands big + counts up with glow.
 
 ## Rejected / don’t redo
 
