@@ -2,7 +2,8 @@ import { Text, View } from "react-native";
 import { Gamepad2, Gauge, History, Library, Star, Trophy, WholeWord } from "lucide-react";
 import { EmptyState } from "@couch-potato/ui";
 import { avgWordLength, avgWpm, formatPaceStat, normalizePaceStats } from "../profileStats";
-import { formatWhen, listHighScores, type GameHistoryEntry, type Profile } from "../storage";
+import { formatWhen } from "../relativeTime";
+import { listHighScores, type GameHistoryEntry, type Profile } from "../storage";
 
 const SECTION_ICON = "cp-lobby-glyph size-4 shrink-0 text-icon-muted-foreground";
 

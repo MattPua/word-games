@@ -19,10 +19,10 @@ import { cn } from "@/lib/utils";
 import {
   formatRemainingStages,
   formatSurvivalSeconds,
-  formatUnlockDate,
   type TrackId,
   type TrackProgress,
 } from "../achievements";
+import { formatUnlockDate } from "../relativeTime";
 
 /** One glyph per track — reused by the results peek and the full achievements page. */
 export const TRACK_ICONS: Record<TrackId, LucideIcon> = {

@@ -686,21 +686,6 @@ export function formatHighScoreLabel(scoreKey: string): string {
   return `${size}×${size} Timed · ${detail}s · ${min}+`;
 }
 
-export function formatWhen(iso: string): string {
-  if (!iso) return "sometime on the couch";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso;
-  }
-}
-
 export function listHighScores(profile: Profile): {
   key: string;
   label: string;

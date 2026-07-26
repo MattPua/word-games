@@ -4,7 +4,6 @@ import {
   applyRunToAchievements,
   defaultAchievementCounts,
   formatSurvivalSeconds,
-  formatUnlockDate,
   lengthBucket,
   normalizeAchievementCounts,
   normalizeStageUnlockedAt,
@@ -332,25 +331,6 @@ describe("normalizeStageUnlockedAt", () => {
   it("returns empty for missing / non-object input", () => {
     expect(normalizeStageUnlockedAt(undefined)).toEqual({});
     expect(normalizeStageUnlockedAt(null)).toEqual({});
-  });
-});
-
-describe("formatUnlockDate", () => {
-  const now = FIXED_NOW;
-
-  it("says just now for sub-minute unlocks", () => {
-    expect(formatUnlockDate(now, now)).toBe("Unlocked just now");
-    expect(formatUnlockDate(now - 10_000, now)).toBe("Unlocked just now");
-  });
-
-  it("uses RelativeTimeFormat auto (yesterday / N days ago)", () => {
-    expect(formatUnlockDate(now - 3 * 60_000, now)).toBe(
-      "Unlocked 3 minutes ago",
-    );
-    expect(formatUnlockDate(now - 86_400_000, now)).toBe("Unlocked yesterday");
-    expect(formatUnlockDate(now - 3 * 86_400_000, now)).toBe(
-      "Unlocked 3 days ago",
-    );
   });
 });
 
