@@ -9,8 +9,8 @@ export type Dictionary = {
    */
   enable: Set<string>;
   /**
-   * Casual common-word subset (enable1 ∩ Wiktionary TV/movie frequency).
-   * **v1 play lexicon** — accept, board `allWords`, targets, Words left.
+   * Casual play lexicon: ENABLE ∩ wordfreq zipf gate ∪ play-allowlist
+   * (− NSFW − names). **v1 accept** — board `allWords`, targets, Words left.
    */
   popular: Set<string>;
   /** Play accept: true for popular − blocklist. */

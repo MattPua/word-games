@@ -49,22 +49,29 @@ describe("dictionary filter", () => {
     expect(dict.has("potato") || dict.has("cat")).toBe(true);
   });
 
-  it("play accepts popular only (rejects ENABLE Scrabble scraps)", () => {
+  it("play accepts freq-gated ENABLE (rejects Scrabble scraps)", () => {
     const dict = createDictionary();
-    // ENABLE-only scraps that snuck in when play = full ENABLE
     expect(dict.has("leu")).toBe(false);
     expect(dict.has("mut")).toBe(false);
     expect(dict.has("thro")).toBe(false);
     expect(dict.has("aalii")).toBe(false);
     expect(dict.enable.has("leu")).toBe(true);
-    // Everyday words stay
-    expect(dict.has("potato")).toBe(true);
-    expect(dict.isPopular("potato")).toBe(true);
-    expect(dict.has("cat")).toBe(true);
-    // Legitimate ENABLE that miss the popular cut — not playable in v1
-    expect(dict.enable.has("deter")).toBe(true);
-    expect(dict.has("deter")).toBe(false);
-    expect(dict.isPopular("deter")).toBe(false);
+  });
+
+  it("play keeps the must-include regression set", () => {
+    const dict = createDictionary();
+    const must = parseWordList(readFileSync(join(root, "data/play-must-include.txt"), "utf8"));
+    expect(must.length).toBeGreaterThan(20);
+    const missing = must.filter((w) => !dict.has(w));
+    expect(missing, `play missing: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it("play-allowlist entries are all playable", () => {
+    const dict = createDictionary();
+    const allow = parseWordList(readFileSync(join(root, "data/play-allowlist.txt"), "utf8"));
+    expect(allow.length).toBeGreaterThan(0);
+    const missing = allow.filter((w) => !dict.has(w));
+    expect(missing, `allowlist not in play: ${missing.join(", ")}`).toEqual([]);
   });
 
   it("buildNameBlocklist drops given names but keeps dual-use allowlist", () => {

@@ -33,7 +33,7 @@ Soft prefs and rejected paths. **Not** game rules (those stay in `AGENTS.md` / `
 - Bored snore as lobby BrandHeader hero.
 - Whimsical difficulty blurbs that don’t explain the mechanic (Soft couch / Warm seat / Spud sweat) — use mode-aware literal hints.
 - UA blue focus rings on lobby choice cards — brand potato wash `focus-visible` only (`outline: none` on tile/chip/challenge).
-- Full ENABLE as v1 play lexicon (obscure scraps). Prefer **popular + curated allowlist** if everyday words like `defer` are missing — don’t flip play to ENABLE without a plan.
+- Full ENABLE as v1 play lexicon (obscure scraps). Prefer **wordfreq zipf gate ∪ curated play-allowlist** (not dolph TV/movie `popular.txt`) if everyday words are missing — don’t flip play to ENABLE without a plan.
 
 ## Open / deferred
 

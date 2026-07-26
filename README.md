@@ -78,7 +78,7 @@ Couch Potato is built to stay playable on slow (3G-class) links and after the fi
 
 - **Lean cold path** — lobby does not download the Play dictionary, Background music MP3, heavy medal marks, or PostHog unless needed.
 - **Latin-only fonts** by default (Pixel type / Jersey loads on demand; Type pref flips display + body together).
-- **Service worker (production)** — precaches a small shell (~fonts + CSS + tiny brand marks). Route JS, sprites, audio, and the Play dictionary use **CacheFirst** after first use so offline lobby/play works once you’ve opened those screens online.
+- **Service worker (production)** — precaches a small shell (~fonts + CSS + tiny brand marks). Hashed route **JS uses NetworkFirst** so a new deploy isn’t stuck behind an old CacheFirst main that imports deleted chunks; sprites, audio, and the Play dictionary stay **CacheFirst** after first use for offline. `ErrorPage` / `NotFoundPage` ship in the main bundle (eager) so crash reporting never depends on a second fetch; stale chunk loads report then reload once.
 - Profiles, scores, and medals stay in **localStorage** (no account / no sync).
 
 First open still needs a network; after that, revisit offline for screens you’ve already loaded. Background music only fetches when music is turned on. Play warms the dictionary on hover/focus/click — never idle-prefetch from the lobby.
@@ -91,15 +91,12 @@ Canonical site: **https://www.acouchpotato.com** (apex redirects to www).
 
 ## Dictionary attribution
 
-Word lists from [dolph/dictionary](https://github.com/dolph/dictionary):
+Validity list from [dolph/dictionary](https://github.com/dolph/dictionary) **`enable1.txt`** (ENABLE Scrabble word list, **public domain**). Frequency gate from [wordfreq](https://github.com/rspeer/wordfreq) (en, large) — committed as `packages/dictionary/data/freq-gate.txt` (zipf ≥ 2.8; regen with `bun run --filter @couch-potato/dictionary freq-gate`). Extras under the floor live in `play-allowlist.txt` (e.g. `rend`).
 
-- **`enable1.txt`** — ENABLE Scrabble word list (**public domain**); large, includes obscure terms.
-- **`popular.txt`** — common subset: enable1 ∩ [Wiktionary English frequency lists](http://en.wiktionary.org/wiki/Wiktionary:Frequency_lists#English) from TV/movie script samples (~25k everyday words). Membership only — not a frequency CSV.
-
-**Play policy:** accept, board word lists (`allWords`), targets, and Words left use **popular − NSFW blocklist − given-name filter** (~25k everyday words). Full ENABLE is built and kept for a future “dictionary mode” — it must not drive v1 accept (Scrabble scraps like `leu` / `mut` / `thro`). Names come from SSA baby-name frequency mass minus a dual-use English allowlist (`name-allowlist.txt`) so `mark`/`hope` stay but `peter`/`john` do not. Blocklists apply at dictionary build time so blocked tokens never appear in validation, gen, or reveals. The dictionary package loads with the Play route, not the lobby cold chunk.
+**Play policy:** accept, board word lists (`allWords`), targets, and Words left use **ENABLE ∩ (freq-gate ∪ play-allowlist) − NSFW − given-name filter** (~27k everyday words). Full ENABLE is built and kept for a future “dictionary mode” — it must not drive v1 accept (Scrabble scraps like `leu` / `mut` / `thro`). Names come from SSA baby-name frequency mass minus a dual-use English allowlist (`name-allowlist.txt`) so `mark`/`hope` stay but `peter`/`john` do not. Blocklists apply at dictionary build time so blocked tokens never appear in validation, gen, or reveals. The dictionary package loads with the Play route, not the lobby cold chunk.
 
 ## License
 
 [MIT](./LICENSE) © 2026 Matt Pua
 
-Word lists remain under their upstream terms (ENABLE public domain via dolph/dictionary). Game art and app code in this repository are covered by the MIT license above unless a file says otherwise.
+Word lists remain under their upstream terms (ENABLE public domain via dolph/dictionary; wordfreq per its license). Game art and app code in this repository are covered by the MIT license above unless a file says otherwise.

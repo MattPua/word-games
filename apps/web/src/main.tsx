@@ -4,17 +4,19 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree";
 import { initAnalytics } from "./analytics";
+import {
+  clearStaleChunkReloadGuard,
+  recoverFromStaleChunk,
+} from "./chunkRecovery";
+import { ErrorPage } from "./pages/ErrorPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 import { registerOfflineShell } from "./registerOffline";
 
 initAnalytics();
 registerOfflineShell();
+clearStaleChunkReloadGuard();
 
-const NotFoundPage = lazy(() =>
-  import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })),
-);
-const ErrorPage = lazy(() =>
-  import("./pages/ErrorPage").then((m) => ({ default: m.ErrorPage })),
-);
+/** Toaster stays lazy — never on the error / crash path. */
 const Toaster = lazy(() =>
   import("@/components/ui/sonner").then((m) => ({ default: m.Toaster })),
 );
@@ -60,16 +62,14 @@ const router = createRouter({
       return ["cp-settle"];
     },
   },
-  defaultNotFoundComponent: () => (
-    <Suspense fallback={null}>
-      <NotFoundPage />
-    </Suspense>
-  ),
-  defaultErrorComponent: (props) => (
-    <Suspense fallback={null}>
-      <ErrorPage {...props} />
-    </Suspense>
-  ),
+  // Eager — never depend on a second hashed chunk to show 404 / report a crash.
+  defaultNotFoundComponent: () => <NotFoundPage />,
+  defaultErrorComponent: (props) => {
+    if (recoverFromStaleChunk(props.error, { surface: "router_error" })) {
+      return null;
+    }
+    return <ErrorPage {...props} />;
+  },
 });
 
 declare module "@tanstack/react-router" {

@@ -1,0 +1,55 @@
+# Words that must stay in the v1 play lexicon across gate / allowlist changes.
+# If a real everyday word bounces in play, add it here (and fix the gate or
+# play-allowlist.txt). One word per line. All must be ENABLE-valid after filters.
+#
+# Regression anchors (formerly missing from dolph popular):
+voucher
+defer
+deter
+throng
+rend
+rends
+#
+# Brand / lobby basics
+potato
+couch
+cat
+dog
+word
+game
+play
+score
+board
+swipe
+clear
+#
+# Dual-use English (also covered by name-allowlist — keep playable)
+mark
+hope
+grace
+will
+rose
+#
+# Common mid/long finds players expect
+render
+rent
+house
+water
+light
+sound
+music
+table
+chair
+sofa
+clock
+timer
+easy
+hard
+medium
+survival
+target
+letter
+path
+grid
+honey
+comb

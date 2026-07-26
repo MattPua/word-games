@@ -1,10 +1,13 @@
 {
   "enableCount": 172463,
-  "popularCount": 25012,
+  "popularCount": 27465,
   "nameBlockCount": 666,
+  "freqZipfMin": 2.8,
+  "playAllowCount": 4,
   "source": "https://github.com/dolph/dictionary",
   "attribution": "ENABLE word list is public domain",
-  "popularProvenance": "popular.txt = enable1 ∩ Wiktionary TV/movie script frequency lists (~25k common words). Not a CSV of scores — membership is the commonness signal.",
+  "frequencySource": "https://github.com/rspeer/wordfreq",
+  "popularProvenance": "play = ENABLE ∩ (wordfreq en/large zipf >= 2.8 ∪ data/play-allowlist.txt) − NSFW − given-name filter. freq-gate.txt is committed; regen with bun run --filter @couch-potato/dictionary freq-gate",
   "nameFilter": "data/name-blocklist.txt = SSA baby-name mass − name-allowlist.txt dual-use English; unioned with NSFW blocklist at build",
-  "playPolicy": "accept / allWords / targets / Words left = ENABLE − NSFW − given-name filter; popular ranks gen quality and filters Results Long ones left"
+  "playPolicy": "accept / allWords / targets / Words left = popular (ENABLE ∩ wordfreq zipf gate ∪ play-allowlist) − NSFW − names; full ENABLE kept for a future dictionary mode"
 }

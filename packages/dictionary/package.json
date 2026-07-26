@@ -11,6 +11,7 @@
   },
   "scripts": {
     "build": "bun run scripts/build-dict.ts",
+    "freq-gate": "python3 scripts/regen-freq-gate.py",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   }

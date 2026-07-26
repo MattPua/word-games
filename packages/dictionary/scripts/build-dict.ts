@@ -13,10 +13,12 @@ const dataDir = join(root, "data");
 const outDir = join(root, "src", "generated");
 
 const ENABLE_URL = "https://raw.githubusercontent.com/dolph/dictionary/master/enable1.txt";
-const POPULAR_URL = "https://raw.githubusercontent.com/dolph/dictionary/master/popular.txt";
 /** Hadley SSA baby-names — only fetched when regenerating `name-blocklist.txt`. */
 const BABY_NAMES_URL =
   "https://raw.githubusercontent.com/hadley/data-baby-names/master/baby-names.csv";
+
+/** wordfreq (en, large) zipf floor baked into `data/freq-gate.txt`. */
+const FREQ_ZIPF_MIN = 2.8;
 
 async function fetchText(url: string): Promise<string> {
   const res = await fetch(url);
@@ -62,43 +64,45 @@ async function main() {
   const blocklist = mergeBlocklists(nsfw, nameBlock);
 
   const enableRaw = await loadOrFetch("enable1.txt", ENABLE_URL);
-  const popularRaw = await loadOrFetch("popular.txt", POPULAR_URL);
+  const freqGate = parseWordList(readFileSync(join(dataDir, "freq-gate.txt"), "utf8"));
+  const playAllow = parseWordList(readFileSync(join(dataDir, "play-allowlist.txt"), "utf8"));
 
   const enable = applyBlocklist(parseWordList(enableRaw), blocklist);
-  const popular = applyBlocklist(parseWordList(popularRaw), blocklist);
-  const popularSet = new Set(popular);
-  const popularInEnable = enable.filter((w) => popularSet.has(w));
+  const freqSet = new Set([...freqGate, ...playAllow]);
+  const popular = enable.filter((w) => freqSet.has(w));
 
   const artifact = {
     enable,
-    popular: popularInEnable,
+    popular,
   };
 
   writeFileSync(join(outDir, "words.json"), JSON.stringify(artifact));
-  writeFileSync(join(outDir, "popular.json"), JSON.stringify(popularInEnable));
+  writeFileSync(join(outDir, "popular.json"), JSON.stringify(popular));
   writeFileSync(join(outDir, "enable.json"), JSON.stringify(enable));
   writeFileSync(
     join(outDir, "meta.json"),
     JSON.stringify(
       {
         enableCount: enable.length,
-        popularCount: popularInEnable.length,
+        popularCount: popular.length,
         nameBlockCount: nameBlock.length,
+        freqZipfMin: FREQ_ZIPF_MIN,
+        playAllowCount: playAllow.length,
         source: "https://github.com/dolph/dictionary",
         attribution: "ENABLE word list is public domain",
-        popularProvenance:
-          "popular.txt = enable1 ∩ Wiktionary TV/movie script frequency lists (~25k common words). Not a CSV of scores — membership is the commonness signal.",
+        frequencySource: "https://github.com/rspeer/wordfreq",
+        popularProvenance: `play = ENABLE ∩ (wordfreq en/large zipf >= ${FREQ_ZIPF_MIN} ∪ data/play-allowlist.txt) − NSFW − given-name filter. freq-gate.txt is committed; regen with bun run --filter @couch-potato/dictionary freq-gate`,
         nameFilter:
           "data/name-blocklist.txt = SSA baby-name mass − name-allowlist.txt dual-use English; unioned with NSFW blocklist at build",
         playPolicy:
-          "accept / allWords / targets / Words left = popular (enable1 ∩ Wiktionary TV/movie frequency) − NSFW − given-name filter; full ENABLE kept for a future dictionary mode",
+          "accept / allWords / targets / Words left = popular (ENABLE ∩ wordfreq zipf gate ∪ play-allowlist) − NSFW − names; full ENABLE kept for a future dictionary mode",
       },
       null,
       2,
     ),
   );
   console.log(
-    `Built dictionary: enable=${enable.length} popular=${popularInEnable.length} nameBlock=${nameBlock.length}`,
+    `Built dictionary: enable=${enable.length} popular=${popular.length} (zipf>=${FREQ_ZIPF_MIN} + allow ${playAllow.length}) nameBlock=${nameBlock.length}`,
   );
 }
 

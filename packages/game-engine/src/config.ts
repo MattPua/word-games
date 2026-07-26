@@ -16,32 +16,28 @@ export function scoreWord(length: number): number {
 
 /**
  * Goal targets as a fraction of board `maxScore` (points, not word count),
- * then **capped** so crumb-dense boards don’t demand triple-digit clears.
+ * then **capped** so clears stay short sessions.
  *
- * Challenge ladder ≈ short-first word-coverage percentiles (Easy ~p40 / Med ~p58 /
- * Hard p80): 3-letter words are 1pt, so pts% ≪ word% under casual short-first
- * play. Monte Carlo over gen boards (~40× 4×4/5×5 square + 5×5 hex): clearing
- * 50/75/80% of words short-first yields ~0.31/0.58/0.65 of maxScore. We ship
- * ratios **0.25 / 0.40 / 0.65** (Easy eased under that p50 estimate so first
- * clears feel chill), then clamp with `TARGET_CAPS` — dense 5×5/6×6 boards can
- * have maxScore 200–300+ from short crumbs; without a cap, Med still shows
- * ~100+ “pts left” even when only a fraction of words is needed. Caps keep
- * Easy < Med < Hard. Scoring stays `length − 2`.
+ * Difficulty is **not** “need way more points.” Med/Hard reshape the board
+ * toward longer finds (`thresholdsForDifficulty`) — fewer short crumbs, more
+ * mid/long paths — while targets stay a modest Easy < Med < Hard ladder.
+ * Ratios **0.25 / 0.30 / 0.38** (short clears); caps bite on crumb-dense
+ * leftovers. Scoring stays `length − 2`.
  */
 export const TARGET_RATIOS = {
   easy: 0.25,
-  medium: 0.4,
-  hard: 0.65,
+  medium: 0.3,
+  hard: 0.38,
 } as const;
 
 /**
  * Absolute Goal target ceilings (points). Applied after ratio × maxScore.
- * Tune here when dense boards feel intimidating despite a low ratio.
+ * Keep these tight — challenge lives in word length mix, not point grind.
  */
 export const TARGET_CAPS = {
   easy: 36,
-  medium: 75,
-  hard: 105,
+  medium: 48,
+  hard: 60,
 } as const;
 
 export type Difficulty = keyof typeof TARGET_RATIOS;
@@ -248,23 +244,51 @@ export function letterMixWeights(
 }
 
 /**
- * Ease long-word gen floors on Easy so boards can clear via short crumbs
- * (larger grids especially). Keeps `ge3`/`ge4`/`total`; `ge6` stays ≥1 when
- * the base table asks for it — never invents a long-word chase on Easy.
+ * Reshape gen floors by difficulty:
+ * - **Easy** — soft long floors; keep short-crumb base (fast first points).
+ * - **Medium / Hard** — dial down short crumbs + total density; lean into
+ *   mid/long finds (ge5/ge6↑). Soft ge8/ge10 stay at base (don’t invent rare
+ *   10+ quotas that flake gen). Challenge = longer words, not a bigger Goal bill.
+ * `ge6` stays ≥1 when the base table asks for it.
  */
 export function thresholdsForDifficulty(
   base: WordCountThresholds,
   difficulty: Difficulty,
 ): WordCountThresholds {
-  if (difficulty !== "easy") return base;
+  if (difficulty === "easy") {
+    return {
+      ge3: base.ge3,
+      ge4: base.ge4,
+      ge5: Math.ceil(base.ge5 * 0.5),
+      ge6: base.ge6 <= 0 ? 0 : Math.max(1, Math.ceil(base.ge6 * 0.35)),
+      ge7: 0,
+      ge8: 0,
+      ge10: 0,
+      total: base.total,
+    };
+  }
+
+  const midLean = difficulty === "hard" ? 1.3 : 1.12;
+  const shortCut = difficulty === "hard" ? 0.5 : 0.72;
+  const midCut = difficulty === "hard" ? 0.7 : 0.88;
+  const totalCut = difficulty === "hard" ? 0.55 : 0.78;
+  const ge7Lean = difficulty === "hard" ? 1.5 : 1.2;
+
+  const bumpMid = (n: number) => (n <= 0 ? 0 : Math.max(n, Math.ceil(n * midLean)));
+  const keepGe6 = (n: number) => (n <= 0 ? 0 : Math.max(1, Math.ceil(n * midLean)));
+  const bumpGe7 = (n: number) => {
+    if (n <= 0) return difficulty === "hard" && base.ge6 >= 4 ? 1 : 0;
+    return Math.max(n, Math.ceil(n * ge7Lean));
+  };
+
   return {
-    ge3: base.ge3,
-    ge4: base.ge4,
-    ge5: Math.ceil(base.ge5 * 0.5),
-    ge6: base.ge6 <= 0 ? 0 : Math.max(1, Math.ceil(base.ge6 * 0.35)),
-    ge7: 0,
-    ge8: 0,
-    ge10: 0,
-    total: base.total,
+    ge3: Math.max(1, Math.floor(base.ge3 * shortCut)),
+    ge4: Math.max(1, Math.floor(base.ge4 * midCut)),
+    ge5: bumpMid(base.ge5),
+    ge6: keepGe6(base.ge6),
+    ge7: bumpGe7(base.ge7),
+    ge8: base.ge8,
+    ge10: base.ge10,
+    total: Math.max(1, Math.floor(base.total * totalCut)),
   };
 }

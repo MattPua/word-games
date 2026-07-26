@@ -155,9 +155,9 @@ function difficultyHint(mode: Mode, value: Difficulty): string {
   if (mode === "target") {
     return (
       {
-        easy: "Smaller clear",
-        medium: "Bigger clear",
-        hard: "Biggest clear",
+        easy: "Short finds",
+        medium: "Longer finds",
+        hard: "Long-word chase",
       } as const
     )[value];
   }

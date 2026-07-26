@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { PageHeading } from "@/components/ChromeTopBar";
 import { captureError } from "../analytics";
+import { isStaleChunkError, recoverFromStaleChunk } from "../chunkRecovery";
 
 /** Unexpected failure — potato spilled the snacks. */
 export function ErrorPage({ error, reset }: ErrorComponentProps) {
@@ -15,6 +16,11 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
   useEffect(() => {
     if (!error || reported.current === error) return;
     reported.current = error;
+    // Stale deploy chunks: report + reload once (don't treat as a normal 500).
+    if (isStaleChunkError(error)) {
+      recoverFromStaleChunk(error, { surface: "router_error" });
+      return;
+    }
     captureError(error, { surface: "router_error" });
   }, [error]);
 

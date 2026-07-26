@@ -173,8 +173,8 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         /**
          * Lean precache for 3G: shell + latin fonts + tiny brand marks.
-         * Route JS, heavy sprites, and BGM cache on first use (CacheFirst) so a
-         * lobby-only visit doesn’t pull Play/dict/medals/audio up front.
+         * Route JS uses NetworkFirst (fresh deploys); images/BGM CacheFirst on
+         * first use so a lobby-only visit doesn’t pull Play/dict/medals/audio.
          */
         globPatterns: [
           "**/*.{css,html,woff2,ico,svg}",
@@ -188,14 +188,20 @@ export default defineConfig(({ mode }) => ({
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
+            /**
+             * Hashed `/assets/*.js` — NetworkFirst so a new deploy isn’t masked by a
+             * 30-day CacheFirst hit on an old main that imports deleted chunks.
+             * Short network timeout → cache for offline play after first visit.
+             */
             urlPattern: ({ url }) =>
               url.pathname.startsWith("/assets/") && /\.js$/i.test(url.pathname),
-            handler: "CacheFirst",
+            handler: "NetworkFirst",
             options: {
               cacheName: "cp-js",
+              networkTimeoutSeconds: 3,
               expiration: {
                 maxEntries: 64,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
+                maxAgeSeconds: 60 * 60 * 24 * 7,
               },
               cacheableResponse: { statuses: [0, 200] },
             },

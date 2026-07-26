@@ -155,8 +155,8 @@ export function generateBoard(opts: GenerateOptions): Board {
     const popular = popularRatio(board.allWords, opts.dict);
     const hardOk = board.targets.hard <= board.maxScore && board.maxScore > 0;
     const floorOk = board.maxScore >= HARD_TARGET_FLOOR || minWordLength > 3;
-    // Easy: rank crumb density (short finds) so first points come fast.
-    // Med/Hard: still prefer meatier 8+/10+ hauls when picking fallback.
+    // Easy: crumb density (fast first points). Med/Hard: prefer longer finds —
+    // Hard weights 7+/8+/10+ hardest so difficulty ≠ “more short words.”
     const quality =
       difficulty === "easy"
         ? board.allWords.length * 0.9 +
@@ -166,14 +166,24 @@ export function generateBoard(opts: GenerateOptions): Board {
           counts.ge4 * 2.5 +
           counts.ge5 * 1.5 +
           counts.ge6 * 2
-        : board.allWords.length * 0.4 +
-          popular * 100 +
-          (hardOk && floorOk ? 20 : 0) +
-          counts.ge5 * 2 +
-          counts.ge6 * 8 +
-          counts.ge7 * 20 +
-          counts.ge8 * 45 +
-          counts.ge10 * 120;
+        : difficulty === "medium"
+          ? board.allWords.length * 0.35 +
+            popular * 100 +
+            (hardOk && floorOk ? 20 : 0) +
+            counts.ge4 * 1 +
+            counts.ge5 * 4 +
+            counts.ge6 * 10 +
+            counts.ge7 * 18 +
+            counts.ge8 * 35 +
+            counts.ge10 * 80
+          : board.allWords.length * 0.25 +
+            popular * 90 +
+            (hardOk && floorOk ? 20 : 0) +
+            counts.ge5 * 3 +
+            counts.ge6 * 10 +
+            counts.ge7 * 28 +
+            counts.ge8 * 55 +
+            counts.ge10 * 140;
 
     if (quality > bestScore) {
       bestScore = quality;

@@ -502,11 +502,11 @@ describe("computeTargets", () => {
     expect(t.easy).toBeLessThan(t.medium);
     expect(t.medium).toBeLessThan(t.hard);
     expect(t.hard).toBeLessThan(maxScore);
-    // Short-first word ~p40/~p58/p80 → pts ≈ 0.25/0.40/0.65 (not raw max percentiles)
+    // Modest pts ladder — challenge is word length mix, not a grind bill
     expect(TARGET_RATIOS.easy).toBe(0.25);
-    expect(TARGET_RATIOS.medium).toBe(0.4);
-    expect(TARGET_RATIOS.hard).toBe(0.65);
-    expect(TARGET_RATIOS.hard).toBeLessThan(0.75);
+    expect(TARGET_RATIOS.medium).toBe(0.3);
+    expect(TARGET_RATIOS.hard).toBe(0.38);
+    expect(TARGET_RATIOS.hard).toBeLessThan(0.5);
   });
 
   it("caps targets on crumb-dense boards so Goal pts stay casual", () => {
@@ -517,7 +517,7 @@ describe("computeTargets", () => {
     expect(t.hard).toBe(TARGET_CAPS.hard);
     expect(t.easy).toBeLessThan(t.medium);
     expect(t.medium).toBeLessThan(t.hard);
-    // Uncapped ratio would be intimidating (e.g. med 120) — caps bite.
+    // Uncapped ratio would still exceed caps on dense boards.
     expect(Math.ceil(maxScore * TARGET_RATIOS.medium)).toBeGreaterThan(TARGET_CAPS.medium);
   });
 });
@@ -973,7 +973,24 @@ describe("letter variety by difficulty", () => {
     expect(easy.ge6).toBeLessThan(base.ge6);
     expect(easy.ge7).toBe(0);
     expect(easy.ge10).toBe(0);
-    expect(thresholdsForDifficulty(base, "medium")).toEqual(base);
+  });
+
+  it("Med/Hard cut short crumbs and lean into longer finds", () => {
+    const base = BOARD_THRESHOLDS.square[5];
+    const medium = thresholdsForDifficulty(base, "medium");
+    const hard = thresholdsForDifficulty(base, "hard");
+    expect(medium.ge3).toBeLessThan(base.ge3);
+    expect(hard.ge3).toBeLessThan(medium.ge3);
+    expect(medium.total).toBeLessThan(base.total);
+    expect(hard.total).toBeLessThan(medium.total);
+    expect(medium.ge5).toBeGreaterThanOrEqual(base.ge5);
+    expect(hard.ge5).toBeGreaterThanOrEqual(medium.ge5);
+    expect(medium.ge6).toBeGreaterThanOrEqual(1);
+    expect(hard.ge6).toBeGreaterThanOrEqual(medium.ge6);
+    expect(hard.ge7).toBeGreaterThanOrEqual(medium.ge7);
+    // Soft rare floors stay at base — ranking + ge5/ge6 lean do the long-word push.
+    expect(medium.ge10).toBe(base.ge10);
+    expect(hard.ge10).toBe(base.ge10);
   });
 });
 
