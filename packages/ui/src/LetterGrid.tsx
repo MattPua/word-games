@@ -12,6 +12,7 @@ import {
   cellKey,
   cellsEqual,
   isAdjacent,
+  allowBacktrackForCell,
   isInBacktrackZone,
   isInTileHitZone,
   type Cell,
@@ -21,6 +22,10 @@ import {
 export type { Cell, LetterGridProps };
 export { applyPathCell } from "./pathCells";
 export { cellCenter, HEX_CLIP, hexAspect } from "./hexLayout";
+
+/** Sample along fast pointer jumps so reverse swipes don’t skip the previous tile. */
+const POINTER_SAMPLE_PX = 8;
+const POINTER_SAMPLE_MAX = 12;
 
 /**
  * Web LetterGrid — tactile cream tiles in a thick sage frame.
@@ -44,6 +49,7 @@ export function LetterGrid({
   const dragging = useRef(false);
   const pathRef = useRef<Cell[]>([]);
   const pointerId = useRef<number | null>(null);
+  const lastPoint = useRef<{ x: number; y: number } | null>(null);
   const interactiveRef = useRef(interactive);
   interactiveRef.current = interactive;
   const selectedSet = new Set(selected.map(cellKey));
@@ -54,6 +60,7 @@ export function LetterGrid({
     dragging.current = false;
     pointerId.current = null;
     pathRef.current = [];
+    lastPoint.current = null;
   }, [interactive]);
 
   const touch = useCallback(
@@ -71,7 +78,7 @@ export function LetterGrid({
 
   /** Tile under point + hit/backtrack zones (edge inset = swipe gutter). */
   const hit = useCallback(
-    (clientX: number, clientY: number): { cell: Cell; allowBacktrack: boolean } | null => {
+    (clientX: number, clientY: number): { cell: Cell; inCenterZone: boolean } | null => {
       const stack = document.elementsFromPoint(clientX, clientY);
       for (const el of stack) {
         const tile = (el as Element).closest?.("[data-tile]") as HTMLElement | null;
@@ -85,11 +92,22 @@ export function LetterGrid({
         const ny = (clientY - rect.top) / rect.height;
         // Margin gap + edge inset — skip fringe so diagonals don’t clip neighbors.
         if (!isInTileHitZone(nx, ny)) continue;
-        return { cell: { row, col }, allowBacktrack: isInBacktrackZone(nx, ny) };
+        return { cell: { row, col }, inCenterZone: isInBacktrackZone(nx, ny) };
       }
       return null;
     },
     [],
+  );
+
+  const applyHit = useCallback(
+    (found: { cell: Cell; inCenterZone: boolean }) => {
+      const onPath = pathRef.current.some((c) => cellsEqual(c, found.cell));
+      // New tiles: full hit. Immediate prev: full hit. Deeper backtrack: center.
+      const allow =
+        !onPath || allowBacktrackForCell(pathRef.current, found.cell, found.inCenterZone);
+      touch(found.cell, allow);
+    },
+    [touch],
   );
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -99,26 +117,34 @@ export function LetterGrid({
     dragging.current = true;
     pointerId.current = e.pointerId;
     pathRef.current = [];
+    lastPoint.current = { x: e.clientX, y: e.clientY };
     onPathChange?.([]);
     e.currentTarget.setPointerCapture(e.pointerId);
     const found = hit(e.clientX, e.clientY);
-    if (found) touch(found.cell, true);
+    if (found) applyHit(found);
   };
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragging.current || pointerId.current !== e.pointerId) return;
     e.preventDefault();
-    const found = hit(e.clientX, e.clientY);
-    if (!found) return;
-    // New adjacent cells append on full tile; backtrack needs center zone.
-    const onPath = pathRef.current.some((c) => cellsEqual(c, found.cell));
-    touch(found.cell, !onPath || found.allowBacktrack);
+    const x = e.clientX;
+    const y = e.clientY;
+    const from = lastPoint.current ?? { x, y };
+    lastPoint.current = { x, y };
+    const dist = Math.hypot(x - from.x, y - from.y);
+    const steps = Math.max(1, Math.min(POINTER_SAMPLE_MAX, Math.ceil(dist / POINTER_SAMPLE_PX)));
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      const found = hit(from.x + (x - from.x) * t, from.y + (y - from.y) * t);
+      if (found) applyHit(found);
+    }
   };
 
   const endPointer = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragging.current || pointerId.current !== e.pointerId) return;
     dragging.current = false;
     pointerId.current = null;
+    lastPoint.current = null;
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {

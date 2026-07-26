@@ -4,6 +4,7 @@ import {
   applyPathCell,
   isInBacktrackZone,
   isInTileHitZone,
+  allowBacktrackForCell,
   BACKTRACK_EDGE_MARGIN,
   TILE_HIT_EDGE_INSET,
 } from "./pathCells";
@@ -92,6 +93,27 @@ describe("applyPathCell", () => {
     const path = [{ row: 0, col: 0 }];
     expect(applyPathCell(path, { row: 0, col: 0 })).toBeNull();
     expect(applyPathCell(path, { row: 0, col: 2 })).toBeNull();
+  });
+});
+
+describe("allowBacktrackForCell", () => {
+  it("allows immediate previous without center zone", () => {
+    const path = [
+      { row: 0, col: 0 },
+      { row: 0, col: 1 },
+      { row: 0, col: 2 },
+    ];
+    expect(allowBacktrackForCell(path, { row: 0, col: 1 }, false)).toBe(true);
+  });
+
+  it("requires center zone for deeper path cells", () => {
+    const path = [
+      { row: 0, col: 0 },
+      { row: 0, col: 1 },
+      { row: 0, col: 2 },
+    ];
+    expect(allowBacktrackForCell(path, { row: 0, col: 0 }, false)).toBe(false);
+    expect(allowBacktrackForCell(path, { row: 0, col: 0 }, true)).toBe(true);
   });
 });
 

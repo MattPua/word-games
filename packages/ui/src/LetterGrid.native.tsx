@@ -6,6 +6,7 @@ import {
   cellKey,
   cellsEqual,
   isAdjacent,
+  allowBacktrackForCell,
   isInBacktrackZone,
   isInTileHitZone,
   type Cell,
@@ -13,7 +14,14 @@ import {
 } from "./pathCells";
 
 export type { Cell, LetterGridProps };
-export { applyPathCell, cellKey, cellsEqual, isAdjacent, isInBacktrackZone } from "./pathCells";
+export {
+  applyPathCell,
+  cellKey,
+  cellsEqual,
+  isAdjacent,
+  isInBacktrackZone,
+  allowBacktrackForCell,
+} from "./pathCells";
 
 /** Square letter board with pointer-driven path selection (RN / Expo). */
 export function LetterGrid({
@@ -34,7 +42,7 @@ export function LetterGrid({
   const hex = topology === "hex";
 
   const hitTest = useCallback(
-    (pageX: number, pageY: number): { cell: Cell; allowBacktrack: boolean } | null => {
+    (pageX: number, pageY: number): { cell: Cell; inCenterZone: boolean } | null => {
       if (!layout.w || !size) return null;
       const localX = pageX - layout.x;
       const localY = pageY - layout.y;
@@ -51,7 +59,7 @@ export function LetterGrid({
       if (!isInTileHitZone(nx, ny)) return null;
       return {
         cell: { row, col },
-        allowBacktrack: isInBacktrackZone(nx, ny),
+        inCenterZone: isInBacktrackZone(nx, ny),
       };
     },
     [layout, size],
@@ -97,7 +105,10 @@ export function LetterGrid({
     const found = hitTest(pageX, pageY);
     if (!found) return;
     const onPath = pathRef.current.some((c) => cellsEqual(c, found.cell));
-    touch(found.cell, !onPath || found.allowBacktrack);
+    touch(
+      found.cell,
+      !onPath || allowBacktrackForCell(pathRef.current, found.cell, found.inCenterZone),
+    );
   };
 
   const onEnd = () => {

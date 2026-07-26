@@ -40,7 +40,7 @@
   --potato: var(--secondary);
   /*
    * Font stacks — Tailwind `font-display` / `font-body` / `font-sans` resolve here.
-   * Flip display face with `html[data-font="pixel"|"clean"]` (default clean).
+   * One face at a time: `html[data-font="pixel"|"clean"]` retargets display + body + sans.
    * Never hardcode Jersey 15/Lexend in components; retarget these vars only.
    */
   --font-pixel: "Jersey 15", system-ui, sans-serif;
@@ -66,14 +66,18 @@
   --hud-bubble: color-mix(in srgb, var(--card) 88%, transparent);
 }
 
-/* Display face pref — set `data-font` on <html> from applyFontPreference (default clean). */
+/* Type face pref — set `data-font` on <html> from applyFontPreference (default clean). */
 :root[data-font="clean"] {
   --font-display: var(--font-clean);
+  --font-body: var(--font-clean);
+  --font-sans: var(--font-clean);
   --font-display-tracking: -0.01em;
 }
 
 :root[data-font="pixel"] {
   --font-display: var(--font-pixel);
+  --font-body: var(--font-pixel);
+  --font-sans: var(--font-pixel);
   /* Open Jersey 15 — comfortable, not sparse (“Couch Potato” / “Your board”). */
   --font-display-tracking: 0.06em;
 }

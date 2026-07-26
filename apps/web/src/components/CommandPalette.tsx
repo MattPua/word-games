@@ -104,7 +104,7 @@ function prefActions(): PrefAction[] {
     },
     {
       id: "titles",
-      label: pixel ? "Use Clean titles" : "Use Pixel titles",
+      label: pixel ? "Use Clean type" : "Use Pixel type",
       keywords: "titles font type pixel clean jersey lexend display",
       Icon: pixel ? Type : ALargeSmall,
       run: () => {

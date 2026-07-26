@@ -1,11 +1,13 @@
 import { BrandHeader, PotatoSnoreSvg, Shell } from "@couch-potato/ui";
 import {
+  dismissLobbyJamInvite,
   getActiveProfile,
   loadDevicePrefs,
   loadLastRun,
   loadLaunch,
   saveLaunch,
   setCustomBlockedWords,
+  setMenuMusicEnabled,
   type PlayLaunch,
 } from "../storage";
 import { useNavigate } from "@tanstack/react-router";
@@ -13,6 +15,8 @@ import { useEffect, useState } from "react";
 import { track } from "../analytics";
 import { ChromeNav } from "@/components/ChromeNav";
 import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
+import { LobbyJamInvite } from "@/components/LobbyJamInvite";
+import { applyMenuMusicEnabled } from "../menuMusic";
 import { prefetchPlayPage } from "../playPrefetch";
 import { playSearchFromLaunch } from "../playLaunchSearch";
 
@@ -29,6 +33,10 @@ export function HomePage() {
   const [duration, setDuration] = useState(lobby.duration ?? 60);
   const [blockedWords, setBlockedWords] = useState(() => loadDevicePrefs().customBlockedWords);
   const hasLastResults = loadLastRun() != null;
+  const [showJamInvite, setShowJamInvite] = useState(() => {
+    const p = loadDevicePrefs();
+    return !p.menuMusicEnabled && !p.lobbyJamInviteDismissed;
+  });
 
   // Belt-and-suspenders with route beforeLoad (sync redirect preferred).
   const howToSeen = loadDevicePrefs().howToSeen;
@@ -41,6 +49,20 @@ export function HomePage() {
   const onBlockedWords = (next: string[]) => {
     setBlockedWords(next);
     setCustomBlockedWords(next);
+  };
+
+  const cueJam = () => {
+    setMenuMusicEnabled(true);
+    dismissLobbyJamInvite();
+    applyMenuMusicEnabled(true);
+    setShowJamInvite(false);
+    track("lobby_jam_invite", { action: "cue" });
+  };
+
+  const skipJamInvite = () => {
+    dismissLobbyJamInvite();
+    setShowJamInvite(false);
+    track("lobby_jam_invite", { action: "dismiss" });
   };
 
   if (!howToSeen) {
@@ -81,6 +103,8 @@ export function HomePage() {
             </p>
             <ChromeNav />
           </div>
+
+          {showJamInvite ? <LobbyJamInvite onCue={cueJam} onDismiss={skipJamInvite} /> : null}
 
           <HomeSetup
             mode={mode}

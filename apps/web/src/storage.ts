@@ -57,13 +57,21 @@ export type Profile = {
 /** `system` follows OS `prefers-color-scheme`; `light`/`dark` are explicit user overrides. */
 export type ThemePreference = "light" | "dark" | "system";
 
-/** Display face: clean (Lexend, default) or pixel (Jersey 15). Flips `--font-display` only. */
-export type FontPreference = "pixel" | "clean";
+/** Display face: clean (Lexend, default) or pixel (Jersey 15). Flips all font CSS vars. */
+export type FontPreference = "clean" | "pixel";
 
 export type DevicePrefs = {
   soundEnabled: boolean;
-  /** Looping background music (home / couch crew / quiet on play). Separate from SFX. Default off. */
+  /**
+   * Looping background music (home / couch crew / quiet on play). Separate from SFX. Default off.
+   * Lobby soft invite (cue the jam) when false and `lobbyJamInviteDismissed` is false.
+   */
   menuMusicEnabled: boolean;
+  /**
+   * Soft lobby jam invite dismissed (or accepted). Default false → show once while jam is off.
+   * Options can still flip Lobby jam anytime; invite does not reappear after dismiss.
+   */
+  lobbyJamInviteDismissed: boolean;
   /** Unfound valid words on the board (not target pts remaining). Default off = discovery. */
   showWordsLeft: boolean;
   /**
@@ -73,7 +81,7 @@ export type DevicePrefs = {
   howToSeen: boolean;
   /** Default system; explicit light/dark once the player picks via the toggle. */
   themePreference: ThemePreference;
-  /** Default clean (Lexend display); pixel = Jersey 15. Body/tiles stay Lexend either way. */
+  /** Default clean (Lexend); pixel = Jersey 15 everywhere (one face — not titles-only). */
   fontPreference: FontPreference;
   /**
    * Extra house-ban tokens (lowercase a–z, ≥3). Device-local; snapshotted into the
@@ -106,6 +114,7 @@ function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string
   return {
     soundEnabled: prefs.soundEnabled ?? true,
     menuMusicEnabled: prefs.menuMusicEnabled ?? false,
+    lobbyJamInviteDismissed: prefs.lobbyJamInviteDismissed ?? false,
     showWordsLeft: prefs.showWordsLeft ?? false,
     // Missing key = legacy install — don't force the coach on existing players.
     howToSeen: typeof prefs.howToSeen === "boolean" ? prefs.howToSeen : true,
@@ -119,7 +128,15 @@ function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string
 export type StoredBlob = {
   profiles: Profile[];
   prefs: DevicePrefs;
+  /**
+   * Bitflags for one-shot prefs migrations already applied.
+   * `1` = Type face is full-UI (was titles-only); sticky Pixel reset → Clean.
+   */
+  migrations?: number;
 };
+
+/** Titles-only Pixel → full-face Type; force Clean so Pixel is opt-in again. */
+const MIG_TYPE_FACE_FULL = 1;
 
 const KEY = "couch-potato:v1";
 const HISTORY_CAP = 20;
@@ -185,6 +202,7 @@ export function defaultBlob(): StoredBlob {
     prefs: {
       soundEnabled: true,
       menuMusicEnabled: false,
+      lobbyJamInviteDismissed: false,
       showWordsLeft: false,
       howToSeen: false,
       themePreference: "system",
@@ -192,6 +210,7 @@ export function defaultBlob(): StoredBlob {
       customBlockedWords: [],
       activeProfileId: id,
     },
+    migrations: MIG_TYPE_FACE_FULL,
   };
 }
 
@@ -209,7 +228,17 @@ export function loadStore(): StoredBlob {
     if (!prefs.activeProfileId && profiles[0]) {
       prefs.activeProfileId = profiles[0].id;
     }
-    return { prefs, profiles };
+    let migrations = parsed.migrations ?? 0;
+    let dirty = false;
+    // Pixel used to flip titles only; full-face Type needs a fresh opt-in → Clean default.
+    if ((migrations & MIG_TYPE_FACE_FULL) === 0) {
+      prefs.fontPreference = "clean";
+      migrations |= MIG_TYPE_FACE_FULL;
+      dirty = true;
+    }
+    const blob: StoredBlob = { prefs, profiles, migrations };
+    if (dirty) saveStore(blob);
+    return blob;
   } catch {
     return defaultBlob();
   }
@@ -349,6 +378,13 @@ export function setSoundEnabled(enabled: boolean) {
 export function setMenuMusicEnabled(enabled: boolean) {
   const store = loadStore();
   store.prefs.menuMusicEnabled = enabled;
+  saveStore(store);
+}
+
+/** Hide the lobby jam invite for good (after Cue the jam or Maybe later). */
+export function dismissLobbyJamInvite() {
+  const store = loadStore();
+  store.prefs.lobbyJamInviteDismissed = true;
   saveStore(store);
 }
 

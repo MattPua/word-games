@@ -752,6 +752,12 @@
     box-shadow: none;
   }
 
+  /* Soft lobby jam invite — warm potato wash, not a blocking modal */
+  .cp-lobby-jam-invite {
+    border-color: color-mix(in srgb, var(--secondary) 42%, var(--border));
+    background: color-mix(in srgb, var(--secondary) 14%, var(--card));
+  }
+
   .cp-lobby-panel {
     border-radius: var(--radius);
     padding: 0.9rem;

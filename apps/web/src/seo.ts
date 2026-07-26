@@ -10,7 +10,7 @@ export const DESCRIPTION =
 /** OG / Twitter blurb (shorter than meta description). */
 export const OG_DESCRIPTION = "Swipe adjacent letters. Short sessions. No hints. Just couch vibes.";
 
-export const CANONICAL_ORIGIN = "https://couch-potato.app";
+export const CANONICAL_ORIGIN = "https://acouchpotato.com";
 export const CANONICAL_URL = `${CANONICAL_ORIGIN}/`;
 
 export const OG_IMAGE = "/og.png";
@@ -33,6 +33,7 @@ export function jsonLd() {
     "@context": "https://schema.org",
     "@type": ["WebApplication", "VideoGame"],
     name: PRODUCT_NAME,
+    url: CANONICAL_URL,
     description: JSON_LD_DESCRIPTION,
     applicationCategory: "GameApplication",
     genre: "Word game",

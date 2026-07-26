@@ -20,7 +20,7 @@ export function toggleTheme(pref: ThemePreference): "light" | "dark" {
   return resolveTheme(pref) === "dark" ? "light" : "dark";
 }
 
-/** Clean Lexend (default) vs pixel Jersey 15 for `--font-display` — see `theme.css` `data-font`. */
+/** Clean Lexend (default) vs pixel Jersey 15 for the whole UI face — see `theme.css` `data-font`. */
 let jerseyLoaded = false;
 
 function ensureJerseyFont() {

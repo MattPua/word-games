@@ -95,6 +95,9 @@ const STEPS: HowToStep[] = [
 ];
 
 const DEMO_MS = 320;
+/** Hold the nabbed word on board + pill before next step (was 650 — too snappy). */
+const SUCCESS_HOLD_MS = 1500;
+const MISS_HOLD_MS = 900;
 
 /**
  * Interactive how-to — brief swipe coach on a fixed board.
@@ -106,9 +109,11 @@ export function HowToPage() {
   const [path, setPath] = useState<Cell[]>([]);
   const [flash, setFlash] = useState("");
   const [demoing, setDemoing] = useState(true);
+  const [catching, setCatching] = useState(false);
   const [done, setDone] = useState(false);
   const [firstCatch, setFirstCatch] = useState(true);
   const demoGen = useRef(0);
+  const holdTimer = useRef<number | null>(null);
 
   const step = STEPS[stepIndex]!;
   const liveWord = wordFromPath(DEMO_LETTERS, path).toUpperCase();
@@ -124,12 +129,23 @@ export function HowToPage() {
     navigate({ to: "/play", search: playSearchFromLaunch(loadLaunch()) });
   }, [navigate]);
 
+  useEffect(() => {
+    return () => {
+      if (holdTimer.current != null) window.clearTimeout(holdTimer.current);
+    };
+  }, []);
+
   // Ghost-swipe the target path once when a step opens, then hand the board over.
   useEffect(() => {
     if (done) return;
     const gen = ++demoGen.current;
+    if (holdTimer.current != null) {
+      window.clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
     setPath([]);
     setFlash("");
+    setCatching(false);
     setDemoing(true);
     let i = 0;
     const id = window.setInterval(() => {
@@ -149,30 +165,39 @@ export function HowToPage() {
   }, [stepIndex, step.path, done]);
 
   const onPathEnd = (finalPath: Cell[]) => {
-    if (demoing || done) return;
+    if (demoing || done || catching) return;
     const word = wordFromPath(DEMO_LETTERS, finalPath).toLowerCase();
-    setPath([]);
     if (word === step.target) {
       void import("../wordAcceptSound").then((m) =>
         m.playAcceptedWordSound(word.length, { firstWord: firstCatch }),
       );
       setFirstCatch(false);
       const pts = scoreWord(word.length);
+      // Keep path lit so the nab reads on the board, not just the pill.
+      setPath(finalPath);
+      setCatching(true);
       setFlash(step.showPoints ? `${word.toUpperCase()} +${pts}` : word.toUpperCase());
-      window.setTimeout(() => {
+      holdTimer.current = window.setTimeout(() => {
+        holdTimer.current = null;
         setFlash("");
+        setCatching(false);
+        setPath([]);
         if (stepIndex >= STEPS.length - 1) {
           setDone(true);
         } else {
           setStepIndex((n) => n + 1);
         }
-      }, 650);
+      }, SUCCESS_HOLD_MS);
       return;
     }
+    setPath([]);
     if (word.length >= 3) {
       void import("../wordRejectSound").then((m) => m.playRejectedWordSound());
       setFlash(word === "" ? "" : "Not that one");
-      window.setTimeout(() => setFlash(""), 900);
+      holdTimer.current = window.setTimeout(() => {
+        holdTimer.current = null;
+        setFlash("");
+      }, MISS_HOLD_MS);
     }
   };
 
@@ -226,7 +251,7 @@ export function HowToPage() {
               <ScoreBubble
                 className="mb-3"
                 word={flash || liveWord}
-                hint={demoing ? "Watch…" : step.hint}
+                hint={demoing ? "Watch…" : catching ? "Nice nab" : step.hint}
               />
               <div
                 className={`cp-howto-board mx-auto w-full ${demoing ? "cp-howto-demoing" : ""}`}
@@ -237,7 +262,7 @@ export function HowToPage() {
                   selected={path}
                   topology="square"
                   isAdjacent={(a, b) => isAdjacentCells(a, b, "square")}
-                  interactive={!demoing}
+                  interactive={!demoing && !catching}
                   onPathChange={setPath}
                   onPathEnd={onPathEnd}
                 />
@@ -263,7 +288,11 @@ export function HowToPage() {
                   Skip
                 </Button>
                 <p className="min-w-0 flex-1 text-center font-body text-xs text-muted-foreground sm:text-left">
-                  {demoing ? "Ghost swipe first…" : "Your turn. Swipe the word."}
+                  {demoing
+                    ? "Ghost swipe first…"
+                    : catching
+                      ? "Locked in."
+                      : "Your turn. Swipe the word."}
                 </p>
               </div>
             </div>

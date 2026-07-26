@@ -110,7 +110,7 @@ export function OptionsPage() {
         />
 
         <PrefChoiceGroup
-          label="Titles"
+          label="Type"
           value={fontPref}
           onChange={setTypeFace}
           data-testid="options-titles"

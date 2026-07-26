@@ -10,6 +10,8 @@
 
 Casual word game for short sessions: swipe paths on a square or honeycomb board, clear a goal, nab a timed haul, or keep a survival timer fed. No hints, no accounts, no cloud — just local profiles and a potato on a sage couch.
 
+**Live:** [acouchpotato.com](https://acouchpotato.com)
+
 ## Play
 
 - **Goal** — Clear the couch by earning enough points before you run out of target.
@@ -70,7 +72,7 @@ Copy `apps/web/.env.example` → `apps/web/.env` and set a real PostHog key if y
 Couch Potato is built to stay playable on slow (3G-class) links and after the first visit:
 
 - **Lean cold path** — lobby does not download the play dictionary, lobby jam MP3, medals atlas, or PostHog unless needed.
-- **Latin-only fonts** by default (Pixel Titles / Jersey loads on demand).
+- **Latin-only fonts** by default (Pixel type / Jersey loads on demand).
 - **Service worker (production)** — precaches a small shell (~fonts + CSS + tiny brand marks). Route JS, heavy sprites, and audio use **CacheFirst** after first use so offline lobby/play works once you’ve opened those screens online.
 - Profiles, scores, and medals stay in **localStorage** (no account / no sync).
 

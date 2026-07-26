@@ -52,15 +52,28 @@ export function isInTileHitZone(nx: number, ny: number, inset = TILE_HIT_EDGE_IN
 }
 
 /**
- * Edge margin (each side) for backtrack hysteresis.
- * Pointer must be inside the inner (1 - 2·margin) square to pop/truncate —
- * corner grazes while aiming at a diagonal neighbor do not backtrack.
+ * Edge margin (each side) for backtrack hysteresis on **deeper** path cells.
+ * Pointer must be inside the inner (1 - 2·margin) square to truncate past the
+ * immediate previous tile — corner grazes while aiming at a diagonal neighbor
+ * do not false-backtrack. The cell just before the tip uses the full hit zone
+ * so fast reverse swipes still pop the last letter.
  */
 export const BACKTRACK_EDGE_MARGIN = 0.28;
 
 /** True when normalized tile coords (0–1) sit in the backtrack center zone. */
 export function isInBacktrackZone(nx: number, ny: number, margin = BACKTRACK_EDGE_MARGIN): boolean {
   return nx >= margin && nx <= 1 - margin && ny >= margin && ny <= 1 - margin;
+}
+
+/**
+ * Whether revisiting `cell` may truncate the path.
+ * Immediate previous (path tip − 1) → always (full tile hit already required).
+ * Older cells → only when the pointer is in the center zone.
+ */
+export function allowBacktrackForCell(path: Cell[], cell: Cell, inCenterZone: boolean): boolean {
+  if (inCenterZone) return true;
+  const prev = path.length >= 2 ? path[path.length - 2] : null;
+  return prev != null && cellsEqual(prev, cell);
 }
 
 export type ApplyPathCellOptions = {
