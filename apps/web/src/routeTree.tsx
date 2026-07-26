@@ -10,6 +10,7 @@ import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode
 import { loadDevicePrefs } from "./storage";
 import { applyMenuMusicEnabled, menuMusicSceneForPath, setMenuMusicScene } from "./menuMusic";
 import { applyFontPreference, applyTheme } from "./theme";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { COMMAND_PALETTE_OPEN, markCommandPaletteWantOpen } from "./commandPaletteBus";
 import { DEFAULT_TITLE, pageHead } from "./seo";
 import { prefetchPlayPage } from "./playPrefetch";
@@ -50,7 +51,9 @@ function LazyPage({ Page, fallback }: { Page: ComponentType; fallback?: ReactNod
   );
 }
 
-/** Mount ⌘K palette on first open only — keeps cmdk/radix off lobby LCP. */
+/**
+ * Mount ⌘K palette on first open only — keeps cmdk/dialog off lobby LCP.
+ */
 function DeferredCommandPalette() {
   const [mount, setMount] = useState(false);
 
@@ -81,47 +84,6 @@ function DeferredCommandPalette() {
   );
 }
 
-/**
- * Radix tooltip provider on first pointer/key — keeps tooltip off cold LCP.
- * IconTooltip no-ops until then.
- */
-function DeferredTooltipProvider({ children }: { children: ReactNode }) {
-  const [wrap, setWrap] = useState<ComponentType<{ children: ReactNode }> | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const boot = () => {
-      window.removeEventListener("pointerdown", boot);
-      window.removeEventListener("keydown", boot);
-      void import("@/components/ui/tooltip").then((m) => {
-        if (cancelled) return;
-        const Provider = m.TooltipProvider;
-        setWrap(
-          () =>
-            function TipRoot({ children: tipChildren }: { children: ReactNode }) {
-              return (
-                <Provider delayDuration={400} skipDelayDuration={200}>
-                  {tipChildren}
-                </Provider>
-              );
-            },
-        );
-      });
-    };
-    window.addEventListener("pointerdown", boot, { once: true, passive: true });
-    window.addEventListener("keydown", boot, { once: true });
-    return () => {
-      cancelled = true;
-      window.removeEventListener("pointerdown", boot);
-      window.removeEventListener("keydown", boot);
-    };
-  }, []);
-
-  if (!wrap) return children;
-  const TipRoot = wrap;
-  return <TipRoot>{children}</TipRoot>;
-}
-
 function RootLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -148,7 +110,7 @@ function RootLayout() {
   }, []);
 
   return (
-    <DeferredTooltipProvider>
+    <TooltipProvider delayDuration={400} skipDelayDuration={200}>
       <HeadContent />
       <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
         <main className="flex min-h-0 flex-1 flex-col">
@@ -156,7 +118,7 @@ function RootLayout() {
         </main>
         <DeferredCommandPalette />
       </div>
-    </DeferredTooltipProvider>
+    </TooltipProvider>
   );
 }
 

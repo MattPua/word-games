@@ -38,7 +38,7 @@ Critical config stays in `routeTree.tsx` (path, `validateSearch`, `head`). Page 
 | Chrome (`/results`, `/profiles`, `/achievements`, `/options`) | Lazy page import | bare `aria-busy` div |
 | 404 / error | Lazy in `main.tsx` defaults | `null` Suspense |
 
-Root **defers** Radix `TooltipProvider` until first pointer/key; **cuelume** stays in Play/Options/sounds (not root). How-to SFX = dynamic import so cuelume stays off cold how-to.
+Root keeps sync `TooltipProvider` (IconTooltip requires it). **cuelume** stays in Play/Options/sounds (not root). How-to SFX = dynamic import so cuelume stays off cold how-to.
 
 **Play warm path:** `apps/web/src/playPrefetch.ts` is the single `import("./pages/PlayPage")` — route lazy + lobby Play hover/focus/click share it. **Never idle-prefetch Play** (ENABLE dict is a dynamic import inside Play; idle warm pulled it onto lobby LH). See lighthouse skill.
 
