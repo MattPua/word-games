@@ -23,6 +23,7 @@
     "@tanstack/react-router": "^1.114.25",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "cuelume": "^0.1.0",
     "lucide-react": "^1.26.0",
     "posthog-js": "^1.232.4",
