@@ -24,11 +24,13 @@ UI work is not done until exercised in a running app.
    - **Play / grid:** pointer **down → move → up** across tile hit targets (not click-only).
    - Happy path + obvious failures touched (invalid word, duplicate, target reach, timer end).
    - Quit → results with progress so far when quit/results changed.
-   - Share fallback / sounds when those areas changed.
+   - Sounds when those areas changed.
    - Active icon toggles (background music, SFX): on-state glyph animates (not just ring/color), off-state stays static, and `prefers-reduced-motion: reduce` drops the animation while keeping ring/color — check via `page.emulateMedia({ reducedMotion })` or computed `animationName`, not just a screenshot.
 4. Screenshots alone or “it compiles” do **not** count.
 
 Engine-only changes: Vitest is enough. UI: Vitest **and** this interactive check.
+
+Before shipping any **chrome page** (lobby, Couch crew, Results, Achievements, similar setup/settings/stats screens — not play), also check it at ~1280 width: it should widen and go multi-col (see `.cursor/rules/ui.mdc` "Desktop real estate"), not sit as a lonely narrow `max-w-md` stick with huge empty margins.
 
 ## Layout bugs (clipping, overflow, sticky footers, safe-area)
 
