@@ -4,18 +4,18 @@ import { applyBlocklist, mergeBlocklists } from "./filter";
 
 export type Dictionary = {
   /**
-   * Full ENABLE − blocklist. Play lexicon for accept, board `allWords`,
-   * targets, and Words left.
+   * Full ENABLE − blocklist. Kept for a future “dictionary mode”; **not** the
+   * v1 play accept set (too many Scrabble scraps: leu, mut, thro, …).
    */
   enable: Set<string>;
   /**
    * Casual common-word subset (enable1 ∩ Wiktionary TV/movie frequency).
-   * Used for gen quality ranking + Results “Long ones left” tease — not accept.
+   * **v1 play lexicon** — accept, board `allWords`, targets, Words left.
    */
   popular: Set<string>;
-  /** Play accept: true for ENABLE − blocklist. */
+  /** Play accept: true for popular − blocklist. */
   has(word: string): boolean;
-  /** True for the common popular subset only. */
+  /** Alias of `has` for gen ranking / Long ones left (same set in v1). */
   isPopular(word: string): boolean;
 };
 
@@ -30,12 +30,12 @@ export function createDictionary(
   return {
     enable,
     popular,
-    has: (word) => enable.has(word.toLowerCase()),
+    has: (word) => popular.has(word.toLowerCase()),
     isPopular: (word) => popular.has(word.toLowerCase()),
   };
 }
 
-/** Load once — ENABLE play lexicon (+ popular for quality/tease signals). */
+/** Load once — popular play lexicon (+ ENABLE set kept for future dictionary mode). */
 export function getDictionary(): Dictionary {
   if (!cached) cached = createDictionary();
   return cached;
@@ -54,7 +54,10 @@ export function dictionaryWithoutWords(
   return createDictionary(applyBlocklist(base.enable, block), applyBlocklist(base.popular, block));
 }
 
-/** Prefetch helper — same artifact `getDictionary` uses; warms the play chunk. */
+/**
+ * Prefetch helper for a future ENABLE “dictionary mode” — not the v1 play path.
+ * Play warms via `getDictionary()` / dynamic `@couch-potato/dictionary` import.
+ */
 export async function loadEnableWords(): Promise<string[]> {
   const mod = await import("./generated/enable.json");
   return mod.default as string[];

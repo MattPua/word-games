@@ -101,7 +101,7 @@ export function buildBoard(
   topology: GridTopology = "square",
 ): Board {
   const size = letters.length as GridSize;
-  // allWords = ENABLE play lexicon (via findAllWords) ≥ minWordLength
+  // allWords = popular play lexicon (via findAllWords) ≥ minWordLength
   const allWords = findAllWords(letters, dict, topology).filter((w) => w.length >= minWordLength);
   const maxScore = allWords.reduce((s, w) => s + scoreWord(w.length), 0);
   const targets = computeTargets(maxScore);
@@ -147,7 +147,7 @@ export function generateBoard(opts: GenerateOptions): Board {
     const letters = randomBoard(opts.size, rng, difficulty);
     const board = buildBoard(letters, opts.dict, minWordLength, topology);
     const counts = countByLength(board.allWords);
-    // Prefer boards with more everyday (popular) words among ENABLE finds.
+    // Prefer boards denser in everyday (popular) finds.
     const popular = popularRatio(board.allWords, opts.dict);
     const hardOk = board.targets.hard <= board.maxScore && board.maxScore > 0;
     const floorOk = board.maxScore >= HARD_TARGET_FLOOR || minWordLength > 3;

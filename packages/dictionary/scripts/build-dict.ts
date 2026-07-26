@@ -91,7 +91,7 @@ async function main() {
         nameFilter:
           "data/name-blocklist.txt = SSA baby-name mass − name-allowlist.txt dual-use English; unioned with NSFW blocklist at build",
         playPolicy:
-          "accept / allWords / targets / Words left = ENABLE − NSFW − given-name filter; popular ranks gen quality and filters Results Long ones left",
+          "accept / allWords / targets / Words left = popular (enable1 ∩ Wiktionary TV/movie frequency) − NSFW − given-name filter; full ENABLE kept for a future dictionary mode",
       },
       null,
       2,

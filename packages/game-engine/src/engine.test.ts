@@ -422,7 +422,7 @@ describe("wordLists", () => {
 });
 
 describe("missedOtherWords", () => {
-  it("lists leftovers outside the long tease, no overlap", () => {
+  it("lists leftovers outside the long tease, skips 3-letter crumbs", () => {
     const board = buildBoard(
       [
         ["C", "A", "T"],
@@ -443,8 +443,10 @@ describe("missedOtherWords", () => {
     const more = missedOtherWords(state, long);
     const leftover = new Set(board.allWords.filter((w) => !state.found.includes(w)));
     expect(long.every((w) => leftover.has(w))).toBe(true);
-    expect(more.every((w) => leftover.has(w) && !long.includes(w))).toBe(true);
-    expect(long.length + more.length).toBe(leftover.size);
+    expect(more.every((w) => leftover.has(w) && !long.includes(w) && w.length >= 4)).toBe(true);
+    expect(more.every((w) => w.length >= 4)).toBe(true);
+    const skippedShort = [...leftover].filter((w) => w.length < 4 && !long.includes(w));
+    expect(long.length + more.length + skippedShort.length).toBe(leftover.size);
   });
 });
 
@@ -626,7 +628,7 @@ describe("game", () => {
 });
 
 describe("generateBoard", () => {
-  it("includes ENABLE words in allWords (not popular-only)", () => {
+  it("allWords is popular-only (ENABLE scraps stay out)", () => {
     // Board spells DETER (ENABLE, not popular) and CAT (popular).
     const letters = [
       ["D", "E", "T", "X"],
@@ -636,10 +638,10 @@ describe("generateBoard", () => {
     ];
     const dict = createDictionary(["deter", "cat", "act", "tea"], ["cat", "act", "tea"]);
     const board = buildBoard(letters, dict, 3);
-    expect(board.allWords).toContain("deter");
+    expect(board.allWords).not.toContain("deter");
     expect(board.allWords).toContain("cat");
-    expect(dict.has("deter")).toBe(true);
-    expect(dict.isPopular("deter")).toBe(false);
+    expect(dict.has("deter")).toBe(false);
+    expect(dict.enable.has("deter")).toBe(true);
     expect(dict.has("cat")).toBe(true);
   });
 
@@ -824,11 +826,12 @@ describe("generateBoard", () => {
 
   it("lands 8+ and often 10+ letter words on longer boards when possible", () => {
     const dict = createDictionary();
-    // Soft ge10 on square 5/6 + hex 6 — may loosen, but ranking should clear often.
-    for (const { size, topology, minSaw10 } of [
-      { size: 5 as const, topology: "square" as const, minSaw10: 8 },
-      { size: 6 as const, topology: "square" as const, minSaw10: 12 },
-      { size: 6 as const, topology: "hex" as const, minSaw10: 6 },
+    // Soft ge10 on square 5/6 + hex 6 — may loosen; popular lexicon has fewer
+    // 10+ paths than full ENABLE, so floors stay modest.
+    for (const { size, topology, minSaw8, minSaw10 } of [
+      { size: 5 as const, topology: "square" as const, minSaw8: 10, minSaw10: 2 },
+      { size: 6 as const, topology: "square" as const, minSaw8: 18, minSaw10: 6 },
+      { size: 6 as const, topology: "hex" as const, minSaw8: 6, minSaw10: 1 },
     ]) {
       let saw8 = 0;
       let saw10 = 0;
@@ -838,7 +841,7 @@ describe("generateBoard", () => {
         if (board.allWords.some((w) => w.length >= 8)) saw8++;
         if (board.allWords.some((w) => w.length >= 10)) saw10++;
       }
-      expect(saw8, `${topology} ${size} 8+`).toBeGreaterThanOrEqual(10);
+      expect(saw8, `${topology} ${size} 8+`).toBeGreaterThanOrEqual(minSaw8);
       expect(saw10, `${topology} ${size} 10+`).toBeGreaterThanOrEqual(minSaw10);
     }
   }, 120_000);

@@ -49,16 +49,22 @@ describe("dictionary filter", () => {
     expect(dict.has("potato") || dict.has("cat")).toBe(true);
   });
 
-  it("play accepts ENABLE − blocklist (incl. words outside popular)", () => {
+  it("play accepts popular only (rejects ENABLE Scrabble scraps)", () => {
     const dict = createDictionary();
-    // Legitimate ENABLE words that miss the TV/movie popular frequency cut
-    expect(dict.has("deter")).toBe(true);
-    expect(dict.isPopular("deter")).toBe(false);
-    expect(dict.has("aalii")).toBe(true);
-    expect(dict.isPopular("aalii")).toBe(false);
+    // ENABLE-only scraps that snuck in when play = full ENABLE
+    expect(dict.has("leu")).toBe(false);
+    expect(dict.has("mut")).toBe(false);
+    expect(dict.has("thro")).toBe(false);
+    expect(dict.has("aalii")).toBe(false);
+    expect(dict.enable.has("leu")).toBe(true);
+    // Everyday words stay
     expect(dict.has("potato")).toBe(true);
     expect(dict.isPopular("potato")).toBe(true);
     expect(dict.has("cat")).toBe(true);
+    // Legitimate ENABLE that miss the popular cut — not playable in v1
+    expect(dict.enable.has("deter")).toBe(true);
+    expect(dict.has("deter")).toBe(false);
+    expect(dict.isPopular("deter")).toBe(false);
   });
 
   it("buildNameBlocklist drops given names but keeps dual-use allowlist", () => {
@@ -90,7 +96,7 @@ describe("dictionary filter", () => {
     for (const name of ["peter", "john", "james", "jennifer", "michael", "sarah"]) {
       expect(dict.has(name), `name still playable: ${name}`).toBe(false);
     }
-    for (const word of ["mark", "hope", "grace", "will", "heather", "rose", "potato", "deter"]) {
+    for (const word of ["mark", "hope", "grace", "will", "heather", "rose", "potato"]) {
       expect(dict.has(word), `dual-use/English missing: ${word}`).toBe(true);
     }
   });

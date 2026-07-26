@@ -27,7 +27,7 @@ function buildTrie(words: Iterable<string>): TrieNode {
 }
 
 /**
- * Find all unique playable (ENABLE) words on the board (topology neighbors, no reuse).
+ * Find all unique playable (popular) words on the board (topology neighbors, no reuse).
  * No max length — DFS walks until tiles run out or the trie has no child (up to size²).
  */
 export function findAllWords(
@@ -36,7 +36,7 @@ export function findAllWords(
   topology: GridTopology = "square",
 ): string[] {
   const size = letters.length;
-  const trie = buildTrie(dict.enable);
+  const trie = buildTrie(dict.popular);
   const found = new Set<string>();
   const visited = Array.from({ length: size }, () => Array.from({ length: size }, () => false));
 

@@ -150,14 +150,16 @@ export function missedLongWords(state: GameState, dict: Dictionary, limit = 8): 
 }
 
 /**
- * Other unfound board words after the long tease — shorter crumbs + non-popular.
- * `exclude` = words already shown under Long ones left.
+ * Other unfound board words after the long tease — mid-length leftovers.
+ * Skips 3-letter crumbs (too many / too noisy for Results). `exclude` = words
+ * already shown under Long ones left.
  */
 export function missedOtherWords(state: GameState, exclude: readonly string[] = []): string[] {
   const found = new Set(state.found);
   const skip = new Set(exclude);
+  const floor = Math.max(4, state.config.minWordLength);
   return state.board.allWords
-    .filter((w) => !found.has(w) && !skip.has(w))
+    .filter((w) => !found.has(w) && !skip.has(w) && w.length >= floor)
     .sort(compareWordsByLengthThenAlpha);
 }
 
