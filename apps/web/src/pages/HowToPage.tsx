@@ -12,6 +12,7 @@ import {
 } from "@couch-potato/ui";
 import { isAdjacentCells, scoreWord, wordFromPath } from "@couch-potato/game-engine";
 import { Button } from "@/components/ui/button";
+import { setPlayVia, track } from "../analytics";
 import { setHowToSeen, loadLaunch } from "../storage";
 import { playSearchFromLaunch } from "../playLaunchSearch";
 
@@ -123,13 +124,16 @@ export function HowToPage() {
   const liveWord = wordFromPath(DEMO_LETTERS, path).toUpperCase();
 
   const finish = useCallback(() => {
+    track("howto_skipped", { step_index: stepIndex, step_id: STEPS[stepIndex]?.id ?? "done" });
     setHowToSeen(true);
     navigate({ to: "/" });
-  }, [navigate]);
+  }, [navigate, stepIndex]);
 
   /** Done CTA — straight into a run with last lobby prefs (game loop). */
   const startRun = useCallback(() => {
+    track("howto_completed", { via: "play_run" });
     setHowToSeen(true);
+    setPlayVia("howto");
     navigate({ to: "/play", search: playSearchFromLaunch(loadLaunch()) });
   }, [navigate]);
 
@@ -186,6 +190,11 @@ export function HowToPage() {
     if (demoing || done || catching) return;
     const word = wordFromPath(DEMO_LETTERS, finalPath).toLowerCase();
     if (word === step.target) {
+      track("howto_step_nabbed", {
+        step_id: step.id,
+        step_index: stepIndex,
+        word,
+      });
       void import("../wordAcceptSound").then((m) =>
         m.playAcceptedWordSound(word.length, { firstWord: firstCatch }),
       );
@@ -201,6 +210,7 @@ export function HowToPage() {
         setCatching(false);
         setPath([]);
         if (stepIndex >= STEPS.length - 1) {
+          track("howto_completed", { via: "done" });
           setDone(true);
         } else {
           setStepIndex((n) => n + 1);

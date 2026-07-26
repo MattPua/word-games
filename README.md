@@ -1,7 +1,7 @@
 # Couch Potato
 
 <p align="center">
-  <img src="apps/web/public/logo.png" alt="Couch Potato mascot" width="128" height="128" />
+  <img src="apps/web/public/logo.webp" alt="Couch Potato mascot" width="128" height="128" />
 </p>
 
 <p align="center">
@@ -10,17 +10,19 @@
 
 Casual word game for short sessions: swipe paths on a square or honeycomb board, clear a goal, nab a timed haul, or keep a survival timer fed. No hints, no accounts, no cloud — just local profiles and a potato on a sage couch.
 
-**Live:** [acouchpotato.com](https://www.acouchpotato.com)
+**Live:** [www.acouchpotato.com](https://www.acouchpotato.com)
 
 ## Play
 
-- **Goal** — Clear the couch by earning enough points before you run out of target.
-- **Timed** — Fixed board, 30–120s; nab as many words as you can before time's up.
-- **Survival** — Countdown clock; every accepted word refills time.
+- **Goal** — Clear the couch by earning enough points (Easy / Medium / Hard targets).
+- **Timed** — Fixed board; pick **How hard?** (letter mix) and **How long?** (30–120s); nab as many words as you can.
+- **Survival** — Countdown clock; every accepted word refills time (difficulty sets how stingy the start/refills are).
 
-Boards are 4×4 / 5×5 / 6×6 on **Square** (8-way) or **Honeycomb** (hex). Spin the board for a new view of the same letters. Score is `length − 2` per word.
+Boards are 4×4 / 5×5 / 6×6 on **Square** (8-way) or **Honeycomb** (hex). Spin the board for a new view of the same letters. Score is `length − 2` per word. Min length floor is 3+ (lobby can raise to 4+ / 5+).
 
-Extras on the web build: local **Couch crew** profiles, **Potato Board** personal stats, **Couch medals** achievements, device **Options** (look, titles, SFX, lobby jam), and a ⌘K / Ctrl+K command palette. Lobby setup is shareable via `/play` query params (e.g. `/play?mode=goal&grid=5&board=hex&diff=hard&min=4`).
+First visit gets a short interactive **How to play** coach (`/how-to`); Skip or finish once, replay anytime from Options.
+
+Extras on the web build: local **Couch crew** profiles, **Potato Board** personal stats, **Couch medals** achievements, device **Options** (Look, Type Clean/Pixel, Words left, SFX, Lobby jam), optional lobby **Ban list**, and a ⌘K / Ctrl+K command palette. Lobby setup is shareable via `/play` query params (e.g. `/play?mode=goal&grid=5&board=hex&diff=hard&min=4`).
 
 ## Stack
 
@@ -31,7 +33,7 @@ Bun workspaces monorepo:
 | `apps/web` | Vite + React + TanStack Router (ships to Vercel) |
 | `apps/mobile` | Expo shell (play still lands on web first) |
 | `packages/game-engine` | Pure TS rules, board gen, scoring |
-| `packages/dictionary` | Popular / ENABLE lexicons + NSFW + given-name filters |
+| `packages/dictionary` | ENABLE play lexicon + popular ranking lists + NSFW / given-name filters |
 | `packages/ui` | Board, mascots, shared presentational UI |
 
 Tooling: **Bun**, **Vitest**, **oxfmt** + **oxlint**, **mprocs** for multi-proc local dev.
@@ -55,32 +57,37 @@ bun dev    # alias for bun run mprocs
 Useful scripts from the repo root:
 
 ```sh
-bun run test        # workspace tests
+bun run test              # workspace tests
 bun run typecheck
-bun run check       # oxlint + oxfmt --check
-bun run build       # dictionary + web production build
+bun run check             # oxlint + oxfmt --check
+bun run build             # dictionary + web production build
+bun run sprites:optimize  # lossless WebP crops / downscales for web public/
 ```
 
 Agent / contributor conventions (voice, engine ownership, UI verify) live in [`AGENTS.md`](./AGENTS.md).
 
 ### Optional analytics
 
-Copy `apps/web/.env.example` → `apps/web/.env` and set a real PostHog key if you want product analytics. Without a key (or with the placeholder), PostHog stays off the cold path.
+Copy `apps/web/.env.example` → `apps/web/.env.local` and set a real `VITE_PUBLIC_POSTHOG_KEY` (+ optional `VITE_PUBLIC_POSTHOG_HOST`) for product analytics + error tracking. Without a key (or with the placeholder), PostHog stays off the cold path.
+
+Game-loop events (how-to, `game_started` / `game_completed`, replay, medals, prefs) live in `apps/web/src/analytics.ts` — catalog in `.cursor/skills/posthog-analytics`. For readable production stack traces, add build-time `POSTHOG_PERSONAL_API_KEY` + `POSTHOG_PROJECT_ID` (source map upload).
 
 ## Offline & light data
 
 Couch Potato is built to stay playable on slow (3G-class) links and after the first visit:
 
-- **Lean cold path** — lobby does not download the play dictionary, lobby jam MP3, medals atlas, or PostHog unless needed.
-- **Latin-only fonts** by default (Pixel type / Jersey loads on demand).
-- **Service worker (production)** — precaches a small shell (~fonts + CSS + tiny brand marks). Route JS, heavy sprites, and audio use **CacheFirst** after first use so offline lobby/play works once you’ve opened those screens online.
+- **Lean cold path** — lobby does not download the ENABLE play dictionary, lobby jam MP3, heavy medal marks, or PostHog unless needed.
+- **Latin-only fonts** by default (Pixel type / Jersey loads on demand; Type pref flips display + body together).
+- **Service worker (production)** — precaches a small shell (~fonts + CSS + tiny brand marks). Route JS, sprites, audio, and the Play dictionary use **CacheFirst** after first use so offline lobby/play works once you’ve opened those screens online.
 - Profiles, scores, and medals stay in **localStorage** (no account / no sync).
 
-First open still needs a network; after that, revisit offline for screens you’ve already loaded. Lobby jam only fetches when music is turned on.
+First open still needs a network; after that, revisit offline for screens you’ve already loaded. Lobby jam only fetches when music is turned on. Play warms the dictionary on hover/focus/click — never idle-prefetch from the lobby.
 
 ## Deploy
 
 `vercel.json` builds with `bun run build` and serves `apps/web/dist`. Point a Vercel project at this **repo root** (Root Directory blank — not `apps/web`). If Root Directory is `apps/web`, Output Directory must be `dist` only; `apps/web/dist` then looks in the wrong place and the deploy fails after a green Vite build. Production builds register the service worker automatically.
+
+Canonical site: **https://www.acouchpotato.com** (apex redirects to www).
 
 ## Dictionary attribution
 
@@ -89,7 +96,7 @@ Word lists from [dolph/dictionary](https://github.com/dolph/dictionary):
 - **`enable1.txt`** — ENABLE Scrabble word list (**public domain**); large, includes obscure terms.
 - **`popular.txt`** — common subset: enable1 ∩ [Wiktionary English frequency lists](http://en.wiktionary.org/wiki/Wiktionary:Frequency_lists#English) from TV/movie script samples (~25k everyday words). Membership only — not a frequency CSV.
 
-**Play policy:** accept, board word lists, targets, and Words left use **ENABLE − NSFW blocklist − given-name filter**. Names come from SSA baby-name frequency mass minus a dual-use English allowlist (`name-allowlist.txt`) so `mark`/`hope` stay but `peter`/`john` do not. Popular still ranks board-gen quality and filters Results **Long ones left** (recognizable long misses). Blocklists apply at dictionary build time so blocked tokens never appear in validation, gen, or reveals.
+**Play policy:** accept, board word lists (`allWords`), targets, and Words left use **ENABLE − NSFW blocklist − given-name filter**. Names come from SSA baby-name frequency mass minus a dual-use English allowlist (`name-allowlist.txt`) so `mark`/`hope` stay but `peter`/`john` do not. **Popular** still ranks board-gen quality and filters Results **Long ones left** (recognizable long misses) — it does not gate accept. Blocklists apply at dictionary build time so blocked tokens never appear in validation, gen, or reveals. The ENABLE JSON loads with the Play route (~457 KB gzip), not the lobby cold chunk.
 
 ## License
 

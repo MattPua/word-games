@@ -1,11 +1,20 @@
 import { useNavigate, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
 import { BrandHeader, EmptyState, PotatoSprite, ScrollShell } from "@couch-potato/ui";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { captureError } from "../analytics";
 
 /** Unexpected failure — potato spilled the snacks. */
 export function ErrorPage({ error, reset }: ErrorComponentProps) {
   const navigate = useNavigate();
   const router = useRouter();
+  const reported = useRef<unknown>(null);
+
+  useEffect(() => {
+    if (!error || reported.current === error) return;
+    reported.current = error;
+    captureError(error, { surface: "router_error" });
+  }, [error]);
 
   return (
     <ScrollShell>

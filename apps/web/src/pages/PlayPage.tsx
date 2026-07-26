@@ -60,7 +60,16 @@ import {
 import { bind, play, setEnabled } from "cuelume";
 import { isRejectedWordSubmit, playRejectedWordSound } from "../wordRejectSound";
 import { toast } from "sonner";
-import { track } from "../analytics";
+import {
+  consumePlayVia,
+  launchAnalyticsProps,
+  nextSessionRun,
+  peekSessionRun,
+  setPlayVia,
+  track,
+  trackOptionsPrefChanged,
+  trackWordRejected,
+} from "../analytics";
 import { playBoardClearedSound } from "../boardClearSound";
 import {
   getActiveProfile,
@@ -146,6 +155,11 @@ export function PlayPage() {
   );
   const lastFoundIdRef = useRef(0);
   const [firstWord, setFirstWord] = useState(true);
+  /** Seconds from board ready to first accepted word (null until nabbed). */
+  const secondsToFirstRef = useRef<number | null>(null);
+  const rotatesRef = useRef(0);
+  const pauseOpensRef = useRef(0);
+  const sessionRunRef = useRef(0);
   /** Non-null while the end-run curtain call plays (tiles drop + confetti). */
   const [endBeat, setEndBeat] = useState<RunEndReason | null>(null);
   const celebrate = endBeat != null;
@@ -219,6 +233,7 @@ export function PlayPage() {
   const [survivalBump, setSurvivalBump] = useState<{ id: number; seconds: number } | null>(null);
 
   const openPause = () => {
+    pauseOpensRef.current += 1;
     setPath([]);
     setPaused(true);
   };
@@ -231,17 +246,20 @@ export function PlayPage() {
     setSound(next);
     setSoundEnabled(next);
     setEnabled(next);
+    trackOptionsPrefChanged("sfx", next ? "on" : "off");
   };
 
   const setMenuMusicOn = (next: boolean) => {
     setMenuMusic(next);
     setMenuMusicEnabled(next);
     applyMenuMusicEnabled(next);
+    trackOptionsPrefChanged("lobby_jam", next ? "on" : "off");
   };
 
   const setWordsLeftOn = (next: boolean) => {
     setShowWordsLeftState(next);
     setShowWordsLeft(next);
+    trackOptionsPrefChanged("words_left", next ? "show" : "hide");
   };
 
   const setDarkModeOn = (next: boolean) => {
@@ -249,11 +267,18 @@ export function PlayPage() {
     setThemePref(pref);
     setThemePreference(pref);
     applyTheme(pref);
+    trackOptionsPrefChanged("look", pref);
   };
 
-  const celebrateBoardClear = () => {
+  const celebrateBoardClear = (wordsFound?: number) => {
     if (boardClearedRef.current) return;
     boardClearedRef.current = true;
+    track("board_cleared", {
+      mode: launch.mode,
+      grid: launch.grid,
+      topology,
+      words: wordsFound ?? 0,
+    });
     playBoardClearedSound();
     toast.success("Board cleared. Every word nabbed!");
     setFlash("BOARD CLEARED!");
@@ -310,9 +335,35 @@ export function PlayPage() {
       size: board.size,
     });
     runStartedAtRef.current = performance.now();
+    secondsToFirstRef.current = null;
+    rotatesRef.current = 0;
+    pauseOpensRef.current = 0;
+    const via = consumePlayVia();
+    const sessionRun = nextSessionRun();
+    sessionRunRef.current = sessionRun;
+    track("game_started", {
+      ...launchAnalyticsProps({
+        mode: config.mode,
+        grid: board.size,
+        topology: board.topology,
+        minWordLength,
+        difficulty: config.difficulty,
+        duration: config.mode === "timed" ? config.duration : undefined,
+      }),
+      via,
+      session_run: sessionRun,
+      board_words: board.allWords.length,
+      board_max_score: board.maxScore,
+      banned_words: loadDevicePrefs().customBlockedWords.length,
+    });
   };
 
   const restartRun = () => {
+    track("restart_mid_run", {
+      ...launchAnalyticsProps(launch),
+      session_run: sessionRunRef.current || peekSessionRun(),
+    });
+    setPlayVia("restart");
     if (rotateFallbackRef.current != null) {
       window.clearTimeout(rotateFallbackRef.current);
       rotateFallbackRef.current = null;
@@ -514,6 +565,80 @@ export function PlayPage() {
       survivalDurationMs,
       activePlayMs,
     });
+
+    const playSeconds = Math.round(activePlayMs / 1000);
+    const boardWords = s.board.allWords.length;
+    const foundPct =
+      boardWords > 0 ? Math.round((1000 * s.found.length) / boardWords) / 10 : 0;
+    const longest = s.found.reduce((m, w) => Math.max(m, w.length), 0);
+    const avgLen =
+      s.found.length > 0
+        ? Math.round((10 * s.found.reduce((sum, w) => sum + w.length, 0)) / s.found.length) / 10
+        : 0;
+    const targetPts = s.target ?? 0;
+    const clearedPct =
+      targetPts > 0 && s.remaining != null
+        ? Math.round(1000 * Math.min(1, Math.max(0, 1 - s.remaining / targetPts))) / 10
+        : targetPts > 0
+          ? Math.round(1000 * Math.min(1, s.score / targetPts)) / 10
+          : null;
+
+    track("game_completed", {
+      ...launchAnalyticsProps({
+        mode: s.config.mode,
+        grid: s.board.size,
+        topology: s.board.topology,
+        minWordLength: s.config.minWordLength,
+        difficulty,
+        duration: s.config.mode === "timed" ? s.config.duration : undefined,
+      }),
+      reason: s.ended!,
+      score: s.score,
+      words: s.found.length,
+      session_run: sessionRunRef.current || peekSessionRun(),
+      play_seconds: playSeconds,
+      board_words: boardWords,
+      board_max_score: s.board.maxScore,
+      found_pct: foundPct,
+      words_left: Math.max(0, boardWords - s.found.length),
+      longest_word: longest,
+      avg_word_len: avgLen,
+      target: targetPts || null,
+      cleared_pct: clearedPct,
+      rotates: rotatesRef.current,
+      pause_opens: pauseOpensRef.current,
+      board_cleared: boardClearedRef.current,
+      personal_best: isHigh,
+      seconds_to_first_word: secondsToFirstRef.current,
+      survival_peak_clock_s:
+        s.config.mode === "survival"
+          ? Math.round(survivalBudgetMsRef.current / 1000)
+          : null,
+      survival_bonus_s:
+        s.config.mode === "survival"
+          ? Math.max(
+              0,
+              Math.round(survivalBudgetMsRef.current / 1000) -
+                SURVIVAL_START_SECONDS[s.config.difficulty],
+            )
+          : null,
+    });
+
+    if (isHigh) {
+      track("personal_best", {
+        mode: s.config.mode,
+        grid: s.board.size,
+        score: s.score,
+      });
+    }
+    for (const up of stageUps) {
+      track("medal_stage_up", {
+        track_id: up.id,
+        stage: up.stage,
+        milestone: up.milestone,
+      });
+    }
+
     const dict = dictRef.current;
     if (!dict) return;
     const missed = missedLongWords(s, dict);
@@ -543,11 +668,6 @@ export function PlayPage() {
         stageUps.length || touched.length
           ? { snapshot: achievementsSnapshot, stageUps, touched }
           : undefined,
-    });
-    track("game_completed", {
-      reason: s.ended!,
-      score: s.score,
-      words: s.found.length,
     });
 
     // Every finish gets the same curtain call (tile drop + confetti + pill), not
@@ -634,6 +754,7 @@ export function PlayPage() {
 
   const rotate = (dir: 1 | -1) => {
     if (celebrate || paused || leavePromptOpen || rotatingRef.current) return;
+    rotatesRef.current += 1;
     setPath([]);
     const reduceMotion =
       typeof window !== "undefined" &&
@@ -760,9 +881,18 @@ export function PlayPage() {
                 const { state: next, result } = submitPath(state, p, dict);
                 setPath([]);
                 if (result.ok) {
+                  const first = firstWord;
+                  if (first && runStartedAtRef.current > 0) {
+                    secondsToFirstRef.current = Math.round(
+                      (performance.now() - runStartedAtRef.current) / 1000,
+                    );
+                  }
                   track("word_found", {
                     word: result.word,
                     points: result.points,
+                    length: result.word.length,
+                    first,
+                    seconds_to_first_word: first ? secondsToFirstRef.current : null,
                   });
                   lastFoundIdRef.current += 1;
                   setLastFound({
@@ -781,7 +911,7 @@ export function PlayPage() {
                     next.board.allWords.length > 0 &&
                     next.found.length === next.board.allWords.length;
                   if (boardCleared) {
-                    celebrateBoardClear();
+                    celebrateBoardClear(next.found.length);
                   } else {
                     playAcceptedWordSound(result.word.length, { firstWord });
                     setFlash(result.word.toUpperCase());
@@ -790,6 +920,7 @@ export function PlayPage() {
                   setFirstWord(false);
                   setState(next);
                 } else if (isRejectedWordSubmit(result.reason)) {
+                  trackWordRejected(result.reason);
                   playRejectedWordSound();
                   setFlash(REJECT_FLASH[result.reason] ?? result.reason);
                   window.setTimeout(() => setFlash(""), 700);

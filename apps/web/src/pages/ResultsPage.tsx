@@ -14,6 +14,7 @@ import {
 } from "@couch-potato/ui";
 import { findPathForWord, isAdjacentCells, type GridTopology } from "@couch-potato/game-engine";
 import { loadLastRun, saveLaunch, type PlayLaunch } from "../storage";
+import { setPlayVia, track } from "../analytics";
 import { Button } from "@/components/ui/button";
 import { ResultsMedals } from "../components/ResultsMedals";
 import { formatRunMeta } from "../runMeta";
@@ -370,6 +371,12 @@ export function ResultsPage() {
               duration: run.duration,
             };
             saveLaunch(launch);
+            track("play_again", {
+              mode: launch.mode,
+              grid: launch.grid,
+              topology: launch.topology ?? "square",
+            });
+            setPlayVia("results");
             navigate({ to: "/play", search: playSearchFromLaunch(launch) });
           }}
         >

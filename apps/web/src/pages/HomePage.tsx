@@ -12,7 +12,7 @@ import {
 } from "../storage";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { track } from "../analytics";
+import { setPlayVia, track } from "../analytics";
 import { ChromeNav } from "@/components/ChromeNav";
 import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
 import { LobbyJamInvite } from "@/components/LobbyJamInvite";
@@ -81,8 +81,13 @@ export function HomePage() {
         ? { mode, grid, topology, duration, difficulty, minWordLength }
         : { mode, grid, topology, difficulty, minWordLength };
     saveLaunch(launch);
-    track("game_started", { mode, grid, topology, minWordLength });
+    setPlayVia("lobby");
     navigate({ to: "/play", search: playSearchFromLaunch(launch) });
+  };
+
+  const openLastResults = () => {
+    track("last_results_opened", { from: "lobby" });
+    navigate({ to: "/results" });
   };
 
   return (
@@ -132,7 +137,7 @@ export function HomePage() {
           <HomePlayBar
             onPlay={play}
             onWarmPlay={warmPlay}
-            onLastResults={hasLastResults ? () => navigate({ to: "/results" }) : undefined}
+            onLastResults={hasLastResults ? openLastResults : undefined}
           />
         </Shell>
       </div>

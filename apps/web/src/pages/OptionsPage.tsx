@@ -25,6 +25,7 @@ import {
 } from "../storage";
 import { applyMenuMusicEnabled } from "../menuMusic";
 import { applyFontPreference, applyTheme, resolveTheme } from "../theme";
+import { trackOptionsPrefChanged } from "../analytics";
 import { Button } from "@/components/ui/button";
 import { ChromeNav } from "@/components/ChromeNav";
 import { MusicOff } from "@/icons/MusicOff";
@@ -47,12 +48,14 @@ export function OptionsPage() {
     const enabled = next === "show";
     setShowWordsLeftState(enabled);
     setShowWordsLeft(enabled);
+    trackOptionsPrefChanged("words_left", next);
   };
 
   const setSfxChoice = (next: "on" | "off") => {
     const enabled = next === "on";
     setSound(enabled);
     setSoundEnabled(enabled);
+    trackOptionsPrefChanged("sfx", next);
     void import("cuelume").then(({ bind, setEnabled }) => {
       bind();
       setEnabled(enabled);
@@ -64,18 +67,21 @@ export function OptionsPage() {
     setMenuMusic(enabled);
     setMenuMusicEnabled(enabled);
     applyMenuMusicEnabled(enabled);
+    trackOptionsPrefChanged("lobby_jam", next);
   };
 
   const setAppearance = (next: "light" | "dark") => {
     setThemePref(next);
     setThemePreference(next);
     applyTheme(next);
+    trackOptionsPrefChanged("look", next);
   };
 
   const setTypeFace = (next: "clean" | "pixel") => {
     setFontPref(next);
     setFontPreference(next);
     applyFontPreference(next);
+    trackOptionsPrefChanged("type", next);
   };
 
   return (

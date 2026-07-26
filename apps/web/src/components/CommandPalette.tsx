@@ -40,6 +40,7 @@ import {
   setThemePreference,
 } from "../storage";
 import { applyFontPreference, applyTheme, resolveTheme } from "../theme";
+import { track, trackOptionsPrefChanged } from "../analytics";
 
 type Dest = "/" | "/options" | "/profiles" | "/achievements" | "/results" | "/how-to";
 
@@ -100,6 +101,7 @@ function prefActions(): PrefAction[] {
         const next = lookDark ? "light" : "dark";
         setThemePreference(next);
         applyTheme(next);
+        trackOptionsPrefChanged("look", next);
       },
     },
     {
@@ -111,6 +113,7 @@ function prefActions(): PrefAction[] {
         const next = pixel ? "clean" : "pixel";
         setFontPreference(next);
         applyFontPreference(next);
+        trackOptionsPrefChanged("type", next);
       },
     },
     {
@@ -119,7 +122,9 @@ function prefActions(): PrefAction[] {
       keywords: "words left remaining count eye hide show hud",
       Icon: wordsLeft ? EyeOff : Eye,
       run: () => {
-        setShowWordsLeft(!wordsLeft);
+        const next = !wordsLeft;
+        setShowWordsLeft(next);
+        trackOptionsPrefChanged("words_left", next ? "show" : "hide");
       },
     },
     {
@@ -130,6 +135,7 @@ function prefActions(): PrefAction[] {
       run: () => {
         const next = !sfxOn;
         setSoundEnabled(next);
+        trackOptionsPrefChanged("sfx", next ? "on" : "off");
         void import("cuelume").then(({ bind, setEnabled }) => {
           bind();
           setEnabled(next);
@@ -145,6 +151,7 @@ function prefActions(): PrefAction[] {
         const next = !jamOn;
         setMenuMusicEnabled(next);
         applyMenuMusicEnabled(next);
+        trackOptionsPrefChanged("lobby_jam", next ? "on" : "off");
       },
     },
   ];
@@ -177,6 +184,7 @@ export function CommandPalette() {
 
   const runJump = (to: Dest) => {
     setOpen(false);
+    if (to === "/results") track("last_results_opened", { from: "palette" });
     void navigate({ to });
   };
 

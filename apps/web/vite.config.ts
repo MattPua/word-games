@@ -4,6 +4,7 @@ import { VitePWA } from "vite-plugin-pwa";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import posthogRollup from "@posthog/rollup-plugin";
 import {
   CANONICAL_URL,
   DEFAULT_TITLE,
@@ -21,6 +22,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const lucideEsmRoot = path.dirname(require.resolve("lucide-react/dist/esm/createLucideIcon.mjs"));
 const lucideIconsRoot = path.dirname(require.resolve("lucide-react/dist/esm/icons/sofa.mjs"));
+
+/** Personal API key + project id → upload source maps (Error tracking). Skip when unset. */
+const posthogPersonalKey = process.env.POSTHOG_PERSONAL_API_KEY;
+const posthogProjectId = process.env.POSTHOG_PROJECT_ID;
+const uploadPosthogSourcemaps = Boolean(posthogPersonalKey && posthogProjectId);
 
 function escapeAttr(value: string): string {
   return value
@@ -62,6 +68,19 @@ export default defineConfig(({ mode }) => ({
     /** Per-icon lucide imports — avoid Vite crawling the whole barrel (#1944). */
     lucideReactImportOptimizer(),
     react(),
+    ...(uploadPosthogSourcemaps
+      ? [
+          posthogRollup({
+            personalApiKey: posthogPersonalKey!,
+            projectId: posthogProjectId!,
+            host: process.env.POSTHOG_HOST ?? "https://us.i.posthog.com",
+            sourcemaps: {
+              enabled: true,
+              deleteAfterUpload: true,
+            },
+          }),
+        ]
+      : []),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "apple-touch-icon.png", "robots.txt", "logo.png"],
@@ -155,6 +174,10 @@ export default defineConfig(({ mode }) => ({
   ],
   define: {
     __DEV__: JSON.stringify(mode !== "production"),
+  },
+  build: {
+    // Needed for PostHog Error tracking stack traces when upload env is set.
+    sourcemap: uploadPosthogSourcemaps,
   },
   resolve: {
     alias: {
