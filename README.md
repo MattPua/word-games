@@ -78,7 +78,7 @@ First open still needs a network; after that, revisit offline for screens you’
 
 ## Deploy
 
-`vercel.json` builds with `bun run build` and serves `apps/web/dist`. Point a Vercel project at this repo; no special framework adapter beyond Vite. Production builds register the service worker automatically.
+`vercel.json` builds with `bun run build` and serves `apps/web/dist`. Point a Vercel project at this **repo root** (Root Directory blank — not `apps/web`). If Root Directory is `apps/web`, Output Directory must be `dist` only; `apps/web/dist` then looks in the wrong place and the deploy fails after a green Vite build. Production builds register the service worker automatically.
 
 ## Dictionary attribution
 
