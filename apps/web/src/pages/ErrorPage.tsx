@@ -1,7 +1,9 @@
 import { Text } from "react-native";
 import { useNavigate, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
-import { EmptyState, PotatoSprite, Shell } from "@couch-potato/ui";
+import { EmptyState, PotatoSprite } from "@couch-potato/ui";
+import { BrandHeader } from "@/components/BrandHeader";
 import { Button } from "@/components/ui/button";
+import { ScrollShell } from "@/components/ScrollShell";
 
 /** Unexpected failure — potato spilled the snacks. */
 export function ErrorPage({ error, reset }: ErrorComponentProps) {
@@ -9,13 +11,13 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
 
   return (
-    <Shell className="cp-shell-scroll overflow-y-auto">
-      {/* min-h-full + justify-center: centers when short, scrolls when tall */}
+    <ScrollShell>
       <div className="flex min-h-full w-full shrink-0 flex-col items-center justify-center">
-        <div className="cp-fade-up">
-          <PotatoSprite size={100} />
-        </div>
-        <Text className="mt-4 cp-fade-up cp-stagger-1 font-display text-5xl text-primary">500</Text>
+        <BrandHeader
+          className="cp-fade-up"
+          mark={<PotatoSprite size={100} />}
+          title="500"
+        />
         <EmptyState
           title="Snack spill in aisle potato"
           body="Something unexpected flopped. Shake the crumbs off and try again."
@@ -27,7 +29,7 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
           </Text>
         ) : null}
         <Button
-          className="mb-2 w-full"
+          className="mb-2 cp-chrome-cta"
           onClick={() => {
             reset?.();
             void router.invalidate();
@@ -35,10 +37,10 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
         >
           Try again
         </Button>
-        <Button variant="secondary" className="w-full" onClick={() => navigate({ to: "/" })}>
+        <Button variant="secondary" className="cp-chrome-cta" onClick={() => navigate({ to: "/" })}>
           Back to lobby
         </Button>
       </div>
-    </Shell>
+    </ScrollShell>
   );
 }

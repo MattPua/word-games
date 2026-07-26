@@ -8,6 +8,13 @@ import {
   type StageUp,
   type TrackId,
 } from "./achievements";
+import {
+  applyRunToPaceStats,
+  defaultPaceStats,
+  normalizePaceStats,
+  seedPaceFromTimedHistory,
+  type PaceStats,
+} from "./profileStats";
 
 export type HighScoreEntry = {
   score: number;
@@ -40,10 +47,18 @@ export type Profile = {
   wordsFound: number;
   /** Couch medals progression — see `achievements.ts` for the authoritative math. */
   achievements: AchievementCounts;
+  /**
+   * Lifetime pace aggregates for Potato Board (avg words/min + avg word length).
+   * See `profileStats.ts` for definitions + migration.
+   */
+  pace: PaceStats;
 };
 
 /** `system` follows OS `prefers-color-scheme`; `light`/`dark` are explicit user overrides. */
 export type ThemePreference = "light" | "dark" | "system";
+
+/** Display face: clean (Lexend, default) or pixel (Jersey 15). Flips `--font-display` only. */
+export type FontPreference = "pixel" | "clean";
 
 export type DevicePrefs = {
   soundEnabled: boolean;
@@ -53,6 +68,8 @@ export type DevicePrefs = {
   showWordsLeft: boolean;
   /** Default system; explicit light/dark once the player picks via the toggle. */
   themePreference: ThemePreference;
+  /** Default clean (Lexend display); pixel = Jersey 15. Body/tiles stay Lexend either way. */
+  fontPreference: FontPreference;
   activeProfileId: string;
 };
 
@@ -62,6 +79,7 @@ function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string
     menuMusicEnabled: prefs.menuMusicEnabled ?? false,
     showWordsLeft: prefs.showWordsLeft ?? false,
     themePreference: prefs.themePreference ?? "system",
+    fontPreference: prefs.fontPreference === "pixel" ? "pixel" : "clean",
     activeProfileId: prefs.activeProfileId ?? "",
   };
 }
@@ -96,14 +114,24 @@ function normalizeHighScores(raw: HighScores | undefined): Record<string, HighSc
 }
 
 function normalizeProfile(p: Partial<Profile> & { id: string; name: string }): Profile {
+  const history = Array.isArray(p.history) ? p.history : [];
+  const hadPace = p.pace != null && typeof p.pace === "object";
+  let pace = normalizePaceStats(p.pace);
+  // Pre-pace profiles: seed WPM from recent Timed runs (sprint length ≈ elapsed).
+  // Letter totals can't be rebuilt from history → avg length starts fresh.
+  if (!hadPace && history.length > 0) {
+    const seeded = seedPaceFromTimedHistory(history);
+    pace = { ...pace, ...seeded };
+  }
   return {
     id: p.id,
     name: p.name,
     highScores: normalizeHighScores(p.highScores),
-    history: Array.isArray(p.history) ? p.history : [],
+    history,
     gamesPlayed: p.gamesPlayed ?? 0,
     wordsFound: p.wordsFound ?? 0,
     achievements: normalizeAchievementCounts(p.achievements),
+    pace,
   };
 }
 
@@ -119,6 +147,7 @@ export function defaultBlob(): StoredBlob {
         gamesPlayed: 0,
         wordsFound: 0,
         achievements: defaultAchievementCounts(),
+        pace: defaultPaceStats(),
       },
     ],
     prefs: {
@@ -126,6 +155,7 @@ export function defaultBlob(): StoredBlob {
       menuMusicEnabled: false,
       showWordsLeft: false,
       themePreference: "system",
+      fontPreference: "clean",
       activeProfileId: id,
     },
   };
@@ -206,6 +236,11 @@ export function recordFinishedRun(input: {
   words?: string[];
   /** Survival extension point: how long the run lasted, ms. */
   survivalDurationMs?: number;
+  /**
+   * Active play this run (ms) for Potato Board WPM — pause excluded.
+   * Timed/Survival: engine clock elapsed; Goal: wall-clock while unpaused.
+   */
+  activePlayMs?: number;
 }): {
   isHighScore: boolean;
   achievements: AchievementContext;
@@ -254,6 +289,15 @@ export function recordFinishedRun(input: {
   );
   profile.achievements = next;
 
+  const words = input.words ?? [];
+  const activePlayMs =
+    input.activePlayMs ??
+    (input.mode === "survival" ? input.survivalDurationMs : undefined);
+  profile.pace = applyRunToPaceStats(normalizePaceStats(profile.pace), {
+    words,
+    activePlayMs,
+  });
+
   saveStore(store);
   return {
     isHighScore,
@@ -287,6 +331,12 @@ export function setThemePreference(pref: ThemePreference) {
   saveStore(store);
 }
 
+export function setFontPreference(pref: FontPreference) {
+  const store = loadStore();
+  store.prefs.fontPreference = pref;
+  saveStore(store);
+}
+
 export function setActiveProfile(id: string) {
   const store = loadStore();
   if (!store.profiles.some((p) => p.id === id)) return;
@@ -304,6 +354,7 @@ export function createProfile(name: string): Profile {
     gamesPlayed: 0,
     wordsFound: 0,
     achievements: defaultAchievementCounts(),
+    pace: defaultPaceStats(),
   };
   store.profiles.push(profile);
   store.prefs.activeProfileId = profile.id;
@@ -319,7 +370,10 @@ export function renameProfile(id: string, name: string) {
   saveStore(store);
 }
 
-/** Ephemeral last run for results screen. */
+/**
+ * Last finished run for the results screen + lobby "Last results".
+ * Profile-scoped in localStorage so refresh / leave / return still peeks results.
+ */
 export type LastRun = {
   score: number;
   found: string[];
@@ -343,17 +397,68 @@ export type LastRun = {
 
 const LAST_RUN = "couch-potato:last-run";
 
-export function saveLastRun(run: LastRun) {
-  sessionStorage.setItem(LAST_RUN, JSON.stringify(run));
+type LastRunMap = Record<string, LastRun>;
+
+function isLastRunShape(v: unknown): v is LastRun {
+  if (!v || typeof v !== "object") return false;
+  const o = v as Record<string, unknown>;
+  return typeof o.score === "number" && Array.isArray(o.found) && typeof o.reason === "string";
 }
 
-export function loadLastRun(): LastRun | null {
+function loadLastRunMap(): LastRunMap {
+  try {
+    const raw = localStorage.getItem(LAST_RUN);
+    if (raw) {
+      const parsed: unknown = JSON.parse(raw);
+      // Legacy: single LastRun object (pre profile-map).
+      if (isLastRunShape(parsed)) {
+        const id = loadStore().prefs.activeProfileId;
+        const map: LastRunMap = id ? { [id]: parsed } : {};
+        localStorage.setItem(LAST_RUN, JSON.stringify(map));
+        return map;
+      }
+      if (parsed && typeof parsed === "object") return parsed as LastRunMap;
+    }
+  } catch {
+    /* ignore */
+  }
+  // Migrate sessionStorage → localStorage (pre-persist era).
   try {
     const raw = sessionStorage.getItem(LAST_RUN);
-    return raw ? (JSON.parse(raw) as LastRun) : null;
+    if (raw) {
+      const parsed: unknown = JSON.parse(raw);
+      if (isLastRunShape(parsed)) {
+        const id = loadStore().prefs.activeProfileId;
+        const map: LastRunMap = id ? { [id]: parsed } : {};
+        localStorage.setItem(LAST_RUN, JSON.stringify(map));
+        sessionStorage.removeItem(LAST_RUN);
+        return map;
+      }
+    }
   } catch {
-    return null;
+    /* ignore */
   }
+  return {};
+}
+
+export function saveLastRun(run: LastRun) {
+  const id = loadStore().prefs.activeProfileId;
+  if (!id) return;
+  const map = loadLastRunMap();
+  map[id] = run;
+  localStorage.setItem(LAST_RUN, JSON.stringify(map));
+  try {
+    sessionStorage.removeItem(LAST_RUN);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Active profile's last finished run, or null if none yet. */
+export function loadLastRun(): LastRun | null {
+  const id = loadStore().prefs.activeProfileId;
+  if (!id) return null;
+  return loadLastRunMap()[id] ?? null;
 }
 
 export type PlayLaunch = {

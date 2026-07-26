@@ -2,10 +2,7 @@ import { play } from "cuelume";
 import type { SubmitResult } from "@couch-potato/game-engine";
 
 /** Reject reasons that get feedback (flash + SFX). Empty/cancel paths stay silent. */
-export type RejectReason = Extract<
-  SubmitResult,
-  { ok: false }
->["reason"];
+export type RejectReason = Extract<SubmitResult, { ok: false }>["reason"];
 
 export function isRejectedWordSubmit(
   reason: RejectReason,

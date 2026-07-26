@@ -5,15 +5,17 @@ import {
   CirclePlay,
   CircleStop,
   Eye,
+  EyeOff,
   Moon,
   Music2,
   Pause,
-  RotateCcw,
-  RotateCw,
+  RotateCcwSquare,
+  RotateCwSquare,
+  Sun,
   Volume2,
   VolumeX,
-  type LucideIcon,
 } from "lucide-react";
+import { MusicOff } from "@/icons/MusicOff";
 import {
   ConfettiBurst,
   LetterGrid,
@@ -32,9 +34,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import { IconTooltip } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { PrefChoiceGroup } from "@/components/PrefChoiceGroup";
 import {
   createGame,
   generateBoard,
@@ -43,7 +44,6 @@ import {
   missedLongWords,
   quitGame,
   rotateBoard,
-  scoreWord,
   sortWordsByLengthThenAlpha,
   submitPath,
   SURVIVAL_START_SECONDS,
@@ -113,61 +113,6 @@ function timerBaselineSeconds(config: GameConfig): number | null {
   return null;
 }
 
-/** Couch break pref row: feature name + Switch (on = secondary). */
-function PausePrefRow({
-  id,
-  label,
-  description,
-  checked,
-  onCheckedChange,
-  Icon,
-}: {
-  id: string;
-  label: string;
-  description?: string;
-  checked: boolean;
-  onCheckedChange: (next: boolean) => void;
-  Icon?: LucideIcon;
-}) {
-  return (
-    <label
-      htmlFor={id}
-      className={cn(
-        "cp-pref-row flex w-full cursor-pointer items-center justify-between gap-3",
-        checked && "cp-pref-row-on",
-      )}
-    >
-      <span className={cn("flex min-w-0 gap-2.5", description ? "items-start" : "items-center")}>
-        {Icon ? (
-          <Icon
-            className={cn(
-              "cp-lobby-glyph size-4 shrink-0",
-              description && "mt-0.5",
-              checked ? "text-secondary" : "text-icon-muted-foreground",
-            )}
-            strokeWidth={2.25}
-            aria-hidden
-          />
-        ) : null}
-        <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="font-display text-sm font-bold text-foreground">{label}</span>
-          {description ? (
-            <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
-              {description}
-            </span>
-          ) : null}
-        </span>
-      </span>
-      <Switch
-        id={id}
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        aria-label={`${label} ${checked ? "on" : "off"}`}
-      />
-    </label>
-  );
-}
-
 export function PlayPage() {
   const navigate = useNavigate();
   const dict = useMemo(() => getDictionary(), []);
@@ -200,6 +145,9 @@ export function PlayPage() {
   const timerUrgencyRef = useRef<0 | 1 | 2>(0);
   /** Survival: total clock ever granted (start + all refills) so we can derive time survived at the end. */
   const survivalBudgetMsRef = useRef(0);
+  /** Goal: wall-clock active play (pause excluded) for Potato Board WPM. */
+  const goalElapsedMsRef = useRef(0);
+  const goalTickAtRef = useRef<number | null>(null);
   const [survivalBump, setSurvivalBump] = useState<{ id: number; seconds: number } | null>(null);
 
   const openPause = () => {
@@ -277,6 +225,8 @@ export function PlayPage() {
             };
     survivalBudgetMsRef.current =
       config.mode === "survival" ? SURVIVAL_START_SECONDS[config.difficulty] * 1000 : 0;
+    goalElapsedMsRef.current = 0;
+    goalTickAtRef.current = null;
     setState(createGame(board, config));
   }, [dict, launch, topology]);
 
@@ -341,6 +291,23 @@ export function PlayPage() {
     return () => window.clearInterval(id);
   }, [state?.remainingMs == null, state?.ended, paused]);
 
+  // Goal has no engine clock — accumulate wall time while unpaused for WPM.
+  useEffect(() => {
+    if (!state || state.ended || paused || state.config.mode !== "target") {
+      goalTickAtRef.current = null;
+      return;
+    }
+    goalTickAtRef.current = performance.now();
+    const id = window.setInterval(() => {
+      const now = performance.now();
+      if (goalTickAtRef.current != null) {
+        goalElapsedMsRef.current += now - goalTickAtRef.current;
+      }
+      goalTickAtRef.current = now;
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [state?.ended, paused, state?.config.mode]);
+
   useEffect(() => {
     if (!state) return;
     const prev = hudSignalRef.current;
@@ -396,6 +363,17 @@ export function PlayPage() {
       s.config.mode === "target" || s.config.mode === "survival" ? s.config.difficulty : undefined;
     const survivalDurationMs =
       s.config.mode === "survival" ? survivalBudgetMsRef.current - (s.remainingMs ?? 0) : undefined;
+    // Flush any in-flight Goal tick before reading wall-clock.
+    if (s.config.mode === "target" && goalTickAtRef.current != null) {
+      goalElapsedMsRef.current += performance.now() - goalTickAtRef.current;
+      goalTickAtRef.current = null;
+    }
+    const activePlayMs =
+      s.config.mode === "timed"
+        ? Math.max(0, s.config.duration * 1000 - (s.remainingMs ?? 0))
+        : s.config.mode === "survival"
+          ? Math.max(0, survivalDurationMs ?? 0)
+          : Math.max(0, Math.round(goalElapsedMsRef.current));
     const {
       isHighScore: isHigh,
       achievements: achievementsSnapshot,
@@ -413,6 +391,7 @@ export function PlayPage() {
       wordsFound: s.found.length,
       words: s.found,
       survivalDurationMs,
+      activePlayMs,
     });
     const missed = missedLongWords(s, dict);
     const detail =
@@ -428,6 +407,7 @@ export function PlayPage() {
       reason: s.ended!,
       mode: s.config.mode,
       grid: s.board.size,
+      topology: s.board.topology,
       detail,
       isHighScore: isHigh,
       minWordLength: s.config.minWordLength,
@@ -468,7 +448,6 @@ export function PlayPage() {
   }
 
   const currentWord = wordFromPath(state.board.letters, path).toUpperCase();
-  const wordPoints = scoreWord(currentWord.length);
   const target = state.target ?? 0;
   const remaining = state.remaining;
   const wordsLeft = state.board.allWords.length - state.found.length;
@@ -549,26 +528,18 @@ export function PlayPage() {
       {/* One calm top row: primary status + optional words-left count + icon cluster */}
       <View className="mb-3 flex-row items-center justify-between gap-3">
         <View className="min-w-0 flex-1 flex-row items-center gap-3">
+          {/* `.cp-hud-bubble` already bakes in font-display/size/weight — the
+              Text just needs to inherit color (bubble sets it per heat tier). */}
           {remaining != null ? (
             <View
               className={hudBubbleClass}
               accessibilityLabel={`${remaining} points left to clear`}
             >
-              <Text
-                className="font-display text-lg font-bold leading-none"
-                style={{ color: "inherit" }}
-              >
-                {remaining} pts left
-              </Text>
+              <Text style={{ color: "inherit" }}>{remaining} pts left</Text>
             </View>
           ) : secs != null ? (
             <View className={hudBubbleClass} accessibilityLabel={`${secs} seconds left`}>
-              <Text
-                className="font-display text-lg font-bold leading-none"
-                style={{ color: "inherit" }}
-              >
-                {secs}s
-              </Text>
+              <Text style={{ color: "inherit" }}>{secs}s</Text>
             </View>
           ) : null}
           {survivalBump ? (
@@ -590,18 +561,6 @@ export function PlayPage() {
           ) : null}
         </View>
         <View className="shrink-0 flex-row items-center gap-2">
-          <IconTooltip label={sound ? "SFX on" : "SFX off"}>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              disabled={celebrate}
-              aria-pressed={sound}
-              aria-label={sound ? "SFX on" : "SFX off"}
-              onClick={() => setSoundOn(!sound)}
-            >
-              {sound ? <Volume2 className="cp-icon-anim-wave" /> : <VolumeX />}
-            </Button>
-          </IconTooltip>
           <IconTooltip label="Pause">
             <Button
               variant="ghost"
@@ -625,7 +584,6 @@ export function PlayPage() {
 
       <ScoreBubble
         word={celebrate ? "Couch clear!" : currentWord || flash}
-        points={celebrate ? 0 : wordPoints}
         hint={
           remaining != null
             ? `Clear the couch · ${state.config.minWordLength}+`
@@ -693,22 +651,28 @@ export function PlayPage() {
         }
       />
 
-      {/* One row: rotate controls flank a centered last-catch slot — never grows board height. */}
+      {/* One row: spin chips flank last-catch in a centered hug cluster (gap-2) — not
+          full-width flex-1, which parked spins at opposite board edges. Same height as
+          icon buttons; never grows board. Rotate*Square + “Spin” label. */}
       <div className="mt-4 flex w-full shrink-0 items-center justify-center gap-2">
-        <IconTooltip label="Spin left">
+        <IconTooltip label="Spin board left">
           <Button
             variant="secondary"
-            size="icon"
+            size="sm"
+            className="h-11 min-h-11 shrink-0 gap-1 px-2.5"
             disabled={celebrate || boardTurning || paused}
             onClick={() => rotate(-1)}
             aria-label="Spin board left"
             data-testid="rotate-ccw"
           >
-            <RotateCcw className="size-5" />
+            <RotateCcwSquare className="size-4 shrink-0" aria-hidden />
+            <span className="font-display text-[0.65rem] font-bold uppercase tracking-wide">
+              Spin
+            </span>
           </Button>
         </IconTooltip>
 
-        <div className="flex min-h-11 min-w-0 flex-1 items-center justify-center">
+        <div className="flex min-h-11 min-w-0 max-w-[14rem] items-center justify-center">
           {lastFound ? (
             <div key={lastFound.id} className="cp-last-found cp-catch-in" role="status">
               <span className="cp-last-found-label">Last catch</span>
@@ -722,16 +686,20 @@ export function PlayPage() {
           ) : null}
         </div>
 
-        <IconTooltip label="Spin right">
+        <IconTooltip label="Spin board right">
           <Button
             variant="secondary"
-            size="icon"
+            size="sm"
+            className="h-11 min-h-11 shrink-0 gap-1 px-2.5"
             disabled={celebrate || boardTurning || paused}
             onClick={() => rotate(1)}
             aria-label="Spin board right"
             data-testid="rotate-cw"
           >
-            <RotateCw className="size-5" />
+            <span className="font-display text-[0.65rem] font-bold uppercase tracking-wide">
+              Spin
+            </span>
+            <RotateCwSquare className="size-4 shrink-0" aria-hidden />
           </Button>
         </IconTooltip>
       </div>
@@ -761,52 +729,69 @@ export function PlayPage() {
             <DialogDescription>Timer paused. Swipe waits for you.</DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col gap-2">
-            <Button data-pause-resume className="w-full justify-start gap-2.5" onClick={closePause}>
-              <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
-              Resume
-            </Button>
-            <PausePrefRow
-              id="pause-sfx"
+          <div className="flex flex-col gap-3">
+            <PrefChoiceGroup
               label="SFX"
-              Icon={Volume2}
-              checked={sound}
-              onCheckedChange={setSoundOn}
+              value={sound ? "on" : "off"}
+              onChange={(v) => setSoundOn(v === "on")}
+              data-testid="pause-sfx"
+              options={[
+                { value: "off", label: "Off", Icon: VolumeX },
+                { value: "on", label: "On", Icon: Volume2 },
+              ]}
             />
-            <PausePrefRow
-              id="pause-background-music"
-              label="Background music"
-              Icon={Music2}
-              checked={menuMusic}
-              onCheckedChange={setMenuMusicOn}
+            <PrefChoiceGroup
+              label="Lobby jam"
+              value={menuMusic ? "on" : "off"}
+              onChange={(v) => setMenuMusicOn(v === "on")}
+              data-testid="pause-music"
+              options={[
+                { value: "off", label: "Off", Icon: MusicOff },
+                { value: "on", label: "On", Icon: Music2 },
+              ]}
             />
-            <PausePrefRow
-              id="pause-words-left"
-              label="Show words left"
-              description="During play, show a running count of words still to find"
-              Icon={Eye}
-              checked={showWordsLeft}
-              onCheckedChange={setWordsLeftOn}
+            <PrefChoiceGroup
+              label="Words left"
+              value={showWordsLeft ? "show" : "hide"}
+              onChange={(v) => setWordsLeftOn(v === "show")}
+              data-testid="pause-words-left"
+              options={[
+                { value: "hide", label: "Hide", hint: "Play blind", Icon: EyeOff },
+                { value: "show", label: "Show", hint: "Count still to find", Icon: Eye },
+              ]}
             />
-            <PausePrefRow
-              id="pause-dark-mode"
-              label="Dark mode"
-              Icon={Moon}
-              checked={resolveTheme(themePref) === "dark"}
-              onCheckedChange={setDarkModeOn}
+            <PrefChoiceGroup
+              label="Look"
+              value={resolveTheme(themePref) === "dark" ? "dark" : "light"}
+              onChange={(v) => setDarkModeOn(v === "dark")}
+              data-testid="pause-look"
+              options={[
+                { value: "light", label: "Day", Icon: Sun },
+                { value: "dark", label: "Night", Icon: Moon },
+              ]}
             />
-            <Button
-              variant="ghost"
-              className="cp-end-run-btn w-full"
-              data-testid="end-run"
-              onClick={() => {
-                closePause();
-                setState(quitGame(state));
-              }}
-            >
-              <CircleStop className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
-              End run
-            </Button>
+            <div className="mt-1 flex flex-wrap gap-2 border-t-2 border-border pt-3">
+              <Button
+                variant="ghost"
+                className="cp-end-run-btn min-w-0 flex-1 justify-center gap-2.5"
+                data-testid="end-run"
+                onClick={() => {
+                  closePause();
+                  setState(quitGame(state));
+                }}
+              >
+                <CircleStop className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
+                End run
+              </Button>
+              <Button
+                data-pause-resume
+                className="min-w-0 flex-[1.15] justify-center gap-2.5"
+                onClick={closePause}
+              >
+                <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
+                Resume
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

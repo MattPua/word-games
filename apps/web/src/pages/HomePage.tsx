@@ -1,22 +1,15 @@
-import { Text, View } from "react-native";
-import { Medal, Users } from "lucide-react";
-import { Logo, Shell } from "@couch-potato/ui";
+import { PotatoSprite, Shell } from "@couch-potato/ui";
 import {
   getActiveProfile,
-  loadDevicePrefs,
+  loadLastRun,
   saveLaunch,
-  setMenuMusicEnabled,
-  setShowWordsLeft,
-  setSoundEnabled,
   type PlayLaunch,
 } from "../storage";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { setEnabled } from "cuelume";
-import { applyMenuMusicEnabled } from "../menuMusic";
 import { track } from "../analytics";
-import { Button } from "@/components/ui/button";
-import { IconTooltip } from "@/components/ui/tooltip";
+import { BrandHeader } from "@/components/BrandHeader";
+import { ChromeNav } from "@/components/ChromeNav";
 import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
 
 export function HomePage() {
@@ -28,10 +21,7 @@ export function HomePage() {
   const [minWordLength, setMinWordLength] = useState<3 | 4 | 5>(3);
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const [duration, setDuration] = useState<30 | 60 | 90 | 120>(60);
-  const prefs = loadDevicePrefs();
-  const [sound, setSound] = useState(prefs.soundEnabled);
-  const [menuMusic, setMenuMusic] = useState(prefs.menuMusicEnabled);
-  const [showWordsLeft, setShowWordsLeftState] = useState(prefs.showWordsLeft);
+  const hasLastResults = loadLastRun() != null;
 
   const play = () => {
     const launch: PlayLaunch =
@@ -43,97 +33,52 @@ export function HomePage() {
     navigate({ to: "/play" });
   };
 
-  const toggleSound = () => {
-    const next = !sound;
-    setSound(next);
-    setSoundEnabled(next);
-    setEnabled(next);
-  };
-
-  const toggleMenuMusic = () => {
-    const next = !menuMusic;
-    setMenuMusic(next);
-    setMenuMusicEnabled(next);
-    applyMenuMusicEnabled(next);
-  };
-
-  const toggleWordsLeft = (next: boolean) => {
-    setShowWordsLeftState(next);
-    setShowWordsLeft(next);
-  };
-
   return (
-    <Shell className="cp-shell-lobby min-h-0 cp-fade-up">
-      <div className="cp-shell-scroll cp-lobby min-h-0 flex-1 overflow-y-auto overscroll-contain scrollbar-gutter-stable">
-        <header className="cp-lobby-brand mb-4">
-          <View className="cp-logo-float shrink-0">
-            <Logo size={72} />
-          </View>
-          {/* Native h1/p — RN Text is inline on web and can mash title+tagline */}
-          <div className="cp-lobby-brand-copy">
-            <h1 className="cp-display">Couch Potato</h1>
-            <p className="cp-lobby-tagline">Swipe letters. Find words. Stay on the couch.</p>
+    <div className="flex min-h-0 w-full flex-1 flex-col cp-fade-up">
+      {/* Viewport-edge scroller — Shell is centered inside, not the scrollport. */}
+      <div className="cp-shell-scroll min-h-0 w-full flex-1 overflow-y-auto overscroll-contain">
+        <Shell className="cp-shell-lobby cp-lobby !h-auto min-h-full !flex-none">
+          <BrandHeader
+            className="mb-4"
+            brandHeading
+            mark={<PotatoSprite lobbyYawn size={72} />}
+            description="Swipe letters. Find words. Stay on the couch."
+          />
+
+          <div className="mb-3 flex flex-row items-center justify-between gap-2">
+            <p className="min-w-0 flex-shrink truncate font-body text-sm font-semibold text-foreground">
+              Spud: {profile.name}
+            </p>
+            <ChromeNav />
           </div>
-        </header>
 
-        <View className="mb-3 flex-row items-center justify-between gap-2">
-          <Text
-            className="min-w-0 flex-shrink font-body text-sm font-semibold text-foreground"
-            numberOfLines={1}
-          >
-            Spud: {profile.name}
-          </Text>
-          <View className="shrink-0 flex-row items-center gap-1">
-            <IconTooltip label="Couch medals">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Couch medals"
-                onClick={() => navigate({ to: "/achievements" })}
-              >
-                <Medal />
-              </Button>
-            </IconTooltip>
-            <IconTooltip label="Couch crew">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Couch crew"
-                onClick={() => navigate({ to: "/profiles" })}
-              >
-                <Users />
-              </Button>
-            </IconTooltip>
-          </View>
-        </View>
-
-        <HomeSetup
-          mode={mode}
-          grid={grid}
-          topology={topology}
-          minWordLength={minWordLength}
-          difficulty={difficulty}
-          duration={duration}
-          showWordsLeft={showWordsLeft}
-          onMode={setMode}
-          onGrid={setGrid}
-          onTopology={setTopology}
-          onMinWordLength={setMinWordLength}
-          onDifficulty={setDifficulty}
-          onDuration={setDuration}
-          onShowWordsLeft={toggleWordsLeft}
-        />
-        {/* Spacer so last cards clear the play bar border */}
-        <div className="h-4" aria-hidden />
+          <HomeSetup
+            mode={mode}
+            grid={grid}
+            topology={topology}
+            minWordLength={minWordLength}
+            difficulty={difficulty}
+            duration={duration}
+            onMode={setMode}
+            onGrid={setGrid}
+            onTopology={setTopology}
+            onMinWordLength={setMinWordLength}
+            onDifficulty={setDifficulty}
+            onDuration={setDuration}
+          />
+          <div className="h-4" aria-hidden />
+        </Shell>
       </div>
 
-      <HomePlayBar
-        onPlay={play}
-        sound={sound}
-        onToggleSound={toggleSound}
-        menuMusic={menuMusic}
-        onToggleMenuMusic={toggleMenuMusic}
-      />
-    </Shell>
+      {/* Sticky Play bar — same shell width, outside the scroller. */}
+      <div className="w-full shrink-0">
+        <Shell className="cp-shell-lobby !h-auto !flex-none pb-0 pt-0">
+          <HomePlayBar
+            onPlay={play}
+            onLastResults={hasLastResults ? () => navigate({ to: "/results" }) : undefined}
+          />
+        </Shell>
+      </div>
+    </div>
   );
 }

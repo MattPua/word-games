@@ -16,6 +16,7 @@
     "fmt:check": "oxfmt --check",
     "lint": "oxlint",
     "check": "oxlint && oxfmt --check",
+    "dev": "mprocs",
     "mprocs": "mprocs"
   },
   "devDependencies": {

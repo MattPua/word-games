@@ -35,7 +35,7 @@ export function SegmentGroup<T extends string | number>({
       <div
         id={pillId}
         aria-hidden
-        className="pointer-events-none absolute bottom-1 top-1 z-0 rounded-xl bg-card shadow-sm transition-[left,width] duration-300 ease-[cubic-bezier(0.34,1.45,0.64,1)]"
+        className="pointer-events-none absolute bottom-1 top-1 z-0 rounded-ui bg-card shadow-sm transition-[left,width] duration-300 ease-[cubic-bezier(0.34,1.45,0.64,1)]"
         style={{
           left: `calc(${(100 / n) * idx}% + 0.2rem)`,
           width: `calc(${100 / n}% - 0.4rem)`,
@@ -51,7 +51,7 @@ export function SegmentGroup<T extends string | number>({
             size="sm"
             aria-pressed={active}
             className={cn(
-              "relative z-10 h-9 w-full rounded-xl shadow-none",
+              "relative z-10 h-9 w-full rounded-ui shadow-none",
               active
                 ? "font-extrabold text-foreground"
                 : "font-bold text-muted-foreground hover:text-foreground",

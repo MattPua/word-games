@@ -30,27 +30,35 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+    /** Couch break keeps Resume; command palette etc. omit the X. */
+    showClose?: boolean;
+    closeLabel?: string;
+  }
+>(({ className, children, showClose = true, closeLabel = "Resume", ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-[min(100%-1.5rem,22rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-ui border-2 border-border bg-card p-5 shadow-lg duration-200",
+        // Phone: near-full width (tiny inset + safe-area). md+: capped centered modal.
+        // Underscores = commas inside Tailwind arbitrary values.
+        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-max(0.5rem,env(safe-area-inset-left,_0px))-max(0.5rem,env(safe-area-inset-right,_0px)))] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-ui border-2 border-border bg-card p-5 shadow-lg duration-200 md:w-[min(100%-1.5rem,22rem)]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
         className,
       )}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close
-        className="absolute right-3 top-3 rounded-xl p-1.5 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none"
-        aria-label="Resume"
-      >
-        <X className="size-4" />
-        <span className="sr-only">Resume</span>
-      </DialogPrimitive.Close>
+      {showClose ? (
+        <DialogPrimitive.Close
+          className="absolute right-3 top-3 rounded-ui p-1.5 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none"
+          aria-label={closeLabel}
+        >
+          <X className="size-4" />
+          <span className="sr-only">{closeLabel}</span>
+        </DialogPrimitive.Close>
+      ) : null}
     </DialogPrimitive.Content>
   </DialogPortal>
 ));
@@ -73,9 +81,11 @@ const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
+  // Radix renders this as an <h2> — `--font-display` already cascades from the
+  // global `h1, h2, ... { font-family }` base rule, no font utility needed here.
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("font-display text-xl font-bold leading-none tracking-tight", className)}
+    className={cn("text-xl font-bold leading-none tracking-tight", className)}
     {...props}
   />
 ));

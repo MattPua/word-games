@@ -5,18 +5,83 @@ import {
   Outlet,
   useRouterState,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
 import { bind, setEnabled } from "cuelume";
+import { LoadingPotato } from "@couch-potato/ui";
 import { HomePage } from "./pages/HomePage";
-import { PlayPage } from "./pages/PlayPage";
-import { ResultsPage } from "./pages/ResultsPage";
-import { ProfilesPage } from "./pages/ProfilesPage";
-import { AchievementsPage } from "./pages/AchievementsPage";
 import { loadDevicePrefs } from "./storage";
 import { applyMenuMusicEnabled, menuMusicSceneForPath, setMenuMusicScene } from "./menuMusic";
-import { applyTheme } from "./theme";
+import { applyFontPreference, applyTheme } from "./theme";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  COMMAND_PALETTE_OPEN,
+  markCommandPaletteWantOpen,
+} from "./commandPaletteBus";
 import { DEFAULT_TITLE, pageHead } from "./seo";
+
+const PlayPage = lazy(() =>
+  import("./pages/PlayPage").then((m) => ({ default: m.PlayPage })),
+);
+const ResultsPage = lazy(() =>
+  import("./pages/ResultsPage").then((m) => ({ default: m.ResultsPage })),
+);
+const ProfilesPage = lazy(() =>
+  import("./pages/ProfilesPage").then((m) => ({ default: m.ProfilesPage })),
+);
+const AchievementsPage = lazy(() =>
+  import("./pages/AchievementsPage").then((m) => ({ default: m.AchievementsPage })),
+);
+const OptionsPage = lazy(() =>
+  import("./pages/OptionsPage").then((m) => ({ default: m.OptionsPage })),
+);
+const CommandPalette = lazy(() =>
+  import("@/components/CommandPalette").then((m) => ({ default: m.CommandPalette })),
+);
+
+function LazyPage({ Page }: { Page: ComponentType }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-1 items-center justify-center p-8">
+          <LoadingPotato />
+        </div>
+      }
+    >
+      <Page />
+    </Suspense>
+  );
+}
+
+/** Mount ⌘K palette on first open only — keeps cmdk/radix off lobby LCP. */
+function DeferredCommandPalette() {
+  const [mount, setMount] = useState(false);
+
+  useEffect(() => {
+    const onOpen = () => {
+      markCommandPaletteWantOpen();
+      setMount(true);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== "k" || !(e.metaKey || e.ctrlKey)) return;
+      e.preventDefault();
+      markCommandPaletteWantOpen();
+      setMount(true);
+    };
+    window.addEventListener(COMMAND_PALETTE_OPEN, onOpen);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener(COMMAND_PALETTE_OPEN, onOpen);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  if (!mount) return null;
+  return (
+    <Suspense fallback={null}>
+      <CommandPalette />
+    </Suspense>
+  );
+}
 
 function RootLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -27,6 +92,7 @@ function RootLayout() {
     setEnabled(prefs.soundEnabled);
     applyMenuMusicEnabled(prefs.menuMusicEnabled);
     applyTheme(prefs.themePreference);
+    applyFontPreference(prefs.fontPreference);
   }, []);
 
   useEffect(() => {
@@ -48,7 +114,10 @@ function RootLayout() {
     <TooltipProvider delayDuration={400} skipDelayDuration={200}>
       <HeadContent />
       <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
-        <Outlet />
+        <main className="flex min-h-0 flex-1 flex-col">
+          <Outlet />
+        </main>
+        <DeferredCommandPalette />
       </div>
     </TooltipProvider>
   );
@@ -71,29 +140,36 @@ const indexRoute = createRoute({
 const playRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/play",
-  component: PlayPage,
+  component: () => <LazyPage Page={PlayPage} />,
   head: () => pageHead("Play"),
 });
 
 const resultsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/results",
-  component: ResultsPage,
+  component: () => <LazyPage Page={ResultsPage} />,
   head: () => pageHead("Results"),
 });
 
 const profilesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/profiles",
-  component: ProfilesPage,
+  component: () => <LazyPage Page={ProfilesPage} />,
   head: () => pageHead("Couch crew"),
 });
 
 const achievementsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/achievements",
-  component: AchievementsPage,
+  component: () => <LazyPage Page={AchievementsPage} />,
   head: () => pageHead("Couch medals"),
+});
+
+const optionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/options",
+  component: () => <LazyPage Page={OptionsPage} />,
+  head: () => pageHead("Options"),
 });
 
 export const routeTree = rootRoute.addChildren([
@@ -102,4 +178,5 @@ export const routeTree = rootRoute.addChildren([
   resultsRoute,
   profilesRoute,
   achievementsRoute,
+  optionsRoute,
 ]);

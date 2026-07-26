@@ -1,5 +1,4 @@
-# Parallel process dashboard — `bun run mprocs`
-# Inspired by PostHog: https://github.com/PostHog/code/blob/main/mprocs.yaml
+# Parallel process dashboard — `bun dev` (or `bun run mprocs`)
 # Press `g` to cycle sidebar grouping. Restart a finished proc with `r`.
 
 procs:

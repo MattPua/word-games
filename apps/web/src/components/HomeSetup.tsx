@@ -3,25 +3,20 @@ import {
   ALargeSmall,
   CirclePlay,
   Droplets,
-  Eye,
   Gauge,
+  History,
   LayoutGrid,
-  Music2,
   Ruler,
   Sofa,
   Sun,
   Timer,
   Type,
-  Volume2,
-  VolumeX,
   WholeWord,
 } from "lucide-react";
 import { SURVIVAL_START_SECONDS } from "@couch-potato/game-engine";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { IconTooltip } from "@/components/ui/tooltip";
-import { MusicOff } from "@/icons/MusicOff";
 
 type Mode = "target" | "timed" | "survival";
 type Topology = "square" | "hex";
@@ -43,14 +38,12 @@ export type HomeSetupProps = {
   minWordLength: MinLen;
   difficulty: Difficulty;
   duration: Duration;
-  showWordsLeft: boolean;
   onMode: (v: Mode) => void;
   onGrid: (v: Grid) => void;
   onTopology: (v: Topology) => void;
   onMinWordLength: (v: MinLen) => void;
   onDifficulty: (v: Difficulty) => void;
   onDuration: (v: Duration) => void;
-  onShowWordsLeft: (v: boolean) => void;
 };
 
 /** Growth rings vs 4×4 base: mid = potato gold, outer = soft sage accent. */
@@ -214,8 +207,9 @@ function LobbySectionTitle({
   icon: LucideIcon;
   children: React.ReactNode;
 }) {
+  // Real <h2> — `--font-display` cascades from the global heading rule in index.css.
   return (
-    <h2 className="flex items-center gap-2 font-display text-base font-bold text-foreground">
+    <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
       <Icon className={LOBBY_SECTION_ICON} strokeWidth={2.25} aria-hidden />
       {children}
     </h2>
@@ -230,21 +224,19 @@ export function HomeSetup({
   minWordLength,
   difficulty,
   duration,
-  showWordsLeft,
   onMode,
   onGrid,
   onTopology,
   onMinWordLength,
   onDifficulty,
   onDuration,
-  onShowWordsLeft,
 }: HomeSetupProps) {
   return (
-    <div className="cp-lobby-setup">
+    <div className="cp-lobby-setup flex flex-col gap-5">
       <div className="cp-lobby-columns flex flex-col gap-5">
         {/* Primary: what am I playing (left / first on wide) */}
         <div className="cp-lobby-primary flex flex-col gap-5">
-          <div role="group" aria-label="Game mode" className="grid grid-cols-3 gap-2.5">
+          <div role="group" aria-label="Game mode" className="cp-lobby-choice-row cp-lobby-choice-row-3 gap-2.5">
             {(
               [
                 {
@@ -275,7 +267,7 @@ export function HomeSetup({
                   aria-pressed={active}
                   onClick={() => onMode(value)}
                   className={cn(
-                    "cp-lobby-card group flex flex-col items-start gap-2 p-3.5 text-left",
+                    "cp-lobby-card group flex min-w-0 flex-col items-start gap-2 p-3.5 text-left",
                     active && "cp-lobby-card-active cp-select-pop",
                   )}
                 >
@@ -290,7 +282,12 @@ export function HomeSetup({
                   <span className="font-display text-lg font-bold leading-none text-foreground">
                     {title}
                   </span>
-                  <span className="font-body text-xs leading-snug text-muted-foreground">
+                  <span
+                    className={cn(
+                      "font-body text-xs leading-snug [overflow-wrap:anywhere]",
+                      active ? "text-foreground/80" : "text-muted-foreground",
+                    )}
+                  >
                     {blurb}
                   </span>
                 </button>
@@ -306,7 +303,11 @@ export function HomeSetup({
               </p>
             </div>
 
-            <div role="group" aria-label="Grid size" className="mb-3 grid grid-cols-3 gap-2">
+            <div
+              role="group"
+              aria-label="Grid size"
+              className="cp-lobby-choice-row cp-lobby-choice-row-3 mb-3 gap-2"
+            >
               {([4, 5, 6] as const).map((n) => {
                 const active = grid === n;
                 return (
@@ -314,10 +315,10 @@ export function HomeSetup({
                     key={n}
                     type="button"
                     aria-pressed={active}
-                    aria-label={`${n} by ${n}`}
+                    aria-label={`${n}×${n}`}
                     onClick={() => onGrid(n)}
                     className={cn(
-                      "cp-lobby-tile flex flex-col items-center gap-1.5 py-3",
+                      "cp-lobby-tile flex min-w-0 flex-col items-center gap-1.5 py-3",
                       active && "cp-lobby-tile-active cp-select-pop",
                     )}
                   >
@@ -337,7 +338,7 @@ export function HomeSetup({
               })}
             </div>
 
-            <div role="group" aria-label="Shape" className="grid grid-cols-2 gap-2">
+            <div role="group" aria-label="Shape" className="cp-lobby-choice-row cp-lobby-choice-row-2 gap-2">
               {(
                 [
                   {
@@ -360,19 +361,19 @@ export function HomeSetup({
                     aria-pressed={active}
                     onClick={() => onTopology(value)}
                     className={cn(
-                      "cp-lobby-chip flex items-center justify-center gap-2 py-2.5",
+                      "cp-lobby-chip flex min-w-0 items-center justify-center gap-2 py-2.5",
                       active && "cp-lobby-chip-active cp-select-pop",
                     )}
                   >
                     <span
                       className={cn(
-                        "cp-lobby-glyph scale-75 text-muted-foreground",
+                        "cp-lobby-glyph scale-75 shrink-0 text-muted-foreground",
                         active && "text-secondary",
                       )}
                     >
                       <Icon />
                     </span>
-                    <span className="font-display text-sm font-bold">{label}</span>
+                    <span className="min-w-0 truncate font-display text-sm font-bold">{label}</span>
                   </button>
                 );
               })}
@@ -399,7 +400,11 @@ export function HomeSetup({
             </div>
 
             {mode !== "timed" ? (
-              <div role="group" aria-label="Challenge" className="grid grid-cols-3 gap-2">
+              <div
+                role="group"
+                aria-label="Challenge"
+                className="cp-lobby-choice-row cp-lobby-choice-row-3 gap-2"
+              >
                 {DIFFICULTY.map(({ value, label, hint, Icon }) => {
                   const active = difficulty === value;
                   return (
@@ -410,7 +415,7 @@ export function HomeSetup({
                       aria-label={`${label}: ${hint}`}
                       onClick={() => onDifficulty(value)}
                       className={cn(
-                        "cp-lobby-challenge flex flex-col items-center gap-1 px-1 py-2.5",
+                        "cp-lobby-challenge flex min-w-0 flex-col items-center gap-1 px-1 py-2.5",
                         active && "cp-lobby-challenge-active cp-select-pop",
                         active && value === "hard" && "cp-lobby-challenge-hard",
                       )}
@@ -431,7 +436,7 @@ export function HomeSetup({
                         />
                       </span>
                       <span className="font-display text-sm font-bold">{label}</span>
-                      <span className="font-body text-[0.65rem] leading-tight text-muted-foreground">
+                      <span className="font-body text-center text-[0.65rem] leading-tight text-muted-foreground [overflow-wrap:anywhere]">
                         {hint}
                       </span>
                     </button>
@@ -439,7 +444,11 @@ export function HomeSetup({
                 })}
               </div>
             ) : (
-              <div role="group" aria-label="Sprint length" className="grid grid-cols-4 gap-2">
+              <div
+                role="group"
+                aria-label="Sprint length"
+                className="cp-lobby-choice-row cp-lobby-choice-row-4 gap-2"
+              >
                 {DURATIONS.map((s) => {
                   const active = duration === s;
                   return (
@@ -449,7 +458,7 @@ export function HomeSetup({
                       aria-pressed={active}
                       onClick={() => onDuration(s)}
                       className={cn(
-                        "cp-lobby-challenge flex items-center justify-center py-3 font-display text-sm font-bold tabular-nums leading-none",
+                        "cp-lobby-challenge flex min-w-0 items-center justify-center py-3 font-display text-sm font-bold tabular-nums leading-none",
                         active && "cp-lobby-challenge-active cp-select-pop",
                       )}
                     >
@@ -462,9 +471,9 @@ export function HomeSetup({
           </section>
         </div>
 
-        {/* Advanced: fine-tune prefs (right / after primary on wide; quieter) */}
-        <aside className="cp-lobby-advanced flex flex-col gap-5" aria-label="Fine-tune">
-          <p className="cp-lobby-advanced-label">Fine-tune</p>
+        {/* Customize your game (right / after primary on wide; quieter) */}
+        <aside className="cp-lobby-advanced flex flex-col gap-5" aria-label="Customize your game">
+          <p className="cp-lobby-advanced-label">Customize your game</p>
 
           <section aria-label="Min length" className="cp-lobby-panel">
             <div className="mb-3 flex flex-col gap-0.5">
@@ -473,7 +482,11 @@ export function HomeSetup({
                 Only count words this long or longer
               </p>
             </div>
-            <div role="group" aria-label="Min length" className="grid grid-cols-3 gap-2">
+            <div
+              role="group"
+              aria-label="Min length"
+              className="cp-lobby-choice-row cp-lobby-choice-row-3 gap-2"
+            >
               {MIN_LENGTH.map(({ value, label, hint, Icon }) => {
                 const active = minWordLength === value;
                 return (
@@ -484,7 +497,7 @@ export function HomeSetup({
                     aria-label={`${label}: ${hint}`}
                     onClick={() => onMinWordLength(value)}
                     className={cn(
-                      "cp-lobby-challenge flex flex-col items-center gap-1 px-1 py-2.5",
+                      "cp-lobby-challenge flex min-w-0 flex-col items-center gap-1 px-1 py-2.5",
                       active && "cp-lobby-challenge-active cp-select-pop",
                     )}
                   >
@@ -511,37 +524,6 @@ export function HomeSetup({
               })}
             </div>
           </section>
-
-          {/* Words left HUD (default off) */}
-          <label
-            htmlFor="lobby-words-left"
-            className={cn(
-              "cp-pref-row flex cursor-pointer items-center justify-between gap-3",
-              showWordsLeft && "cp-pref-row-on cp-select-pop",
-            )}
-          >
-            <span className="flex min-w-0 items-start gap-2.5">
-              <Eye
-                className={cn(LOBBY_SECTION_ICON, "mt-0.5", showWordsLeft && "text-secondary")}
-                strokeWidth={2.25}
-                aria-hidden
-              />
-              <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="font-display text-sm font-bold text-foreground">
-                  Show words left
-                </span>
-                <span className="font-body text-[0.65rem] leading-snug text-muted-foreground">
-                  During play, show a running count of words still to find
-                </span>
-              </span>
-            </span>
-            <Switch
-              id="lobby-words-left"
-              checked={showWordsLeft}
-              onCheckedChange={onShowWordsLeft}
-              aria-label={`Show words left ${showWordsLeft ? "on" : "off"}`}
-            />
-          </label>
         </aside>
       </div>
     </div>
@@ -550,50 +532,36 @@ export function HomeSetup({
 
 export function HomePlayBar({
   onPlay,
-  sound,
-  onToggleSound,
-  menuMusic,
-  onToggleMenuMusic,
+  onLastResults,
 }: {
   onPlay: () => void;
-  sound: boolean;
-  onToggleSound: () => void;
-  menuMusic: boolean;
-  onToggleMenuMusic: () => void;
+  /** Open last finished run on results — omit when none for this profile. */
+  onLastResults?: () => void;
 }) {
-  const soundLabel = sound ? "SFX on" : "SFX off";
-  const musicLabel = menuMusic ? "Music on" : "Music off";
   return (
-    <div className="cp-lobby-play shrink-0 -mx-4 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] px-4 backdrop-blur-sm">
-      <div className="cp-lobby-play-inner flex items-center gap-4">
-        <Button size="lg" className="flex-1 gap-2.5 text-lg" onClick={onPlay}>
+    <div className="cp-lobby-play shrink-0 bg-[color-mix(in_srgb,var(--background)_92%,transparent)] backdrop-blur-sm">
+      <div className="cp-lobby-play-inner flex min-w-0 items-center gap-3 sm:gap-4">
+        <Button
+          size="lg"
+          className="cp-play-cta min-w-0 flex-1 gap-2.5 text-lg focus-visible:ring-0 focus-visible:ring-offset-0"
+          onClick={onPlay}
+        >
           <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
           Play
         </Button>
-        <IconTooltip label={musicLabel}>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-12 w-12 shrink-0"
-            aria-pressed={menuMusic}
-            aria-label={musicLabel}
-            onClick={onToggleMenuMusic}
-          >
-            {menuMusic ? <Music2 className="cp-icon-anim-note" /> : <MusicOff />}
-          </Button>
-        </IconTooltip>
-        <IconTooltip label={soundLabel}>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-12 w-12 shrink-0"
-            aria-pressed={sound}
-            aria-label={soundLabel}
-            onClick={onToggleSound}
-          >
-            {sound ? <Volume2 className="cp-icon-anim-wave" /> : <VolumeX />}
-          </Button>
-        </IconTooltip>
+        {onLastResults ? (
+          <IconTooltip label="See your last haul">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-12 w-12 shrink-0"
+              aria-label="See your last haul"
+              onClick={onLastResults}
+            >
+              <History />
+            </Button>
+          </IconTooltip>
+        ) : null}
       </div>
     </div>
   );

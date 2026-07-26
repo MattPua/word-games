@@ -9,7 +9,8 @@ const FADE_MS = 450;
 export type MenuMusicScene = "off" | "lobby" | "play";
 
 let audio: HTMLAudioElement | null = null;
-let enabled = true;
+/** Matches storage default — avoid fetching BGM before prefs apply. */
+let enabled = false;
 let scene: MenuMusicScene = "off";
 let gestureHooked = false;
 let fadeTimer: number | null = null;
@@ -20,7 +21,8 @@ function getAudio(): HTMLAudioElement {
   if (!audio) {
     audio = new Audio(SRC);
     audio.loop = true;
-    audio.preload = "auto";
+    // Don't contend with LCP for bandwidth — fetch when play is requested.
+    audio.preload = "none";
     audio.volume = VOLUME_LOBBY;
   }
   return audio;
@@ -79,39 +81,47 @@ function fadeTo(target: number, then?: () => void) {
 }
 
 function syncPlayback() {
-  const el = getAudio();
-  const gen = ++syncGen;
   const shouldPlay = enabled && scene !== "off";
+  const gen = ++syncGen;
   const targetVol = volumeFor(scene);
 
-  if (shouldPlay) {
-    if (el.paused) {
+  // Avoid constructing Audio (and fetching the MP3) until music should play.
+  if (!shouldPlay) {
+    if (!audio || audio.paused) {
       clearFade();
-      el.volume = 0;
-      const p = el.play();
-      if (p !== undefined) {
-        void p
-          .then(() => {
-            if (gen !== syncGen) return;
-            fadeTo(targetVol);
-          })
-          .catch(() => {
-            if (gen !== syncGen) return;
-            hookGestureUnlock();
-          });
-      } else {
-        fadeTo(targetVol);
+      return;
+    }
+    fadeTo(0, () => {
+      if (gen !== syncGen) return;
+      audio?.pause();
+      if (audio) {
+        audio.currentTime = 0;
+        audio.volume = VOLUME_LOBBY;
       }
+    });
+    return;
+  }
+
+  const el = getAudio();
+  if (el.paused) {
+    clearFade();
+    el.volume = 0;
+    const p = el.play();
+    if (p !== undefined) {
+      void p
+        .then(() => {
+          if (gen !== syncGen) return;
+          fadeTo(targetVol);
+        })
+        .catch(() => {
+          if (gen !== syncGen) return;
+          hookGestureUnlock();
+        });
     } else {
       fadeTo(targetVol);
     }
-  } else if (!el.paused) {
-    fadeTo(0, () => {
-      if (gen !== syncGen) return;
-      el.pause();
-      el.currentTime = 0;
-      el.volume = VOLUME_LOBBY;
-    });
+  } else {
+    fadeTo(targetVol);
   }
 }
 
@@ -128,7 +138,14 @@ export function setMenuMusicScene(next: MenuMusicScene) {
 }
 
 export function menuMusicSceneForPath(pathname: string): MenuMusicScene {
-  if (pathname === "/" || pathname === "/profiles") return "lobby";
+  if (
+    pathname === "/" ||
+    pathname === "/profiles" ||
+    pathname === "/achievements" ||
+    pathname === "/options"
+  ) {
+    return "lobby";
+  }
   if (pathname === "/play") return "play";
   return "off";
 }

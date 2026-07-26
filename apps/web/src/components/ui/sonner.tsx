@@ -19,21 +19,25 @@ function useResolvedTheme(): "light" | "dark" {
 }
 
 /** Follows the player's dark mode toggle (`.dark` on `<html>` — see `theme.ts`). */
-const Toaster = ({ ...props }: ToasterProps) => {
+const Toaster = ({ className, style, toastOptions, ...props }: ToasterProps) => {
   const theme = useResolvedTheme();
   return (
     <Sonner
       theme={theme}
-      className="toaster group"
+      className={["toaster group font-sans", className].filter(Boolean).join(" ")}
+      style={{ fontFamily: "var(--font-sans)", ...style }}
       toastOptions={{
+        ...toastOptions,
         classNames: {
           toast:
-            "group toast group-[.toaster]:rounded-ui group-[.toaster]:border-border group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:shadow-md",
+            "group toast font-display group-[.toaster]:rounded-ui group-[.toaster]:border-border group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:shadow-md",
+          title: "font-display",
           description: "group-[.toast]:font-body group-[.toast]:text-muted-foreground",
           actionButton:
             "group-[.toast]:bg-primary group-[.toast]:font-body group-[.toast]:text-primary-foreground",
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:font-body group-[.toast]:text-muted-foreground",
+          ...toastOptions?.classNames,
         },
       }}
       {...props}

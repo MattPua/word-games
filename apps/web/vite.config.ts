@@ -50,7 +50,7 @@ function seoHtmlPlugin(): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     seoHtmlPlugin(),
     react({
@@ -70,7 +70,7 @@ export default defineConfig({
   ],
   define: {
     global: "globalThis",
-    __DEV__: JSON.stringify(true),
+    __DEV__: JSON.stringify(mode !== "production"),
   },
   resolve: {
     alias: {
@@ -93,4 +93,4 @@ export default defineConfig({
     },
   },
   server: { port: 5173 },
-});
+}));

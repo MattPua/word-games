@@ -11,15 +11,25 @@
  * it ships (see `RunHaul`).
  */
 
-export type LengthBucket = "3" | "4" | "5" | "6" | "7plus";
+export type LengthBucket = "3" | "4" | "5" | "6" | "7" | "8" | "9plus";
 
-export const LENGTH_BUCKETS: readonly LengthBucket[] = ["3", "4", "5", "6", "7plus"];
+export const LENGTH_BUCKETS: readonly LengthBucket[] = ["3", "4", "5", "6", "7", "8", "9plus"];
+
+/** Legacy key: pre-split haul that lumped every word ≥7 into one bucket. */
+const LEGACY_7PLUS = "7plus";
 
 export function lengthBucket(len: number): LengthBucket {
-  if (len >= 7) return "7plus";
+  if (len >= 9) return "9plus";
   if (len <= 3) return "3";
   return String(len) as LengthBucket;
 }
+
+/**
+ * Per-track unlock timestamps (epoch ms). Index `i` = when stage `i + 1`
+ * (milestone `milestones[i]`) was reached. Missing / shorter arrays = legacy
+ * progress from before dating existed — UI treats those as unknown, never invents.
+ */
+export type StageUnlockedAt = Partial<Record<TrackId, number[]>>;
 
 export type AchievementCounts = {
   /** Cumulative points earned across every run, ever. */
@@ -36,6 +46,8 @@ export type AchievementCounts = {
   bestRunPoints: number;
   /** Most words found in a single run ever, any mode. */
   bestRunWords: number;
+  /** When each track stage unlocked — stamped by `applyRunToAchievements`. */
+  stageUnlockedAt: StageUnlockedAt;
 };
 
 /**
@@ -65,7 +77,9 @@ export type TrackId =
   | "len4"
   | "len5"
   | "len6"
-  | "len7plus"
+  | "len7"
+  | "len8"
+  | "len9plus"
   | "survivalTime"
   | "survivalWords";
 
@@ -155,12 +169,28 @@ export const TRACKS: readonly TrackDef[] = [
     value: (c) => c.lengthCounts["6"] ?? 0,
   },
   {
-    id: "len7plus",
-    label: "Long word hunter",
-    hint: "Words 7 letters or longer",
+    id: "len7",
+    label: "7-letter finds",
+    hint: "7-letter word hauls",
     unit: "words",
     milestones: [1, 3, 8, 20, 40],
-    value: (c) => c.lengthCounts["7plus"] ?? 0,
+    value: (c) => c.lengthCounts["7"] ?? 0,
+  },
+  {
+    id: "len8",
+    label: "8-letter finds",
+    hint: "8-letter word hauls",
+    unit: "words",
+    milestones: [1, 2, 5, 12, 25],
+    value: (c) => c.lengthCounts["8"] ?? 0,
+  },
+  {
+    id: "len9plus",
+    label: "Long word hunter",
+    hint: "Words 9 letters or longer",
+    unit: "words",
+    milestones: [1, 2, 4, 10, 20],
+    value: (c) => c.lengthCounts["9plus"] ?? 0,
   },
   {
     id: "survivalTime",
@@ -184,17 +214,84 @@ export function defaultAchievementCounts(): AchievementCounts {
   return {
     totalPoints: 0,
     uniqueWords: [],
-    lengthCounts: { "3": 0, "4": 0, "5": 0, "6": 0, "7plus": 0 },
+    lengthCounts: { "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0, "9plus": 0 },
     survivalBestMs: 0,
     survivalWordsFound: 0,
     bestRunPoints: 0,
     bestRunWords: 0,
+    stageUnlockedAt: {},
   };
+}
+
+const TRACK_ID_SET: ReadonlySet<string> = new Set(TRACKS.map((t) => t.id));
+
+/** Migrates unlock-date map — known track ids only; drops non-finite / non-positive stamps. */
+export function normalizeStageUnlockedAt(
+  raw: Partial<Record<string, unknown>> | undefined | null,
+): StageUnlockedAt {
+  if (!raw || typeof raw !== "object") return {};
+  const out: StageUnlockedAt = {};
+  for (const [rawId, arr] of Object.entries(raw)) {
+    // Legacy Long-word-hunter track id → new exact-7 track (same fold as lengthCounts).
+    const id = rawId === "len7plus" ? "len7" : rawId;
+    if (!TRACK_ID_SET.has(id) || !Array.isArray(arr)) continue;
+    const cleaned: number[] = [];
+    let any = false;
+    for (let i = 0; i < arr.length; i++) {
+      const n = arr[i];
+      if (typeof n === "number" && Number.isFinite(n) && n > 0) {
+        cleaned[i] = n;
+        any = true;
+      }
+    }
+    if (!any) continue;
+    const existing = out[id as TrackId];
+    if (!existing) {
+      out[id as TrackId] = cleaned;
+      continue;
+    }
+    // Prefer earlier unlock when both legacy + new stamps exist for the same stage.
+    const merged = [...existing];
+    for (let i = 0; i < cleaned.length; i++) {
+      const n = cleaned[i];
+      if (n == null) continue;
+      const prev = merged[i];
+      merged[i] = prev == null ? n : Math.min(prev, n);
+    }
+    out[id as TrackId] = merged;
+  }
+  return out;
+}
+
+/**
+ * Migrates length haul counts. Known buckets win; legacy `7plus` (pre-split
+ * ≥7 lump) folds into `7` so progress isn't wiped — exact past lengths aren't
+ * recoverable. Unknown keys dropped.
+ */
+export function normalizeLengthCounts(
+  raw: Partial<Record<string, number>> | undefined | null,
+): Record<LengthBucket, number> {
+  const out = { ...defaultAchievementCounts().lengthCounts };
+  if (!raw) return out;
+  for (const key of LENGTH_BUCKETS) {
+    const n = raw[key];
+    if (typeof n === "number" && Number.isFinite(n) && n > 0) out[key] = n;
+  }
+  const legacy = raw[LEGACY_7PLUS];
+  if (typeof legacy === "number" && Number.isFinite(legacy) && legacy > 0) {
+    out["7"] += legacy;
+  }
+  return out;
 }
 
 /** Migrates old/missing blobs — every field defaults safely so new tracks (e.g. survival) backfill at 0. */
 export function normalizeAchievementCounts(
-  raw: Partial<AchievementCounts> | undefined | null,
+  raw:
+    | (Partial<Omit<AchievementCounts, "lengthCounts">> & {
+        lengthCounts?: Partial<Record<string, number>> | null;
+      })
+    | undefined
+    | null,
 ): AchievementCounts {
   const base = defaultAchievementCounts();
   if (!raw) return base;
@@ -206,13 +303,14 @@ export function normalizeAchievementCounts(
   return {
     totalPoints: typeof raw.totalPoints === "number" ? raw.totalPoints : base.totalPoints,
     uniqueWords,
-    lengthCounts: { ...base.lengthCounts, ...raw.lengthCounts },
+    lengthCounts: normalizeLengthCounts(raw.lengthCounts),
     survivalBestMs:
       typeof raw.survivalBestMs === "number" ? raw.survivalBestMs : base.survivalBestMs,
     survivalWordsFound:
       typeof raw.survivalWordsFound === "number" ? raw.survivalWordsFound : base.survivalWordsFound,
     bestRunPoints: typeof raw.bestRunPoints === "number" ? raw.bestRunPoints : base.bestRunPoints,
     bestRunWords: typeof raw.bestRunWords === "number" ? raw.bestRunWords : base.bestRunWords,
+    stageUnlockedAt: normalizeStageUnlockedAt(raw.stageUnlockedAt),
   };
 }
 
@@ -222,9 +320,26 @@ export type TrackProgress = {
   /** Number of milestones cleared. */
   stage: number;
   nextMilestone: number | null;
+  /**
+   * Active medal threshold: the next milestone to clear, or the last milestone
+   * when the track is fully cleared. UI shows this alone — never the full list.
+   */
+  currentMilestone: number;
+  /** Milestones still locked on this track. 0 when maxed. */
+  remainingStages: number;
   /** 0..1 toward `nextMilestone`; 1 when maxed. */
   progress: number;
   maxed: boolean;
+  /**
+   * Epoch ms when the current stage unlocked, if known. Null when stage 0 or
+   * legacy progress without a stored stamp.
+   */
+  unlockedAt: number | null;
+  /**
+   * Per-stage unlock stamps (index `i` = stage `i + 1`). Sparse for legacy.
+   * UI reads these — never invents dates from milestones alone.
+   */
+  stageUnlockedAt: readonly (number | undefined)[];
 };
 
 export function stageForValue(value: number, milestones: readonly number[]): number {
@@ -242,13 +357,34 @@ export function trackProgress(ctx: AchievementContext, track: TrackDef): TrackPr
   const maxed = stage >= track.milestones.length;
   const prevMilestone = stage > 0 ? track.milestones[stage - 1]! : 0;
   const nextMilestone = maxed ? null : track.milestones[stage]!;
+  const currentMilestone = maxed ? track.milestones[track.milestones.length - 1]! : nextMilestone!;
+  const remainingStages = maxed ? 0 : track.milestones.length - stage;
   const span = nextMilestone != null ? nextMilestone - prevMilestone : 0;
   const progress = maxed
     ? 1
     : span <= 0
       ? 1
       : Math.min(1, Math.max(0, (value - prevMilestone) / span));
-  return { track, value, stage, nextMilestone, progress, maxed };
+  const stageUnlockedAt = ctx.stageUnlockedAt[track.id] ?? [];
+  const unlockedAt = stage > 0 ? (stageUnlockedAt[stage - 1] ?? null) : null;
+  return {
+    track,
+    value,
+    stage,
+    nextMilestone,
+    currentMilestone,
+    remainingStages,
+    progress,
+    maxed,
+    unlockedAt,
+    stageUnlockedAt,
+  };
+}
+
+/** Player-facing remaining-lock line — "3 still locked" / "All unlocked". No em dashes. */
+export function formatRemainingStages(p: TrackProgress): string {
+  if (p.maxed || p.remainingStages <= 0) return "All unlocked";
+  return p.remainingStages === 1 ? "1 still locked" : `${p.remainingStages} still locked`;
 }
 
 export function allTrackProgress(ctx: AchievementContext): TrackProgress[] {
@@ -261,6 +397,8 @@ export type StageUp = {
   unit: TrackUnit;
   stage: number;
   milestone: number;
+  /** Epoch ms when this stage unlocked (same stamp written into counts). */
+  unlockedAt: number;
 };
 
 export type RunHaul = {
@@ -283,11 +421,13 @@ export type RunHaul = {
  * the result. `gamesPlayedAfter` is the profile's lifetime run tally *after*
  * this run was counted (storage.ts increments that counter itself); the
  * "before" snapshot for stage-up diffing is simply one less.
+ * `nowMs` stamps new stage unlocks (defaults to `Date.now()`; inject in tests).
  */
 export function applyRunToAchievements(
   counts: AchievementCounts,
   haul: RunHaul,
   gamesPlayedAfter: number,
+  nowMs: number = Date.now(),
 ): { next: AchievementCounts; stageUps: StageUp[]; touched: TrackId[] } {
   const before = allTrackProgress(withGamesPlayed(counts, Math.max(0, gamesPlayedAfter - 1)));
 
@@ -302,6 +442,7 @@ export function applyRunToAchievements(
 
   const isSurvival = haul.mode === "survival";
   const runPoints = Math.max(0, haul.points);
+  const stageUnlockedAt: StageUnlockedAt = { ...counts.stageUnlockedAt };
   const next: AchievementCounts = {
     totalPoints: counts.totalPoints + runPoints,
     uniqueWords: Array.from(uniqueSet),
@@ -314,21 +455,32 @@ export function applyRunToAchievements(
       : counts.survivalWordsFound,
     bestRunPoints: Math.max(counts.bestRunPoints, runPoints),
     bestRunWords: Math.max(counts.bestRunWords, haul.words.length),
+    stageUnlockedAt,
   };
 
+  // Stage math only needs count fields; unlock stamps are filled below.
   const after = allTrackProgress(withGamesPlayed(next, gamesPlayedAfter));
   const stageUps: StageUp[] = [];
   const touched: TrackId[] = [];
   for (let i = 0; i < TRACKS.length; i++) {
     const track = TRACKS[i]!;
     if (after[i]!.value > before[i]!.value) touched.push(track.id);
-    if (after[i]!.stage > before[i]!.stage) {
+    const prevStage = before[i]!.stage;
+    const nextStage = after[i]!.stage;
+    if (nextStage > prevStage) {
+      const stamps = [...(stageUnlockedAt[track.id] ?? [])];
+      for (let s = prevStage + 1; s <= nextStage; s++) {
+        const idx = s - 1;
+        if (stamps[idx] == null) stamps[idx] = nowMs;
+      }
+      stageUnlockedAt[track.id] = stamps;
       stageUps.push({
         id: track.id,
         label: track.label,
         unit: track.unit,
-        stage: after[i]!.stage,
-        milestone: track.milestones[after[i]!.stage - 1]!,
+        stage: nextStage,
+        milestone: track.milestones[nextStage - 1]!,
+        unlockedAt: stamps[nextStage - 1]!,
       });
     }
   }
@@ -348,4 +500,15 @@ export function formatSurvivalSeconds(sec: number): string {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return s === 0 ? `${m}m` : `${m}m ${s}s`;
+}
+
+const UNLOCK_DATE_FMT = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+
+/** Game-voice unlock line — "Unlocked Jul 25, 2026" (no em dashes). */
+export function formatUnlockDate(ms: number): string {
+  return `Unlocked ${UNLOCK_DATE_FMT.format(new Date(ms))}`;
 }

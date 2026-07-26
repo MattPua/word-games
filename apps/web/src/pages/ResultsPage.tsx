@@ -1,13 +1,10 @@
 import { Text, View } from "react-native";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronDown, Share2, Sofa } from "lucide-react";
+import { ChevronDown, CirclePlay, Sofa, Sparkles } from "lucide-react";
 import { ConfettiBurst, EmptyState, PotatoSprite } from "@couch-potato/ui";
-import { play } from "cuelume";
-import { toast } from "sonner";
-import { track } from "../analytics";
-import { PRODUCT_NAME } from "../seo";
 import { loadLastRun, saveLaunch, type PlayLaunch } from "../storage";
+import { BrandHeader } from "@/components/BrandHeader";
 import { Button } from "@/components/ui/button";
 import { WordGroups } from "../components/WordGroups";
 import { ResultsMedals } from "../components/ResultsMedals";
@@ -16,20 +13,6 @@ import { ScrollShell } from "../components/ScrollShell";
 const MISSED_COLLAPSE_THRESHOLD = 8;
 const CONFETTI_DELAY_MS = 150;
 const CONFETTI_DURATION_MS = 1400;
-
-async function shareScore(text: string) {
-  try {
-    if (navigator.share) {
-      await navigator.share({ text, title: PRODUCT_NAME });
-      return;
-    }
-  } catch {
-    /* fall through */
-  }
-  await navigator.clipboard.writeText(text);
-  play("success");
-  toast.success("Haul copied. Go brag");
-}
 
 /** Counts 0 -> target on mount; instant under `prefers-reduced-motion`. */
 function useCountUp(target: number, durationMs = 650) {
@@ -77,22 +60,18 @@ export function ResultsPage() {
 
   if (!run) {
     return (
-      <ScrollShell>
+      <ScrollShell shellClassName="cp-shell-results cp-results">
+        <BrandHeader className="mb-4" title="Results" />
         <EmptyState
-          showLogo
           title="No crumbs on the couch yet"
           body="Play a round first, then we'll show off your haul."
         />
-        <Button className="mt-4 w-full" onClick={() => navigate({ to: "/" })}>
+        <Button className="mt-4 cp-chrome-cta" onClick={() => navigate({ to: "/" })}>
           Back to lobby
         </Button>
       </ScrollShell>
     );
   }
-
-  const blurb = `Couch Potato: ${run.score} pts on ${run.grid}×${run.grid} ${run.detail}${
-    run.isHighScore ? " ★ high score" : ""
-  }`;
 
   const reasonLabel =
     run.reason === "won"
@@ -103,24 +82,25 @@ export function ResultsPage() {
           : "Time's up!"
         : "Run ended";
 
+  const hasMedals = Boolean(run.achievements);
+
   return (
-    <ScrollShell shellClassName="relative">
+    <ScrollShell shellClassName="relative cp-shell-results cp-results">
       <ConfettiBurst active={celebrate} durationMs={CONFETTI_DURATION_MS} />
 
       <View className="mb-6 items-center cp-fade-up">
-        {/* Results hero — the potato sprite (idle | cheer atlas frame, see
-            AGENTS.md Brand / spriteAtlas.ts) is the star, not an afterthought
-            beside the score. Split wrappers: outer plays the one-shot
-            pop-in, inner keeps the idle float looping (both set the
-            `animation` shorthand, so they can't share a single element). */}
-        <View className="cp-pop-in mb-2">
-          <View className="cp-logo-float">
-            <PotatoSprite frame={celebratory ? "cheer" : "idle"} size={148} />
-          </View>
-        </View>
-        <Text className="mb-1 text-center font-display text-2xl text-foreground">
-          {reasonLabel}
-        </Text>
+        {/* Results hero — potato sprite is the brand mark; wordmark + outcome title under it. */}
+        <BrandHeader
+          className="mb-2"
+          mark={
+            <View className="cp-pop-in">
+              <View className="cp-logo-float">
+                <PotatoSprite frame={celebratory ? "cheer" : "idle"} size={148} />
+              </View>
+            </View>
+          }
+          title={reasonLabel}
+        />
         <View className="cp-results-haul cp-pop-in">
           <View
             className={`cp-results-haul-tag ${run.isHighScore ? "cp-results-haul-tag-gold" : celebratory ? "cp-results-haul-tag-gold" : ""}`}
@@ -142,74 +122,102 @@ export function ResultsPage() {
         </View>
       </View>
 
-      {run.achievements ? (
-        <ResultsMedals
-          snapshot={run.achievements.snapshot}
-          stageUps={run.achievements.stageUps}
-          touched={run.achievements.touched}
-        />
-      ) : null}
-
-      <View className="cp-lobby-card mb-4 p-4 cp-fade-up cp-stagger-1">
-        <Text className="mb-2 font-display text-lg text-foreground">Your haul</Text>
-        {run.found.length ? (
-          <WordGroups words={run.found} variant="found" />
-        ) : (
-          <EmptyState
-            title="Nada. Not even 'the'."
-            body="It happens. The cushions will forgive you."
-            className="py-1"
+      <div
+        className={`cp-results-columns mb-6 ${hasMedals ? "" : "cp-results-columns-solo"}`.trim()}
+      >
+        {run.achievements ? (
+          <ResultsMedals
+            snapshot={run.achievements.snapshot}
+            stageUps={run.achievements.stageUps}
+            touched={run.achievements.touched}
           />
-        )}
-      </View>
+        ) : null}
 
-      <View className="cp-lobby-card mb-6 p-4 cp-fade-up cp-stagger-2">
-        {run.missed.length ? (
-          <>
-            <Button
-              variant="ghost"
-              className="h-auto w-full justify-between px-0 py-0 hover:bg-transparent"
-              aria-expanded={missedOpen}
-              aria-controls="results-missed-panel"
-              onClick={() => setMissedOpen((o) => !o)}
-            >
-              <View className="flex-row items-baseline gap-1.5">
-                <Text className="font-display text-lg text-foreground">Left on the couch</Text>
-                <Text className="font-body text-sm text-muted-foreground">
-                  ({run.missed.length})
-                </Text>
-              </View>
-              <ChevronDown
-                className={`text-muted-foreground transition-transform duration-200 motion-reduce:transition-none ${
-                  missedOpen ? "rotate-180" : ""
-                }`}
+        <div className="cp-results-words">
+          <View className="cp-lobby-card p-4 cp-fade-up cp-stagger-1">
+            <h2 className="mb-2 flex items-center gap-2 text-lg text-foreground">
+              <Sparkles
+                className="cp-lobby-glyph size-4 shrink-0 text-icon-muted-foreground"
+                strokeWidth={2.25}
                 aria-hidden
               />
-            </Button>
-            <View
-              id="results-missed-panel"
-              className={`cp-results-collapse-panel ${missedOpen ? "cp-results-collapse-panel-open" : ""}`}
-            >
-              <View className="cp-results-collapse-panel-inner pt-3">
-                <WordGroups words={run.missed} variant="missed" />
-              </View>
-            </View>
-          </>
-        ) : (
-          <>
-            <Text className="mb-2 font-display text-lg text-foreground">Left on the couch</Text>
-            <EmptyState
-              title="You cleaned the couch"
-              body="No juicy leftovers to tease you with."
-              className="py-1"
-            />
-          </>
-        )}
-      </View>
+              Your haul
+            </h2>
+            {run.found.length ? (
+              <WordGroups words={run.found} variant="found" />
+            ) : (
+              <EmptyState
+                title="Nada. Not even 'the'."
+                body="It happens. The cushions will forgive you."
+                className="py-1"
+              />
+            )}
+          </View>
 
-      <View className="cp-fade-up cp-stagger-3">
+          <View className="cp-lobby-card p-4 cp-fade-up cp-stagger-2">
+            {run.missed.length ? (
+              <>
+                <Button
+                  variant="ghost"
+                  className="h-auto w-full justify-between px-0 py-0 hover:bg-transparent"
+                  aria-expanded={missedOpen}
+                  aria-controls="results-missed-panel"
+                  onClick={() => setMissedOpen((o) => !o)}
+                >
+                  <View className="min-w-0 flex-1 flex-row items-center gap-2">
+                    <Sofa
+                      className="cp-lobby-glyph size-4 shrink-0 text-icon-muted-foreground"
+                      strokeWidth={2.25}
+                      aria-hidden
+                    />
+                    <Text className="font-display text-lg text-foreground">Long ones left</Text>
+                    <Text className="font-body text-sm text-muted-foreground">
+                      ({run.missed.length})
+                    </Text>
+                  </View>
+                  <ChevronDown
+                    className={`shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none ${
+                      missedOpen ? "rotate-180" : ""
+                    }`}
+                    aria-hidden
+                  />
+                </Button>
+                <Text className="mt-1 font-body text-sm text-muted-foreground">
+                  Biggest catches still on the couch. Short crumbs stay off this list.
+                </Text>
+                <View
+                  id="results-missed-panel"
+                  className={`cp-results-collapse-panel ${missedOpen ? "cp-results-collapse-panel-open" : ""}`}
+                >
+                  <View className="cp-results-collapse-panel-inner pt-3">
+                    <WordGroups words={run.missed} variant="missed" />
+                  </View>
+                </View>
+              </>
+            ) : (
+              <>
+                <h2 className="mb-2 flex items-center gap-2 text-lg text-foreground">
+                  <Sofa
+                    className="cp-lobby-glyph size-4 shrink-0 text-icon-muted-foreground"
+                    strokeWidth={2.25}
+                    aria-hidden
+                  />
+                  Long ones left
+                </h2>
+                <EmptyState
+                  title="No juicy leftovers"
+                  body="The long catches are gone. Short crumbs may still be on the board."
+                  className="py-1"
+                />
+              </>
+            )}
+          </View>
+        </div>
+      </div>
+
+      <div className="cp-results-actions cp-fade-up cp-stagger-3">
         <Button
-          className="mb-2 w-full"
+          className="cp-chrome-cta"
           onClick={() => {
             const launch: PlayLaunch = {
               mode: run.mode,
@@ -223,24 +231,18 @@ export function ResultsPage() {
             navigate({ to: "/play" });
           }}
         >
+          <CirclePlay aria-hidden />
           Play again
         </Button>
         <Button
-          variant="secondary"
-          className="mb-2 w-full"
-          onClick={() => {
-            track("share_clicked", { score: run.score });
-            void shareScore(blurb);
-          }}
+          variant="outline"
+          className="cp-chrome-cta"
+          onClick={() => navigate({ to: "/" })}
         >
-          <Share2 />
-          Share haul
-        </Button>
-        <Button variant="ghost" className="w-full" onClick={() => navigate({ to: "/" })}>
           <Sofa />
           Back to lobby
         </Button>
-      </View>
+      </div>
     </ScrollShell>
   );
 }

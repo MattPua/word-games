@@ -1,5 +1,5 @@
-/** Dark mode: applies `.dark` on `<html>` — Sage Garden dark tokens live in `theme.css`. */
-import type { ThemePreference } from "./storage";
+/** Dark mode + display font: toggle classes/attrs on `<html>` — tokens live in `theme.css`. */
+import type { FontPreference, ThemePreference } from "./storage";
 
 function systemPrefersDark(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -18,4 +18,19 @@ export function applyTheme(pref: ThemePreference) {
 /** Flip the resolved theme to its opposite as an explicit override (player asked for a toggle, not just system). */
 export function toggleTheme(pref: ThemePreference): "light" | "dark" {
   return resolveTheme(pref) === "dark" ? "light" : "dark";
+}
+
+/** Clean Lexend (default) vs pixel Jersey 15 for `--font-display` — see `theme.css` `data-font`. */
+let jerseyLoaded = false;
+
+function ensureJerseyFont() {
+  if (jerseyLoaded) return;
+  jerseyLoaded = true;
+  void import("@fontsource/jersey-15/400.css");
+}
+
+export function applyFontPreference(pref: FontPreference) {
+  if (typeof document === "undefined") return;
+  if (pref === "pixel") ensureJerseyFont();
+  document.documentElement.dataset.font = pref;
 }

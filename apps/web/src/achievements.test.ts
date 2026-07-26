@@ -4,9 +4,12 @@ import {
   applyRunToAchievements,
   defaultAchievementCounts,
   formatSurvivalSeconds,
+  formatUnlockDate,
   lengthBucket,
   normalizeAchievementCounts,
+  normalizeStageUnlockedAt,
   stageForValue,
+  TRACKS,
   trackById,
   trackProgress,
   withGamesPlayed,
@@ -19,13 +22,17 @@ function ctx(
   return withGamesPlayed(overrides, gamesPlayed);
 }
 
+const FIXED_NOW = Date.UTC(2026, 6, 25, 15, 0, 0); // Jul 25, 2026
+
 describe("lengthBucket", () => {
-  it("buckets 3-6 exactly, 7+ together", () => {
+  it("buckets 3-8 exactly, 9+ together", () => {
     expect(lengthBucket(3)).toBe("3");
     expect(lengthBucket(4)).toBe("4");
     expect(lengthBucket(6)).toBe("6");
-    expect(lengthBucket(7)).toBe("7plus");
-    expect(lengthBucket(12)).toBe("7plus");
+    expect(lengthBucket(7)).toBe("7");
+    expect(lengthBucket(8)).toBe("8");
+    expect(lengthBucket(9)).toBe("9plus");
+    expect(lengthBucket(12)).toBe("9plus");
   });
 });
 
@@ -49,13 +56,29 @@ describe("trackProgress", () => {
     // progress from prev milestone 5 to next 15: (10 - 5) / (15 - 5) = 0.5
     expect(p.progress).toBeCloseTo(0.5);
     expect(p.maxed).toBe(false);
+    expect(p.unlockedAt).toBeNull();
+  });
+
+  it("exposes persisted unlock stamps without inventing dates", () => {
+    const stamp = FIXED_NOW;
+    const counts = {
+      ...defaultAchievementCounts(),
+      uniqueWords: Array(10)
+        .fill("x")
+        .map((_, i) => `w${i}`),
+      stageUnlockedAt: { words: [stamp] },
+    };
+    const p = trackProgress(ctx(counts), trackById("words"));
+    expect(p.stage).toBe(1);
+    expect(p.unlockedAt).toBe(stamp);
+    expect(p.stageUnlockedAt[0]).toBe(stamp);
   });
 
   it("maxes out past the last milestone", () => {
-    const track = trackById("len7plus");
+    const track = trackById("len9plus");
     const counts = {
       ...defaultAchievementCounts(),
-      lengthCounts: { ...defaultAchievementCounts().lengthCounts, "7plus": 999 },
+      lengthCounts: { ...defaultAchievementCounts().lengthCounts, "9plus": 999 },
     };
     const p = trackProgress(ctx(counts), track);
     expect(p.maxed).toBe(true);
@@ -97,7 +120,7 @@ describe("trackProgress", () => {
 describe("allTrackProgress", () => {
   it("returns one entry per track, same order as TRACKS", () => {
     const progress = allTrackProgress(ctx());
-    expect(progress).toHaveLength(12);
+    expect(progress).toHaveLength(TRACKS.length);
     expect(progress[0]!.track.id).toBe("points");
   });
 });
@@ -109,6 +132,7 @@ describe("applyRunToAchievements", () => {
       counts,
       { mode: "target", points: 12, words: ["cat", "dogs", "cat"] }, // duplicate "cat" should not double-count unique
       1,
+      FIXED_NOW,
     );
     expect(next.totalPoints).toBe(12);
     expect(next.uniqueWords.sort()).toEqual(["cat", "dogs"]);
@@ -144,11 +168,47 @@ describe("applyRunToAchievements", () => {
       counts,
       { mode: "target", points: 10, words: [] }, // 45 -> 55, crosses points milestone[0] = 50
       3,
+      FIXED_NOW,
     );
     const pointsStageUp = stageUps.find((s) => s.id === "points");
     expect(pointsStageUp).toBeDefined();
     expect(pointsStageUp?.stage).toBe(1);
     expect(pointsStageUp?.milestone).toBe(50);
+    expect(pointsStageUp?.unlockedAt).toBe(FIXED_NOW);
+  });
+
+  it("stamps unlock dates for every newly cleared stage", () => {
+    const counts = defaultAchievementCounts();
+    // points milestones: [50, 150, ...] — one haul can clear multiple stages
+    const { next, stageUps } = applyRunToAchievements(
+      counts,
+      { mode: "target", points: 200, words: [] },
+      1,
+      FIXED_NOW,
+    );
+    expect(next.stageUnlockedAt.points).toEqual([FIXED_NOW, FIXED_NOW]);
+    const points = stageUps.find((s) => s.id === "points");
+    expect(points?.stage).toBe(2);
+    expect(points?.unlockedAt).toBe(FIXED_NOW);
+  });
+
+  it("does not overwrite an existing unlock stamp", () => {
+    const earlier = Date.UTC(2026, 0, 1);
+    const counts = {
+      ...defaultAchievementCounts(),
+      totalPoints: 50,
+      stageUnlockedAt: { points: [earlier] },
+    };
+    // Already stage 1 (50 pts). Cross stage 2 (150) with this run.
+    const { next, stageUps } = applyRunToAchievements(
+      counts,
+      { mode: "target", points: 100, words: [] },
+      2,
+      FIXED_NOW,
+    );
+    expect(next.stageUnlockedAt.points?.[0]).toBe(earlier);
+    expect(next.stageUnlockedAt.points?.[1]).toBe(FIXED_NOW);
+    expect(stageUps.find((s) => s.id === "points")?.unlockedAt).toBe(FIXED_NOW);
   });
 
   it("clamps negative points (never lowers the haul)", () => {
@@ -241,7 +301,7 @@ describe("normalizeAchievementCounts", () => {
     expect(normalizeAchievementCounts(undefined)).toEqual(defaultAchievementCounts());
   });
 
-  it("backfills new fields (e.g. survival, best-run) onto an old blob", () => {
+  it("backfills new fields (e.g. survival, best-run, unlock dates) onto an old blob", () => {
     const old = { totalPoints: 30, uniqueWords: ["Cat", "cat", "Dog"] };
     const next = normalizeAchievementCounts(old);
     expect(next.totalPoints).toBe(30);
@@ -251,6 +311,33 @@ describe("normalizeAchievementCounts", () => {
     expect(next.bestRunPoints).toBe(0);
     expect(next.bestRunWords).toBe(0);
     expect(next.lengthCounts).toEqual(defaultAchievementCounts().lengthCounts);
+    expect(next.stageUnlockedAt).toEqual({});
+  });
+
+  it("keeps valid unlock stamps and drops junk", () => {
+    const next = normalizeAchievementCounts({
+      totalPoints: 50,
+      stageUnlockedAt: {
+        points: [FIXED_NOW, -1, Number.NaN, "nope" as unknown as number],
+        notATrack: [FIXED_NOW],
+      } as never,
+    });
+    expect(next.stageUnlockedAt.points?.[0]).toBe(FIXED_NOW);
+    expect(next.stageUnlockedAt.points?.[1]).toBeUndefined();
+    expect(next.stageUnlockedAt).not.toHaveProperty("notATrack");
+  });
+});
+
+describe("normalizeStageUnlockedAt", () => {
+  it("returns empty for missing / non-object input", () => {
+    expect(normalizeStageUnlockedAt(undefined)).toEqual({});
+    expect(normalizeStageUnlockedAt(null)).toEqual({});
+  });
+});
+
+describe("formatUnlockDate", () => {
+  it("formats as Unlocked Mon D, YYYY", () => {
+    expect(formatUnlockDate(FIXED_NOW)).toBe("Unlocked Jul 25, 2026");
   });
 });
 
