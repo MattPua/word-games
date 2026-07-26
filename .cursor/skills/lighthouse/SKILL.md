@@ -123,10 +123,10 @@ Fix order:
 - Play board stays custom + tactile; prefer CSS motion; honor `prefers-reduced-motion`
 - Dictionary / engine payloads: size matters — measure before adding more client work; don’t invent Web Workers unless product unlocks that (AGENTS out of scope lists Worker for gen)
 - Bun workspaces + Vite; no Next.js
-- **Lobby jam MP3:** must not fetch until music is actually enabled + scene wants play (`menuMusic.ts`) — constructing `Audio` with `preload=auto` on boot tanks LCP
+- **Couch jam MP3:** must not fetch until music is actually enabled + scene wants play (`menuMusic.ts`) — constructing `Audio` with `preload=auto` on boot tanks LCP
 - **Cold JS:** web is DOM + Tailwind only (no NativeWind / react-native-web). Eager how-to for cold redirect; lazy lobby; measure before adding client weight. Lexend cold path = 400 + 700 only.
 - **Play lexicon:** ship ENABLE with a **dynamic** Play import (CacheFirst after first use); keep lobby cold path free of the dict. **Never idle-prefetch** `/play` on the lobby — that pulls ENABLE into the LH cold network and looks like multi‑MB “home” weight. Warm on Play hover/focus/click only
-- **Lobby snore mark:** `/logo-snore.webp` (bored-cell crop, nearest-scaled ~160px) — not the full `logo-sprite` sheet on `/`
+- **Lobby chill mark:** `/logo.webp` (LCP) — not bored `/logo-snore.webp` on `/`. Chrome site bar reuses small `/logo.webp` (not `/logo-mark.webp` crop).
 
 ## Score history (required)
 

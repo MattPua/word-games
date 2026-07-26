@@ -21,6 +21,6 @@ Authoritative detail: `.cursor/rules/ui.mdc` → **Loading / empty / skeletons**
 1. **Copy** — game voice, no sterile “Loading…” / “No data”. No em dashes.
 2. **Skeleton first** for chrome pages — same shell / columns / card footprints; muted pulse; `prefers-reduced-motion` = static.
 3. **shadcn `Skeleton`** once in `apps/web/src/components/ui` — don’t hand-roll a second primitive.
-4. **EmptyState** — don’t double-mascot under `BrandHeader` (`showLogo` only when no brand mark).
+4. **EmptyState** — don’t double-mascot under chrome brand (`showLogo` only when no `ChromeTopBar` / lobby `BrandHeader` mark). Results **zero haul** uses `mark={<LogoConsolation />}` (shrug — not bored atlas).
 5. **Top-align** — no `min-h-full` + `justify-center` for short empty/loading chrome.
 6. Replace route-level `LoadingPotato` Suspense with a page skeleton when that route’s IA is settled.

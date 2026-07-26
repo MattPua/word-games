@@ -65,6 +65,7 @@ Optional TanStack-native split (same idea, unused here): `createRoute({...}).laz
 - Per-screen title: route `head: () => pageHead("…")` → `meta: [{ title }]`
 - Root renders `<HeadContent />` (SPA style — high in `RootLayout`)
 - Player-facing titles: game voice, **no em dashes** (`ui.mdc`)
+- **`OG_DESCRIPTION`:** swipe letters + free / no ads / play as much as you want. Meta `DESCRIPTION` can add the mode hooks. Don’t lead with mode slang or “No hints” / “Short sessions”. Social crawlers cache hard — expect delayed preview refresh after copy changes.
 
 ## Search params
 

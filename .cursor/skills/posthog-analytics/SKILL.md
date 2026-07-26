@@ -56,7 +56,7 @@ captureError(err, { surface: "router_error" });
 | Event | When | Key props |
 | --- | --- | --- |
 | `howto_skipped` | How-to **Skip** → lobby | `step_index`, `step_id` |
-| `howto_completed` | Last step → done (`via: "done"`) **or** **Play a run** (`via: "play_run"`) | `via` |
+| `howto_completed` | Last step → done (`via: "done"`); done CTAs **Start a game** (`via: "start_game"`) or **Go to lobby** (`via: "lobby"`) | `via` |
 | `howto_step_nabbed` | Player nabbed target word on a how-to step | `step_id`, `step_index`, `word` |
 | `game_started` | Board ready after lobby / results / how-to / restart | launch props + `via`, `session_run`, `board_words`, `board_max_score`, `banned_words` |
 | `game_completed` | Run → results (`won` \| `timeout` \| `quit`) | launch + `reason`, `score`, `words`, `session_run`, `play_seconds`, `board_words`, `board_max_score`, `found_pct`, `words_left`, `longest_word`, `avg_word_len`, `target`, `cleared_pct`, `rotates`, `pause_opens`, `board_cleared`, `personal_best`, `seconds_to_first_word`, survival peak/bonus when mode=survival |

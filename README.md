@@ -14,15 +14,15 @@ Casual word game for short sessions: swipe paths on a square or honeycomb board,
 
 ## Play
 
-- **Goal** — Clear the couch by earning enough points (Easy / Medium / Hard targets).
-- **Timed** — Fixed board; pick **How hard?** (letter mix) and **How long?** (30–120s); nab as many words as you can.
+- **Goal** — Bring points left to zero (Easy / Medium / Hard targets).
+- **Timed** — Fixed board; pick **How hard?** (letter mix) and **How long?** (30–120s); find as many words in the time limit.
 - **Survival** — Countdown clock; every accepted word refills time (difficulty sets how stingy the start/refills are).
 
 Boards are 4×4 / 5×5 / 6×6 on **Square** (8-way) or **Honeycomb** (hex). Spin the board for a new view of the same letters. Score is `length − 2` per word. Min length floor is 3+ (lobby can raise to 4+ / 5+).
 
-First visit gets a short interactive **How to play** coach (`/how-to`); Skip or finish once, replay anytime from Options.
+First visit gets a short interactive coach (`/how-to` — **How to play in 30 seconds**); Skip or finish once, reopen anytime from Options (**View Tutorial**).
 
-Extras on the web build: local **Couch crew** profiles, **Potato Board** personal stats, **Couch medals** achievements, device **Options** (Look, Type Clean/Pixel, Words left, SFX, Lobby jam), optional lobby **Ban list**, and a ⌘K / Ctrl+K command palette. Lobby setup is shareable via `/play` query params (e.g. `/play?mode=goal&grid=5&board=hex&diff=hard&min=4`).
+Extras on the web build: local **Couch crew** profiles, **Potato Board** personal stats, **Couch medals** achievements, device **Options** (Look, Type Clean/Pixel, Words left, SFX, Couch jam), optional lobby **Ban list**, and a ⌘K / Ctrl+K command palette. Lobby setup is shareable via `/play` query params (e.g. `/play?mode=goal&grid=5&board=hex&diff=hard&min=4`).
 
 ## Stack
 
@@ -33,7 +33,7 @@ Bun workspaces monorepo:
 | `apps/web` | Vite + React + TanStack Router (ships to Vercel) |
 | `apps/mobile` | Expo shell (play still lands on web first) |
 | `packages/game-engine` | Pure TS rules, board gen, scoring |
-| `packages/dictionary` | ENABLE play lexicon + popular ranking lists + NSFW / given-name filters |
+| `packages/dictionary` | Popular play lexicon + ENABLE artifact + NSFW / given-name filters |
 | `packages/ui` | Board, mascots, shared presentational UI |
 
 Tooling: **Bun**, **Vitest**, **oxfmt** + **oxlint**, **mprocs** for multi-proc local dev.
@@ -76,12 +76,12 @@ Game-loop events (how-to, `game_started` / `game_completed`, replay, medals, pre
 
 Couch Potato is built to stay playable on slow (3G-class) links and after the first visit:
 
-- **Lean cold path** — lobby does not download the ENABLE play dictionary, lobby jam MP3, heavy medal marks, or PostHog unless needed.
+- **Lean cold path** — lobby does not download the Play dictionary, Couch jam MP3, heavy medal marks, or PostHog unless needed.
 - **Latin-only fonts** by default (Pixel type / Jersey loads on demand; Type pref flips display + body together).
 - **Service worker (production)** — precaches a small shell (~fonts + CSS + tiny brand marks). Route JS, sprites, audio, and the Play dictionary use **CacheFirst** after first use so offline lobby/play works once you’ve opened those screens online.
 - Profiles, scores, and medals stay in **localStorage** (no account / no sync).
 
-First open still needs a network; after that, revisit offline for screens you’ve already loaded. Lobby jam only fetches when music is turned on. Play warms the dictionary on hover/focus/click — never idle-prefetch from the lobby.
+First open still needs a network; after that, revisit offline for screens you’ve already loaded. Couch jam only fetches when music is turned on. Play warms the dictionary on hover/focus/click — never idle-prefetch from the lobby.
 
 ## Deploy
 
@@ -96,7 +96,7 @@ Word lists from [dolph/dictionary](https://github.com/dolph/dictionary):
 - **`enable1.txt`** — ENABLE Scrabble word list (**public domain**); large, includes obscure terms.
 - **`popular.txt`** — common subset: enable1 ∩ [Wiktionary English frequency lists](http://en.wiktionary.org/wiki/Wiktionary:Frequency_lists#English) from TV/movie script samples (~25k everyday words). Membership only — not a frequency CSV.
 
-**Play policy:** accept, board word lists (`allWords`), targets, and Words left use **ENABLE − NSFW blocklist − given-name filter**. Names come from SSA baby-name frequency mass minus a dual-use English allowlist (`name-allowlist.txt`) so `mark`/`hope` stay but `peter`/`john` do not. **Popular** still ranks board-gen quality and filters Results **Long ones left** (recognizable long misses) — it does not gate accept. Blocklists apply at dictionary build time so blocked tokens never appear in validation, gen, or reveals. The ENABLE JSON loads with the Play route (~457 KB gzip), not the lobby cold chunk.
+**Play policy:** accept, board word lists (`allWords`), targets, and Words left use **popular − NSFW blocklist − given-name filter** (~25k everyday words). Full ENABLE is built and kept for a future “dictionary mode” — it must not drive v1 accept (Scrabble scraps like `leu` / `mut` / `thro`). Names come from SSA baby-name frequency mass minus a dual-use English allowlist (`name-allowlist.txt`) so `mark`/`hope` stay but `peter`/`john` do not. Blocklists apply at dictionary build time so blocked tokens never appear in validation, gen, or reveals. The dictionary package loads with the Play route, not the lobby cold chunk.
 
 ## License
 

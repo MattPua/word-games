@@ -15,8 +15,11 @@ grid-sheet prompting discipline, atlas-over-loose-PNGs, and pre-accept QC gates.
 | File                                                                                         | Size                            | Use                                                                                                                                          |
 | -------------------------------------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `packages/ui/src/assets/logo.png` (+ `.webp` ship)                                           | 256×256                         | Chill mark — web `Logo` → `/logo.webp`; PWA keeps `/logo.png`                                                                                |
-| `packages/ui/src/assets/logo-celebrate.png` (+ `.webp`)                                      | 256×256                         | Results celebrate — `LogoCelebrate` + SVG sparkle overlay                                                                                    |
-| `packages/ui/src/assets/logo-options.png` (+ `.webp`)                                        | 256×256                         | Options header — `LogoOptions` + SVG gear twirl                                                                                              |
+| `packages/ui/src/assets/logo-mark.png` (+ `.webp`)                                           | 128×128                         | Optional face+sprout crop from chill `logo` — **not** used in chrome (site bar uses full `Logo`). Kept for experiments / future purpose-built marks. |
+| `packages/ui/src/assets/logo-celebrate.png` (+ `.webp`)                                      | 256×256                         | Results celebrate flourish (optional; header uses `BrandMark`) + SVG sparkle overlay                                                          |
+| `packages/ui/src/assets/logo-consolation.png` (+ `.webp`)                                    | 256×256                         | Results empty haul — `LogoConsolation` (sheepish shrug / better luck)                                                                        |
+| `packages/ui/src/assets/logo-wave.png` (+ `.webp`)                                           | 256×256                         | About hello wave — `PotatoWaveSvg` (PixelLab one-off; cheer fallback until PNG lands)                                                        |
+| `packages/ui/src/assets/logo-options.png` (+ `.webp`)                                        | 256×256                         | Gear-in-hand flourish — `LogoOptions` (not chrome header; header uses `BrandMark`)                                                          |
 | `packages/ui/src/assets/logo-sprite.png` (+ `.webp`) + `logo-sprite.json` + `spriteAtlas.ts` | 1518×512, 3×1 cells 506×512     | **Master atlas only** (idle / cheer / bored). Not fetched at runtime.                                                                        |
 | Cropped cells (from optimize)                                                                | ~160×160 logo / ~128×128 medals | `/logo-idle.webp`, `/logo-cheer.webp`, `/logo-snore.webp`, `/medals-*.webp` — nearest downscale from atlas cells (LCP-sized; not full 506px) |
 | `packages/ui/src/assets/medals-sprite.png` (+ `.webp`) + json + atlas                        | 1608×420, 4×1 cells 402×420     | **Master only**. Runtime: `/medals-big-picture.webp`, `…-personal-bests`, `…-length-hauls`, `…-survival` via `MedalsCategorySprite`          |
@@ -32,20 +35,23 @@ Web mascots are **`PotatoMark`**: raster PixelLab body + optional SVG motion lay
 | ------ | ------------------------------------------------------ | -------------------------------------------------------- |
 | Body   | Lossless WebP (`<img>`)                                | Pixel-identical to PixelLab; load only the pose you need |
 | Motion | SVG overlays + CSS (Zzz, sparkles, gear, breath, poke) | Life without GIF/video or shipping full atlases          |
-| Shell  | `PotatoMark.tsx`                                       | Shared size / pixelated / overlay stacking (web default). Non-hero → `loading="lazy"`; LCP snore → `fetchPriority="high"` eager |
+| Shell  | `PotatoMark.tsx`                                       | Shared size / pixelated / overlay stacking (web default). Non-hero → `loading="lazy"`; lobby chill `Logo` LCP → `fetchPriority="high"` eager |
 
 **Do not** replace the body with ellipse/path “SVG potato” redraws — they drift from brand.
 
 | Component                  | Body                            | SVG / motion                               |
 | -------------------------- | ------------------------------- | ------------------------------------------ |
-| `Logo`                     | `/logo.webp`                    | —                                          |
+| `BrandMark`                | `/logo-mark.webp`               | Unused in chrome (crop experiment)         |
+| `Logo`                     | `/logo.webp`                    | Lobby hero + `ChromeTopBar`                |
 | `LogoCelebrate`            | `/logo-celebrate.webp`          | pixel sparkles                             |
+| `LogoConsolation`          | `/logo-consolation.webp`        | — (empty haul shrug)                       |
 | `LogoOptions`              | `/logo-options.webp`            | corner gear spin                           |
-| `PotatoSnoreSvg`           | `/logo-snore.webp`              | breath + Zzz (lobby / how-to steps)        |
-| `PotatoGoSvg`              | `/logo-cheer.webp`              | bounce + play chevron (how-to done → Play) |
+| `PotatoSnoreSvg`           | `/logo-snore.webp`              | breath + Zzz (EmptyState bored / flourishes — **not** lobby hero) |
+| `PotatoGoSvg`              | `/logo-cheer.webp`              | bounce + play chevron (available flourish) |
+| `PotatoWaveSvg`            | `/logo-wave.webp` (cheer until shipped) | soft rock + sparkles (About); purpose-built PixelLab wave — no SVG hand |
 | `PotatoSprite` pinned      | `/logo-{idle,cheer,snore}.webp` | static                                     |
 | `PotatoSprite` interactive | idle + cheer stacked            | bob + poke / periodic cheer                |
-| `MedalsCategorySprite`     | `/medals-*.webp`                | —                                          |
+| `MedalsCategorySprite`     | `/medals-*.webp`                | Soft watermark in `/achievements` section cards (`.cp-medals-section-mascot`) |
 
 Native fallbacks stay static `Logo` / `LogoCelebrate` (no CSS sprite-step / SVG overlay port).
 
@@ -55,7 +61,8 @@ Native fallbacks stay static `Logo` / `LogoCelebrate` (no CSS sprite-step / SVG 
   `logo-celebrate.png` / `logo-options.png`, wired through `Logo*` + `PotatoMark` (+ SVG overlay if it needs life).
 - **Two or more related poses** (idle / cheer / bored): keep one PixelLab **master sheet** for identity lock,
   but **ship cropped cells** to `public/` via `sprites:optimize` — runtime never `background-image`s the full atlas.
-- **Lobby / how-to life:** steps = `PotatoSnoreSvg`; how-to **done** = `PotatoGoSvg` (cheer + play chevron → Play a run). **Never** GIF/video.
+- **Lobby / how-to life:** lobby = chill `Logo` in hero `BrandHeader` (not bored snore); site bar on `/` is nav-only so the hero isn’t doubled. Chrome pages = `ChromeTopBar` (full `Logo` ~36 + wordmark | nav) + `PageHeading` — not a face crop, not centered BrandHeader reuse. How-to steps use top bar; done may use hero `BrandHeader`. **Never** GIF/video or soft-float bob on chrome marks.
+- **`logo-mark` crop:** optional asset only — chrome does **not** ship a cropped face as the site mark. Prefer purpose-built PixelLab art if a compact mark is needed later.
 - **Category sets** (medals): separate master sheet OK; crop to per-frame WebPs. Keep identity lock to `logo.png`.
 - Likely next master columns: **loading/spin**, **couch-break**. After any `logo-sprite` regen, re-run `sprites:optimize` so all cell crops refresh.
 
@@ -89,7 +96,7 @@ non-combat use case (skip their directional/attack/projectile modes entirely, we
 ## Wiring
 
 - Web: `image-rendering: pixelated` via `.cp-potato-mark-body`. Motion classes in `theme.css` (`.cp-potato-*`).
-- Cold routes (`/`, `/how-to`): `PotatoSnoreSvg` only — never interactive poke (loads idle+cheer).
+- Cold routes (`/`, `/how-to`): no interactive poke (loads idle+cheer). Lobby chill `Logo` / how-to compact `BrandMark` only (no header snore / PotatoGo).
 - Respect `prefers-reduced-motion` on breath / Zzz / sparkles / gear / bob.
 
 ## Out of scope (don't pull from agent-sprite-forge)

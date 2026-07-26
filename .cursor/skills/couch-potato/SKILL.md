@@ -33,13 +33,15 @@ Write-back: [sync-agent-docs](../sync-agent-docs/SKILL.md) + always-on [agent-do
 | Topic | Open |
 | --- | --- |
 | Game rules, modes, scoring, dict | `AGENTS.md` · `.cursor/rules/engine.mdc` · skill `new-mode-or-scoring` |
-| Brand, copy voice, chrome layout, motion | `AGENTS.md` · `.cursor/rules/ui.mdc` |
+| Brand, copy voice, chrome layout, motion | `AGENTS.md` · `.cursor/rules/ui.mdc` · [references/decisions.md](references/decisions.md) (points copy, SEO tone, lobby mark) |
 | Loading / empty / skeletons | skill `loading-empty` · `ui.mdc` |
 | Monorepo, Bun catalog, commits, images | `.cursor/rules/coding.mdc` · `AGENTS.md` Code style |
 | Platform files (web default vs Expo) | `AGENTS.md` Stack · `coding.mdc` · [references/decisions.md](references/decisions.md) |
 | Routes, lazy pages, head/SEO, preload | skill `tanstack-router` (+ `reference.md`) · rule `tanstack-router.mdc` · canonical `https://www.acouchpotato.com` (`seo.ts`) |
-| Mascot / sprites / WebP crops | skill `potato-sprites` · `AGENTS.md` Brand |
-| SFX / Lobby jam | skill `cuelume` · `AGENTS.md` Sounds |
+| Mascot / sprites / WebP crops / BrandMark | skill `potato-sprites` · `AGENTS.md` Brand |
+| Play short-viewport / Spin clearance | `ui.mdc` (board size + `.cp-shell-play`) · [references/decisions.md](references/decisions.md) |
+| Lexicon widen / missing everyday words | `AGENTS.md` Dictionary · [references/decisions.md](references/decisions.md) (prefer allowlist over full ENABLE) |
+| SFX / Couch jam | skill `cuelume` · `AGENTS.md` Sounds |
 | PostHog / game-loop analytics | skill `posthog-analytics` · `apps/web/src/analytics.ts` |
 | Lighthouse / CWV / cold path | skill `lighthouse` (+ `history.json`) |
 | Verify play UI (swipe) | skill `verify-ui` |

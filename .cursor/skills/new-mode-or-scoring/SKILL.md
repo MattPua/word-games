@@ -10,3 +10,4 @@ description: Change score formula, difficulties, board thresholds, or game modes
 3. If gen flake rate rises, loosen thresholds in that same config object (`thresholdsForMinLength` when min > 3).
 4. Sync product facts in `AGENTS.md` if ratios/modes/scoring/min-length options changed.
 5. UI only displays new numbers — no parallel rule copies.
+6. New / renamed mode: update lobby card blurb + `difficultyHint()` strings in `HomeSetup` (literal mechanic copy — see `ui.mdc`), `ModeGlyph` + selected anim CSS if a new glyph, Results meta chip tint, and `seo.ts` `OG_DESCRIPTION` / JSON-LD if the sell line changes.
