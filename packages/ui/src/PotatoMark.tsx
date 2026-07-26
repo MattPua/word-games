@@ -12,11 +12,17 @@ export type PotatoMarkProps = {
   onPointerDown?: () => void;
   /** Decorative (section icons) — hide from AT. */
   decorative?: boolean;
+  /**
+   * LCP hero marks (lobby / how-to snore) → `"high"` (eager).
+   * Everything else defaults to lazy + low priority.
+   */
+  fetchPriority?: "high" | "low" | "auto";
 };
 
 /**
  * Shared web mascot shell: raster PixelLab body + optional SVG motion layer.
  * Do not redraw the potato as paths — keep brand art lossless WebP.
+ * Non-hero marks use `loading="lazy"` so cold path doesn’t race LCP.
  */
 export function PotatoMark({
   src,
@@ -28,7 +34,9 @@ export function PotatoMark({
   style,
   onPointerDown,
   decorative = false,
+  fetchPriority,
 }: PotatoMarkProps) {
+  const hero = fetchPriority === "high";
   return (
     <div
       role="img"
@@ -43,7 +51,9 @@ export function PotatoMark({
         alt=""
         width={size}
         height={size}
-        decoding="async"
+        loading={hero ? "eager" : "lazy"}
+        decoding={hero ? "sync" : "async"}
+        fetchPriority={fetchPriority ?? (hero ? "high" : "low")}
         draggable={false}
         className={`cp-potato-mark-body ${bodyClassName}`.trim()}
         style={{ width: size, height: size }}

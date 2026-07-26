@@ -15,5 +15,6 @@ alwaysApply: true
 - Engine owns adjacency, scoring, targets, gen thresholds, accept/reject. UI displays and wires input.
 - Player-facing copy: game voice (see `ui.mdc` / `AGENTS.md`) — not sterile form labels.
 - **Web images:** prefer **WebP** over PNG when shipping to `apps/web/public` (see `AGENTS.md` Image formats). Pixel art masters live in **`packages/ui/src/assets/`** → `bun run sprites:optimize` (sharp lossless + exact); platform-required PNG (`apple-touch-icon`, some OG, PWA `logo.png`) stays PNG.
+- **Platform files (`packages/ui`):** unsuffixed = web/DOM; Expo forks = `*.native.tsx` only. No new `*.web.tsx`. Web app: no NativeWind / react-native-web.
 - Coincidental similar code with different meaning stays separate.
 - **Commits:** Conventional Commits (authoritative detail in `AGENTS.md` Code style) — `feat:`, `fix:`, `docs:`, etc.; optional scope; imperative subject.

@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 import { Gamepad2, Gauge, History, Library, Star, Trophy, WholeWord } from "lucide-react";
 import { EmptyState } from "@couch-potato/ui";
 import { avgWordLength, avgWpm, formatPaceStat, normalizePaceStats } from "../profileStats";
@@ -33,20 +32,17 @@ function StatCard({
   icon: typeof Gamepad2;
   tone: "primary" | "secondary";
 }) {
-  const wash =
-    tone === "primary"
-      ? "bg-primary/18 text-primary"
-      : "bg-secondary/22 text-secondary";
+  const wash = tone === "primary" ? "bg-primary/18 text-primary" : "bg-secondary/22 text-secondary";
   return (
-    <View className="cp-lobby-panel flex-1 flex-row items-center gap-2.5 !p-3">
-      <View className={`flex size-8 shrink-0 items-center justify-center rounded-full ${wash}`}>
+    <div className="cp-lobby-panel flex-1 flex flex-row items-center gap-2.5 !p-3">
+      <div className={`flex size-8 shrink-0 items-center justify-center rounded-full ${wash}`}>
         <Icon className="size-4" strokeWidth={2.25} aria-hidden />
-      </View>
-      <View className="min-w-0">
-        <Text className="font-body text-xs text-muted-foreground">{label}</Text>
-        <Text className="font-display text-xl text-foreground">{value}</Text>
-      </View>
-    </View>
+      </div>
+      <div className="min-w-0">
+        <span className="font-body text-xs text-muted-foreground">{label}</span>
+        <span className="font-display text-xl text-foreground">{value}</span>
+      </div>
+    </div>
   );
 }
 
@@ -60,14 +56,14 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
   const wordLen = formatPaceStat(avgWordLength(pace));
 
   return (
-    <View className="mb-6">
+    <div className="mb-6">
       <h2 className="mb-1 flex items-center gap-2 text-xl text-foreground">
         <Trophy className={SECTION_ICON} strokeWidth={2.25} aria-hidden />
         Potato Board
       </h2>
-      <Text className="mb-3 font-body text-sm text-muted-foreground">
+      <span className="mb-3 font-body text-sm text-muted-foreground">
         Your local scoreboard. No cloud bragging.
-      </Text>
+      </span>
 
       <div className="mb-4 grid grid-cols-2 gap-3">
         <StatCard label="Runs" value={profile.gamesPlayed} icon={Gamepad2} tone="primary" />
@@ -85,7 +81,7 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
         />
       ) : (
         <div className="cp-crew-board-columns flex flex-col gap-4">
-          <View>
+          <div>
             <h3 className="mb-2 flex items-center gap-2 text-lg text-foreground">
               <Star className={SECTION_ICON} strokeWidth={2.25} aria-hidden />
               Personal bests
@@ -99,24 +95,24 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
             ) : (
               <div className="cp-crew-board-scroll">
                 {highs.map((h) => (
-                  <View
+                  <div
                     key={h.key}
                     className="mb-2 rounded-ui border-2 border-border bg-card px-3 py-2 last:mb-0"
                   >
-                    <View className="flex-row items-center justify-between">
-                      <Text className="flex-1 font-body text-sm text-foreground">{h.label}</Text>
-                      <Text className="font-display text-lg text-primary">{h.score}</Text>
-                    </View>
-                    <Text className="font-body text-xs text-muted-foreground">
+                    <div className="flex flex-row items-center justify-between">
+                      <span className="flex-1 font-body text-sm text-foreground">{h.label}</span>
+                      <span className="font-display text-lg text-primary">{h.score}</span>
+                    </div>
+                    <span className="font-body text-xs text-muted-foreground">
                       Best {formatWhen(h.at)}
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
                 ))}
               </div>
             )}
-          </View>
+          </div>
 
-          <View>
+          <div>
             <h3 className="mb-2 flex items-center gap-2 text-lg text-foreground">
               <History className={SECTION_ICON} strokeWidth={2.25} aria-hidden />
               Recent runs
@@ -130,29 +126,29 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
             ) : (
               <div className="cp-crew-board-scroll">
                 {recent.map((h) => (
-                  <View
+                  <div
                     key={h.id}
                     className="mb-2 rounded-ui border-2 border-border bg-card px-3 py-2 last:mb-0"
                   >
-                    <View className="flex-row items-center justify-between">
-                      <Text className="font-body text-sm font-bold text-foreground">
+                    <div className="flex flex-row items-center justify-between">
+                      <span className="font-body text-sm font-bold text-foreground">
                         {h.score} pts
                         {h.isHighScore ? " ★" : ""}
-                      </Text>
-                      <Text className="font-body text-xs text-muted-foreground">
+                      </span>
+                      <span className="font-body text-xs text-muted-foreground">
                         {reasonLabel(h.reason)} · {formatWhen(h.at)}
-                      </Text>
-                    </View>
-                    <Text className="font-body text-xs text-muted-foreground">
+                      </span>
+                    </div>
+                    <span className="font-body text-xs text-muted-foreground">
                       {historyLabel(h)} · {h.wordsFound} words
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
                 ))}
               </div>
             )}
-          </View>
+          </div>
         </div>
       )}
-    </View>
+    </div>
   );
 }

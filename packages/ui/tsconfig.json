@@ -2,8 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "nativewind",
-    "types": ["nativewind/types"]
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "include": ["src", "nativewind-env.d.ts"]
+  "include": ["src"],
+  "exclude": ["src/**/*.native.tsx", "src/**/*.native.ts"]
 }

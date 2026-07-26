@@ -1,4 +1,3 @@
-import { View } from "react-native";
 import { ChevronRight, Medal } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -35,12 +34,12 @@ export function ResultsMedals({
   const progressById = new Map(allTrackProgress(snapshot).map((p) => [p.track.id, p]));
 
   return (
-    <View className={`cp-lobby-card p-4 cp-fade-up cp-stagger-1 ${className}`.trim()}>
-      <View className="mb-3 flex-row items-center justify-between gap-2">
-        <View className="flex-row items-center gap-2">
+    <div className={`cp-lobby-card p-4 cp-fade-up cp-stagger-1 ${className}`.trim()}>
+      <div className="mb-3 flex flex-row items-center justify-between gap-2">
+        <div className="flex flex-row items-center gap-2">
           <Medal className="cp-lobby-glyph size-4 text-secondary" strokeWidth={2.25} aria-hidden />
           <h2 className="text-lg text-foreground">Couch medals</h2>
-        </View>
+        </div>
         <Button
           variant="ghost"
           size="sm"
@@ -50,9 +49,9 @@ export function ResultsMedals({
           See all
           <ChevronRight className="size-3.5" aria-hidden />
         </Button>
-      </View>
+      </div>
 
-      <View className="gap-3">
+      <div className="gap-3">
         {rowIds.map((id) => {
           const progress = progressById.get(id);
           if (!progress) return null;
@@ -64,7 +63,7 @@ export function ResultsMedals({
               : progress;
           return <AchievementTrackRow key={id} progress={rowProgress} justLeveled={justLeveled} />;
         })}
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }

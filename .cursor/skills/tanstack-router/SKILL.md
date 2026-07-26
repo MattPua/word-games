@@ -32,10 +32,13 @@ Critical config stays in `routeTree.tsx` (path, `validateSearch`, `head`). Page 
 
 | Route | Load | Fallback |
 | --- | --- | --- |
-| `/` lobby | **Eager** `HomePage` | — |
-| `/play` | Lazy via `prefetchPlayPage()` | `PlaySkeleton` |
-| Chrome (`/results`, `/profiles`, `/achievements`, `/options`, `/how-to`) | Lazy page import | `LoadingPotato` (prefer a page skeleton once IA is settled — `loading-empty`) |
+| `/how-to` | **Eager** `HowToPage` (cold redirect target — avoid 3G waterfall) | — |
+| `/` lobby | Lazy `HomePage` | bare `aria-busy` div |
+| `/play` | Lazy via `prefetchPlayPage()` | Lazy `PlaySkeleton` |
+| Chrome (`/results`, `/profiles`, `/achievements`, `/options`) | Lazy page import | bare `aria-busy` div |
 | 404 / error | Lazy in `main.tsx` defaults | `null` Suspense |
+
+Root **defers** Radix `TooltipProvider` until first pointer/key; **cuelume** stays in Play/Options/sounds (not root). How-to SFX = dynamic import so cuelume stays off cold how-to.
 
 **Play warm path:** `apps/web/src/playPrefetch.ts` is the single `import("./pages/PlayPage")` — route lazy + lobby Play hover/focus/click share it. **Never idle-prefetch Play** (ENABLE dict is a dynamic import inside Play; idle warm pulled it onto lobby LH). See lighthouse skill.
 

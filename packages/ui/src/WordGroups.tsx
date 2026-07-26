@@ -1,4 +1,3 @@
-import { Pressable, Text, View } from "react-native";
 import { groupWordsByLength, type WordLengthGroup } from "@couch-potato/game-engine";
 
 function lengthLabel(n: number) {
@@ -33,7 +32,7 @@ export function WordGroups({
   const groups = groupWordsByLength(words);
   if (groups.length === 0) return null;
   return (
-    <View className={`${variant === "found" ? "cp-catch-in" : ""} ${className}`}>
+    <div className={`${variant === "found" ? "cp-catch-in" : ""} ${className}`}>
       {groups.map((g) => (
         <WordLengthSection
           key={g.length}
@@ -43,7 +42,7 @@ export function WordGroups({
           onWordSelect={onWordSelect}
         />
       ))}
-    </View>
+    </div>
   );
 }
 
@@ -59,19 +58,19 @@ function WordLengthSection({
   onWordSelect?: (word: string) => void;
 }) {
   return (
-    <View className="mb-3 last:mb-0">
-      <Text
+    <div className="mb-3 last:mb-0">
+      <p
         className={`mb-1.5 font-display text-xs font-bold uppercase tracking-[0.1em] ${
           variant === "found" ? "text-primary" : "text-muted-foreground"
         }`}
       >
         {lengthLabel(group.length)}
-      </Text>
+      </p>
       {/* Full literal class names below (not `cp-word-chip-${variant}`) — Tailwind's
           content scanner purges `@layer components` rules whose exact class string
           never appears verbatim in source, so a template-interpolated suffix silently
           drops the rule. See `.cursor/rules/ui.mdc`. */}
-      <View className="flex-row flex-wrap gap-1.5">
+      <div className="flex flex-row flex-wrap gap-1.5">
         {group.words.map((w) => {
           const selected = selectedWord?.toLowerCase() === w.toLowerCase();
           const chipClass = [
@@ -85,27 +84,27 @@ function WordLengthSection({
           const label = titleCase(w);
           if (!onWordSelect) {
             return (
-              <View key={w} className={chipClass}>
-                <Text className="font-body text-sm font-semibold text-foreground">{label}</Text>
-              </View>
+              <div key={w} className={chipClass}>
+                <span className="font-body text-sm font-semibold text-foreground">{label}</span>
+              </div>
             );
           }
           return (
-            <Pressable
+            <button
               key={w}
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
-              accessibilityLabel={
+              type="button"
+              aria-pressed={selected}
+              aria-label={
                 selected ? `${label}, showing path on board` : `Show ${label} on the board`
               }
-              onPress={() => onWordSelect(w)}
+              onClick={() => onWordSelect(w)}
               className={chipClass}
             >
-              <Text className="font-body text-sm font-semibold text-foreground">{label}</Text>
-            </Pressable>
+              <span className="font-body text-sm font-semibold text-foreground">{label}</span>
+            </button>
           );
         })}
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }

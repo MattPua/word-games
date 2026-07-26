@@ -1,4 +1,3 @@
-import { Button } from "./Button";
 import { Shell } from "./Shell";
 import { LetterGrid, applyPathCell, type Cell } from "./LetterGrid";
 import { ScoreBubble } from "./ScoreBubble";
@@ -22,7 +21,6 @@ import { cn } from "./cn";
 import { HEX_CLIP, hexAspect, hexRowStyle } from "./hexLayout";
 
 export {
-  Button,
   Shell,
   LetterGrid,
   ScoreBubble,

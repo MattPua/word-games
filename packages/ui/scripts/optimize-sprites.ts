@@ -110,6 +110,8 @@ async function cropCell(opts: {
   rect: { x: number; y: number; w: number; h: number };
   outBase: string;
   label: string;
+  /** Display-sized ship (nearest) — full cell is huge vs 64–96 CSS marks. */
+  displayPx: number;
 }) {
   const outUi = join(uiAssets, `${opts.outBase}.webp`);
   const outPublic = join(webPublic, `${opts.outBase}.webp`);
@@ -120,13 +122,17 @@ async function cropCell(opts: {
       width: opts.rect.w,
       height: opts.rect.h,
     })
+    .resize(opts.displayPx, opts.displayPx, {
+      kernel: sharp.kernel.nearest,
+      fit: "fill",
+    })
     .webp({ lossless: true, exact: true, effort: 6 })
     .toFile(outUi);
   await mkdir(dirname(outPublic), { recursive: true });
   await copyFile(outUi, outPublic);
   const n = (await stat(outPublic)).size;
   console.log(
-    `${opts.label}: ${opts.rect.w}×${opts.rect.h} → ${kb(n)} WebP (/${opts.outBase}.webp)`,
+    `${opts.label}: ${opts.rect.w}×${opts.rect.h} → ${opts.displayPx}px → ${kb(n)} WebP (/${opts.outBase}.webp)`,
   );
 }
 
@@ -135,23 +141,29 @@ async function cropFrameCells() {
   const { LOGO_SPRITE_FRAMES, MEDALS_SPRITE_FRAMES } = await import("../src/spriteAtlas.ts");
 
   const logoSheet = join(uiAssets, "logo-sprite.webp");
+  // ~72–96 CSS @2x → 160px is enough; smaller LCP than 192.
+  const LOGO_DISPLAY_PX = 160;
+  const MEDALS_DISPLAY_PX = 128;
   await cropCell({
     sheetWebp: logoSheet,
     rect: LOGO_SPRITE_FRAMES.idle,
     outBase: "logo-idle",
     label: "logo-idle",
+    displayPx: LOGO_DISPLAY_PX,
   });
   await cropCell({
     sheetWebp: logoSheet,
     rect: LOGO_SPRITE_FRAMES.cheer,
     outBase: "logo-cheer",
     label: "logo-cheer",
+    displayPx: LOGO_DISPLAY_PX,
   });
   await cropCell({
     sheetWebp: logoSheet,
     rect: LOGO_SPRITE_FRAMES.bored,
     outBase: "logo-snore",
     label: "logo-snore (bored)",
+    displayPx: LOGO_DISPLAY_PX,
   });
 
   const medalsSheet = join(uiAssets, "medals-sprite.webp");
@@ -170,6 +182,7 @@ async function cropFrameCells() {
       rect: MEDALS_SPRITE_FRAMES[frame],
       outBase,
       label: outBase,
+      displayPx: MEDALS_DISPLAY_PX,
     });
   }
 }

@@ -1,7 +1,6 @@
-import { Text, View } from "react-native";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronDown, CirclePlay, Sofa, Sparkles } from "lucide-react";
+import { ChevronDown, CirclePlay, Layers, Sofa, Sparkles } from "lucide-react";
 import {
   BrandHeader,
   ConfettiBurst,
@@ -13,11 +12,7 @@ import {
   WordGroups,
   type Cell,
 } from "@couch-potato/ui";
-import {
-  findPathForWord,
-  isAdjacentCells,
-  type GridTopology,
-} from "@couch-potato/game-engine";
+import { findPathForWord, isAdjacentCells, type GridTopology } from "@couch-potato/game-engine";
 import { loadLastRun, saveLaunch, type PlayLaunch } from "../storage";
 import { Button } from "@/components/ui/button";
 import { ResultsMedals } from "../components/ResultsMedals";
@@ -67,6 +62,8 @@ export function ResultsPage() {
   const [missedOpen, setMissedOpen] = useState(
     (run?.missed.length ?? 0) <= MISSED_COLLAPSE_THRESHOLD,
   );
+  /** More crumbs — always closed until the player asks. */
+  const [moreOpen, setMoreOpen] = useState(false);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
 
   // Win / high score / timeout get the full results curtain call; quit still
@@ -118,6 +115,7 @@ export function ResultsPage() {
           ? "Clock ran dry"
           : "Time's up!"
         : "Run ended";
+  const missedMore = run.missedMore ?? [];
 
   const runMeta = formatRunMeta({
     mode: run.mode,
@@ -130,46 +128,46 @@ export function ResultsPage() {
     <ScrollShell shellClassName="relative cp-shell-results cp-results">
       <ConfettiBurst active={celebrate} durationMs={CONFETTI_DURATION_MS} />
 
-      <View className="mb-4 items-center cp-fade-up">
+      <div className="mb-4 items-center cp-fade-up">
         {/* Results hero — dedicated marks (celebrate / chill), not the atlas sheet. */}
         <BrandHeader
           className="mb-1"
           mark={
-            <View className="cp-pop-in">
-              <View className="cp-logo-float">
+            <div className="cp-pop-in">
+              <div className="cp-logo-float">
                 {showCelebrateMark ? <LogoCelebrate size={96} /> : <Logo size={96} />}
-              </View>
-            </View>
+              </div>
+            </div>
           }
           title={reasonLabel}
         />
-        <View className="mb-2 items-center">
-          <View className="cp-run-badge cp-run-badge-quiet" accessibilityLabel={runMeta}>
-            <Text style={{ color: "inherit" }}>{runMeta}</Text>
-          </View>
-        </View>
-        <View className="cp-results-haul cp-pop-in">
-          <View
+        <div className="mb-2 items-center">
+          <div className="cp-run-badge cp-run-badge-quiet" aria-label={runMeta}>
+            <span style={{ color: "inherit" }}>{runMeta}</span>
+          </div>
+        </div>
+        <div className="cp-results-haul cp-pop-in">
+          <div
             className={`cp-results-haul-tag ${
               run.isHighScore || run.reason === "won" ? "cp-results-haul-tag-gold" : ""
             }`}
           >
-            <Text
+            <span
               className={`font-display text-5xl font-bold tabular-nums text-foreground ${
                 run.isHighScore ? "cp-results-score-sparkle" : ""
               }`}
             >
               {displayScore}
-            </Text>
-            <Text className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
+            </span>
+            <span className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
               pts
-            </Text>
-          </View>
+            </span>
+          </div>
           {run.isHighScore && (
-            <Text className="cp-results-best-label cp-fade-up cp-stagger-2">New couch best</Text>
+            <span className="cp-results-best-label cp-fade-up cp-stagger-2">New couch best</span>
           )}
-        </View>
-      </View>
+        </div>
+      </div>
 
       {run.achievements ? (
         <div className="mb-6 cp-fade-up">
@@ -183,7 +181,7 @@ export function ResultsPage() {
 
       <div className="cp-results-replay mb-6">
         <div className="cp-results-words">
-          <View className="cp-lobby-card p-4 cp-fade-up cp-stagger-1">
+          <div className="cp-lobby-card p-4 cp-fade-up cp-stagger-1">
             <h2 className="mb-2 flex items-center gap-2 text-lg text-foreground">
               <Sparkles
                 className="cp-lobby-glyph size-4 shrink-0 text-icon-muted-foreground"
@@ -206,9 +204,9 @@ export function ResultsPage() {
                 className="py-1"
               />
             )}
-          </View>
+          </div>
 
-          <View className="cp-lobby-card p-4 cp-fade-up cp-stagger-2">
+          <div className="cp-lobby-card p-4 cp-fade-up cp-stagger-2">
             {run.missed.length ? (
               <>
                 <Button
@@ -218,17 +216,17 @@ export function ResultsPage() {
                   aria-controls="results-missed-panel"
                   onClick={() => setMissedOpen((o) => !o)}
                 >
-                  <View className="min-w-0 flex-1 flex-row items-center gap-2">
+                  <div className="min-w-0 flex-1 flex flex-row items-center gap-2">
                     <Sofa
                       className="cp-lobby-glyph size-4 shrink-0 text-icon-muted-foreground"
                       strokeWidth={2.25}
                       aria-hidden
                     />
-                    <Text className="font-display text-lg text-foreground">Long ones left</Text>
-                    <Text className="font-body text-sm text-muted-foreground">
+                    <span className="font-display text-lg text-foreground">Long ones left</span>
+                    <span className="font-body text-sm text-muted-foreground">
                       ({run.missed.length})
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
                   <ChevronDown
                     className={`shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none ${
                       missedOpen ? "rotate-180" : ""
@@ -236,22 +234,22 @@ export function ResultsPage() {
                     aria-hidden
                   />
                 </Button>
-                <Text className="mt-1 font-body text-sm text-muted-foreground">
+                <span className="mt-1 font-body text-sm text-muted-foreground">
                   Biggest catches still on the couch. Short crumbs stay off this list.
-                </Text>
-                <View
+                </span>
+                <div
                   id="results-missed-panel"
                   className={`cp-results-collapse-panel ${missedOpen ? "cp-results-collapse-panel-open" : ""}`}
                 >
-                  <View className="cp-results-collapse-panel-inner pt-3">
+                  <div className="cp-results-collapse-panel-inner pt-3">
                     <WordGroups
                       words={run.missed}
                       variant="missed"
                       selectedWord={hasBoard ? selectedWord : undefined}
                       onWordSelect={hasBoard ? selectWord : undefined}
                     />
-                  </View>
-                </View>
+                  </div>
+                </div>
               </>
             ) : (
               <>
@@ -270,7 +268,53 @@ export function ResultsPage() {
                 />
               </>
             )}
-          </View>
+          </div>
+
+          {missedMore.length > 0 ? (
+            <div className="cp-lobby-card p-4 cp-fade-up cp-stagger-2">
+              <Button
+                variant="ghost"
+                className="h-auto min-h-0 w-full justify-between px-0 py-0 hover:bg-transparent"
+                aria-expanded={moreOpen}
+                aria-controls="results-more-panel"
+                onClick={() => setMoreOpen((o) => !o)}
+              >
+                <div className="min-w-0 flex-1 flex flex-row items-center gap-2">
+                  <Layers
+                    className="cp-lobby-glyph size-4 shrink-0 text-icon-muted-foreground"
+                    strokeWidth={2.25}
+                    aria-hidden
+                  />
+                  <span className="font-display text-lg text-foreground">More on the board</span>
+                  <span className="font-body text-sm text-muted-foreground">
+                    ({missedMore.length})
+                  </span>
+                </div>
+                <ChevronDown
+                  className={`shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none ${
+                    moreOpen ? "rotate-180" : ""
+                  }`}
+                  aria-hidden
+                />
+              </Button>
+              <span className="mt-1 font-body text-sm text-muted-foreground">
+                Shorter crumbs and other letter paths still hiding. Tap to peek.
+              </span>
+              <div
+                id="results-more-panel"
+                className={`cp-results-collapse-panel ${moreOpen ? "cp-results-collapse-panel-open" : ""}`}
+              >
+                <div className="cp-results-collapse-panel-inner pt-3">
+                  <WordGroups
+                    words={missedMore}
+                    variant="missed"
+                    selectedWord={hasBoard ? selectedWord : undefined}
+                    onWordSelect={hasBoard ? selectWord : undefined}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="cp-results-board-card cp-lobby-card p-4 cp-fade-up">
@@ -278,7 +322,7 @@ export function ResultsPage() {
           {hasBoard && letters ? (
             <>
               <p className="mb-3 text-center font-body text-sm text-muted-foreground">
-                Tap a haul word to trace its path.
+                Tap a word chip to trace its path.
               </p>
               <div className="cp-results-board mx-auto">
                 <LetterGrid

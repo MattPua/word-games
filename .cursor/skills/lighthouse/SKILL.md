@@ -21,11 +21,11 @@ Reference patterns: [perf-lighthouse](https://github.com/christophacham/agent-sk
 
 ## Tooling (this repo)
 
-| Need | Prefer |
-| --- | --- |
+| Need                                 | Prefer                                                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | Accessibility / SEO / Best practices | `chrome-devtools` MCP `lighthouse_audit` against shared Chrome `:9222` (see `verify-ui`) — **excludes performance** |
-| Performance + full categories | CLI `lighthouse` (or `bunx lighthouse`) against a **preview** of `apps/web` build |
-| Trace / CWV deep dive | `performance_start_trace` / `performance_stop_trace` (chrome-devtools) |
+| Performance + full categories        | CLI `lighthouse` (or `bunx lighthouse`) against a **preview** of `apps/web` build                                   |
+| Trace / CWV deep dive                | `performance_start_trace` / `performance_stop_trace` (chrome-devtools)                                              |
 
 Do **not** treat a cold `vite` HMR score as shipping truth. Build first:
 
@@ -38,24 +38,24 @@ bunx --cwd apps/web vite preview --host 127.0.0.1 --port 4173 --strictPort
 
 Aim for category scores **≥ 95**, stretch **100**. Soft resource budgets for the lobby cold load (adjust if product grows; document changes here):
 
-| Resource | Budget |
-| --- | --- |
-| Total transfer | ≤ 500 KB |
-| Script | ≤ 250 KB (gzip; lobby shell — Play/dict stay lazy). Lucide: per-icon via `vite.lucide-optimize` — don’t re-add a lucide barrel `optimizeDeps.include`. |
-| Stylesheet | ≤ 50 KB |
-| Image | ≤ 300 KB (prefer cropped cell WebPs — never ship full `logo-sprite` / `medals-sprite` sheets to `public/`; prefer **WebP** — `AGENTS.md` Image formats) |
-| Third-party count | ≤ 5 |
+| Resource          | Budget                                                                                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Total transfer    | ≤ 500 KB                                                                                                                                               |
+| Script            | ≤ 250 KB (gzip; lobby shell — Play/dict stay lazy). Lucide: per-icon via `vite.lucide-optimize` — don’t re-add a lucide barrel `optimizeDeps.include`. |
+| Stylesheet        | ≤ 50 KB                                                                                                                                                |
+| Image             | ≤ 300 KB (cropped **display-sized** cell WebPs ~160px logo / ~128px medals — never full sheets; prefer **WebP** — `AGENTS.md`)                         |
+| Third-party count | ≤ 5                                                                                                                                                    |
 
 **Offline / 3G:** production SW precache stays lean (shell CSS + latin fonts + tiny logos — not Play JS, medals, or BGM). Runtime `CacheFirst` for `/assets/*.js`, images, mp3 after first use. Don’t “fix” Lighthouse by precaching the whole app into install. Keep `menu-bgm.mp3` ~128 kb/s stereo without cover art (see `AGENTS.md` Sounds / cuelume).
 
 Timing (mobile, default Lighthouse throttling):
 
-| Metric | Budget |
-| --- | --- |
-| FCP | ≤ 1500 ms |
-| LCP | ≤ 2500 ms |
-| TBT | ≤ 200 ms |
-| CLS | ≤ 0.1 |
+| Metric            | Budget    |
+| ----------------- | --------- |
+| FCP               | ≤ 1500 ms |
+| LCP               | ≤ 2500 ms |
+| TBT               | ≤ 200 ms  |
+| CLS               | ≤ 0.1     |
 | TTI / interactive | ≤ 3000 ms |
 
 Primary URLs to sample:
@@ -124,9 +124,9 @@ Fix order:
 - Dictionary / engine payloads: size matters — measure before adding more client work; don’t invent Web Workers unless product unlocks that (AGENTS out of scope lists Worker for gen)
 - Bun workspaces + Vite; no Next.js
 - **Lobby jam MP3:** must not fetch until music is actually enabled + scene wants play (`menuMusic.ts`) — constructing `Audio` with `preload=auto` on boot tanks LCP
-- **Cold JS ceiling:** NativeWind / `react-native-css-interop` still pulls react-native-web into the lobby chunk even with DOM Shell/Logo. Further ~100pt perf needs a web styling strategy change, not more lazy routes
+- **Cold JS:** web is DOM + Tailwind only (no NativeWind / react-native-web). Eager how-to for cold redirect; lazy lobby; measure before adding client weight. Lexend cold path = 400 + 700 only.
 - **Play lexicon:** ship ENABLE with a **dynamic** Play import (CacheFirst after first use); keep lobby cold path free of the dict. **Never idle-prefetch** `/play` on the lobby — that pulls ENABLE into the LH cold network and looks like multi‑MB “home” weight. Warm on Play hover/focus/click only
-- **Lobby snore mark:** `/logo-snore.webp` (bored-cell crop) — not the full `logo-sprite` sheet on `/`
+- **Lobby snore mark:** `/logo-snore.webp` (bored-cell crop, nearest-scaled ~160px) — not the full `logo-sprite` sheet on `/`
 
 ## Score history (required)
 

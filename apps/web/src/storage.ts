@@ -325,8 +325,7 @@ export function recordFinishedRun(input: {
 
   const words = input.words ?? [];
   const activePlayMs =
-    input.activePlayMs ??
-    (input.mode === "survival" ? input.survivalDurationMs : undefined);
+    input.activePlayMs ?? (input.mode === "survival" ? input.survivalDurationMs : undefined);
   profile.pace = applyRunToPaceStats(normalizePaceStats(profile.pace), {
     words,
     activePlayMs,
@@ -426,6 +425,11 @@ export type LastRun = {
   score: number;
   found: string[];
   missed: string[];
+  /**
+   * Other unfound board words (not in `missed` long tease). Results “More crumbs”
+   * box — optional on legacy runs.
+   */
+  missedMore?: string[];
   reason: "won" | "timeout" | "quit";
   mode: "target" | "timed" | "survival";
   grid: number;
@@ -612,8 +616,7 @@ export function normalizePlayLaunch(raw: unknown): PlayLaunch {
     o.mode === "timed" || o.mode === "survival" || o.mode === "target" ? o.mode : "target";
   const grid = o.grid === 5 || o.grid === 6 ? o.grid : 4;
   const topology = o.topology === "hex" ? "hex" : "square";
-  const minWordLength =
-    o.minWordLength === 4 || o.minWordLength === 5 ? o.minWordLength : 3;
+  const minWordLength = o.minWordLength === 4 || o.minWordLength === 5 ? o.minWordLength : 3;
   const difficulty =
     o.difficulty === "medium" || o.difficulty === "hard" || o.difficulty === "easy"
       ? o.difficulty

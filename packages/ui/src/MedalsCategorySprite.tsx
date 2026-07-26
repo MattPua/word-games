@@ -1,5 +1,8 @@
-import { Logo } from "./Logo";
-import type { MedalsCategoryFrame } from "./spriteAtlas";
+/**
+ * Couch medals category mark — cropped cell WebP in the SVG-mark shell.
+ */
+import { MEDALS_FRAME_URLS, type MedalsCategoryFrame } from "./spriteAtlas";
+import { PotatoMark } from "./PotatoMark";
 
 export type MedalsCategorySpriteProps = {
   frame: MedalsCategoryFrame;
@@ -7,10 +10,18 @@ export type MedalsCategorySpriteProps = {
   className?: string;
 };
 
-/** Native fallback — medals atlas is web CSS-sprite only. */
 export function MedalsCategorySprite({
+  frame,
   size = 48,
-  className,
+  className = "",
 }: MedalsCategorySpriteProps) {
-  return <Logo size={size} className={className} />;
+  return (
+    <PotatoMark
+      src={MEDALS_FRAME_URLS[frame]}
+      alt=""
+      size={size}
+      className={`cp-potato-medals ${className}`.trim()}
+      decorative
+    />
+  );
 }

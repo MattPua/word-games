@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 import type { ReactNode } from "react";
 import { PotatoSprite } from "./PotatoSprite";
 
@@ -24,17 +23,13 @@ export function EmptyState({
   className = "",
 }: EmptyStateProps) {
   return (
-    <View className={`items-center px-4 py-6 ${className}`}>
+    <div className={`flex flex-col items-center px-4 py-6 ${className}`}>
       {showLogo ? <PotatoSprite frame="bored" size={72} /> : null}
-      <Text
-        className={`text-center font-display text-xl text-foreground ${showLogo ? "mt-3" : ""}`}
-      >
+      <p className={`text-center font-display text-xl text-foreground ${showLogo ? "mt-3" : ""}`}>
         {title}
-      </Text>
-      {body ? (
-        <Text className="mt-1 text-center font-body text-muted-foreground">{body}</Text>
-      ) : null}
-      {children ? <View className="mt-4 w-full">{children}</View> : null}
-    </View>
+      </p>
+      {body ? <p className="mt-1 text-center font-body text-muted-foreground">{body}</p> : null}
+      {children ? <div className="mt-4 w-full">{children}</div> : null}
+    </div>
   );
 }

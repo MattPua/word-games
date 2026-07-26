@@ -12,14 +12,14 @@ grid-sheet prompting discipline, atlas-over-loose-PNGs, and pre-accept QC gates.
 
 ## Current assets (source of truth, don't re-describe elsewhere)
 
-| File                                                                                         | Size                        | Use                                                                                                                                 |
-| -------------------------------------------------------------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/ui/src/assets/logo.png` (+ `.webp` ship)                                           | 256×256                     | Chill mark — web `Logo` → `/logo.webp`; PWA keeps `/logo.png`                                                                       |
-| `packages/ui/src/assets/logo-celebrate.png` (+ `.webp`)                                      | 256×256                     | Results celebrate — `LogoCelebrate` + SVG sparkle overlay                                                                           |
-| `packages/ui/src/assets/logo-options.png` (+ `.webp`)                                        | 256×256                     | Options header — `LogoOptions` + SVG gear twirl                                                                                     |
-| `packages/ui/src/assets/logo-sprite.png` (+ `.webp`) + `logo-sprite.json` + `spriteAtlas.ts` | 1518×512, 3×1 cells 506×512 | **Master atlas only** (idle / cheer / bored). Not fetched at runtime.                                                               |
-| Cropped cells (from optimize)                                                                | 506×512 each                | `/logo-idle.webp`, `/logo-cheer.webp`, `/logo-snore.webp` (bored) — `PotatoSprite` / `PotatoSnoreSvg`                               |
-| `packages/ui/src/assets/medals-sprite.png` (+ `.webp`) + json + atlas                        | 1608×420, 4×1 cells 402×420 | **Master only**. Runtime: `/medals-big-picture.webp`, `…-personal-bests`, `…-length-hauls`, `…-survival` via `MedalsCategorySprite` |
+| File                                                                                         | Size                            | Use                                                                                                                                          |
+| -------------------------------------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/assets/logo.png` (+ `.webp` ship)                                           | 256×256                         | Chill mark — web `Logo` → `/logo.webp`; PWA keeps `/logo.png`                                                                                |
+| `packages/ui/src/assets/logo-celebrate.png` (+ `.webp`)                                      | 256×256                         | Results celebrate — `LogoCelebrate` + SVG sparkle overlay                                                                                    |
+| `packages/ui/src/assets/logo-options.png` (+ `.webp`)                                        | 256×256                         | Options header — `LogoOptions` + SVG gear twirl                                                                                              |
+| `packages/ui/src/assets/logo-sprite.png` (+ `.webp`) + `logo-sprite.json` + `spriteAtlas.ts` | 1518×512, 3×1 cells 506×512     | **Master atlas only** (idle / cheer / bored). Not fetched at runtime.                                                                        |
+| Cropped cells (from optimize)                                                                | ~160×160 logo / ~128×128 medals | `/logo-idle.webp`, `/logo-cheer.webp`, `/logo-snore.webp`, `/medals-*.webp` — nearest downscale from atlas cells (LCP-sized; not full 506px) |
+| `packages/ui/src/assets/medals-sprite.png` (+ `.webp`) + json + atlas                        | 1608×420, 4×1 cells 402×420     | **Master only**. Runtime: `/medals-big-picture.webp`, `…-personal-bests`, `…-length-hauls`, `…-survival` via `MedalsCategorySprite`          |
 
 All **runtime** web copies live in `apps/web/public/` as **`.webp` cell crops or standalone marks** — run `bun run sprites:optimize` after every PixelLab regen. Full sheets stay in `packages/ui/src/assets/` (crop source) and are **removed from `public/`**. Prefer WebP over PNG (`AGENTS.md` Image formats): sharp **lossless + exact**.
 `spriteAtlas.ts` is the TS source of truth for master rects + `LOGO_FRAME_URLS` / `MEDALS_FRAME_URLS`; JSON mirrors stay in sync.
@@ -32,20 +32,20 @@ Web mascots are **`PotatoMark`**: raster PixelLab body + optional SVG motion lay
 | ------ | ------------------------------------------------------ | -------------------------------------------------------- |
 | Body   | Lossless WebP (`<img>`)                                | Pixel-identical to PixelLab; load only the pose you need |
 | Motion | SVG overlays + CSS (Zzz, sparkles, gear, breath, poke) | Life without GIF/video or shipping full atlases          |
-| Shell  | `PotatoMark.web.tsx`                                   | Shared size / pixelated / overlay stacking               |
+| Shell  | `PotatoMark.tsx`                                       | Shared size / pixelated / overlay stacking (web default). Non-hero → `loading="lazy"`; LCP snore → `fetchPriority="high"` eager |
 
 **Do not** replace the body with ellipse/path “SVG potato” redraws — they drift from brand.
 
-| Component                  | Body                            | SVG / motion                  |
-| -------------------------- | ------------------------------- | ----------------------------- |
-| `Logo`                     | `/logo.webp`                    | —                             |
-| `LogoCelebrate`            | `/logo-celebrate.webp`          | pixel sparkles                |
-| `LogoOptions`              | `/logo-options.webp`            | corner gear spin              |
-| `PotatoSnoreSvg`           | `/logo-snore.webp`                | breath + Zzz (lobby / how-to steps) |
-| `PotatoGoSvg`              | `/logo-cheer.webp`                | bounce + play chevron (how-to done → Play) |
-| `PotatoSprite` pinned      | `/logo-{idle,cheer,snore}.webp` | static                        |
-| `PotatoSprite` interactive | idle + cheer stacked            | bob + poke / periodic cheer   |
-| `MedalsCategorySprite`     | `/medals-*.webp`                | —                             |
+| Component                  | Body                            | SVG / motion                               |
+| -------------------------- | ------------------------------- | ------------------------------------------ |
+| `Logo`                     | `/logo.webp`                    | —                                          |
+| `LogoCelebrate`            | `/logo-celebrate.webp`          | pixel sparkles                             |
+| `LogoOptions`              | `/logo-options.webp`            | corner gear spin                           |
+| `PotatoSnoreSvg`           | `/logo-snore.webp`              | breath + Zzz (lobby / how-to steps)        |
+| `PotatoGoSvg`              | `/logo-cheer.webp`              | bounce + play chevron (how-to done → Play) |
+| `PotatoSprite` pinned      | `/logo-{idle,cheer,snore}.webp` | static                                     |
+| `PotatoSprite` interactive | idle + cheer stacked            | bob + poke / periodic cheer                |
+| `MedalsCategorySprite`     | `/medals-*.webp`                | —                                          |
 
 Native fallbacks stay static `Logo` / `LogoCelebrate` (no CSS sprite-step / SVG overlay port).
 

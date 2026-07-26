@@ -1,7 +1,6 @@
 @import "@fontsource/lexend/latin-400.css";
-@import "@fontsource/lexend/latin-500.css";
-@import "@fontsource/lexend/latin-600.css";
 @import "@fontsource/lexend/latin-700.css";
+/* Skip latin-500/600 on cold path — medium→400, semibold→700 (no extra woff2). */
 /* Jersey 15 (pixel Titles) loads on demand in theme.ts — latin only, off lobby cold path. */
 @import "@couch-potato/ui/theme.css";
 
@@ -19,6 +18,13 @@
   }
   .font-sans {
     font-family: var(--font-sans);
+  }
+  /* No latin-500/600 files — keep weight tokens without extra woff2. */
+  .font-medium {
+    font-weight: 400;
+  }
+  .font-semibold {
+    font-weight: 700;
   }
 }
 
@@ -79,45 +85,7 @@
    * Fonts live in CSS vars (`--font-display` / `--font-body` / `--font-sans` in
    * theme.css). Tailwind `font-display` / `font-body` / `font-sans` resolve to
    * those vars — retarget the stack in ONE place, not per component.
-   *
-   * react-native-web `Text` ships hardcoded System font + weight 400 on
-   * `.css-text-*`. Force inherit so parent chrome (`.cp-hud-bubble`,
-   * `.cp-run-badge`, `.cp-word-pill`, …) + Tailwind `font-*` utilities win.
    */
-  [class*="css-text-"] {
-    font-family: inherit !important;
-    font-weight: inherit !important;
-    letter-spacing: inherit !important;
-  }
-
-  [class*="css-text-"].font-display,
-  .font-display[class*="css-text-"] {
-    font-family: var(--font-display) !important;
-  }
-
-  [class*="css-text-"].font-body,
-  .font-body[class*="css-text-"] {
-    font-family: var(--font-body) !important;
-  }
-
-  [class*="css-text-"].font-sans,
-  .font-sans[class*="css-text-"] {
-    font-family: var(--font-sans) !important;
-  }
-
-  /* Weight utilities on the Text itself must beat the inherit rule above. */
-  [class*="css-text-"].font-medium,
-  .font-medium[class*="css-text-"] {
-    font-weight: 500 !important;
-  }
-  [class*="css-text-"].font-semibold,
-  .font-semibold[class*="css-text-"] {
-    font-weight: 600 !important;
-  }
-  [class*="css-text-"].font-bold,
-  .font-bold[class*="css-text-"] {
-    font-weight: 700 !important;
-  }
 
   h1,
   h2,
@@ -420,8 +388,7 @@
   .cp-tile-hex.cp-tile-active {
     border-color: var(--path);
     border-width: 2px;
-    box-shadow:
-      0 2px 0 color-mix(in srgb, var(--path) 70%, #2c322e);
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--path) 70%, #2c322e);
     filter: drop-shadow(0 0 1px var(--path)) drop-shadow(0 0 1px var(--path))
       drop-shadow(0 0 2px var(--tile-select-ring));
   }
@@ -567,8 +534,6 @@
   /*
    * Missed-words collapse — same 0fr/1fr grid recipe as `.cp-lobby-more-panel`
    * (chevron rotate handled inline via Tailwind `rotate-180` on the trigger).
-   * Plain class toggle, not `data-state`: react-native-web `View` only
-   * forwards `data-*` attributes via the `dataSet` prop, not a raw JSX prop.
    */
   .cp-results-collapse-panel {
     display: grid;
@@ -1221,8 +1186,12 @@
     }
 
     /* Off hover: sage accent wash — not potato (that’s reserved for on). */
-    .cp-icon-btn[data-variant="ghost"]:hover:not(:disabled):not(:active):not([aria-pressed="true"]):not([aria-current="page"]),
-    .cp-icon-btn[data-variant="outline"]:hover:not(:disabled):not(:active):not([aria-pressed="true"]) {
+    .cp-icon-btn[data-variant="ghost"]:hover:not(:disabled):not(:active):not(
+      [aria-pressed="true"]
+    ):not([aria-current="page"]),
+    .cp-icon-btn[data-variant="outline"]:hover:not(:disabled):not(:active):not(
+      [aria-pressed="true"]
+    ) {
       color: color-mix(in srgb, var(--primary) 72%, var(--foreground));
       background: color-mix(in srgb, var(--accent) 32%, var(--background));
       border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
@@ -1347,7 +1316,9 @@
     }
 
     /* Color/bg feedback still ok without motion */
-    .cp-icon-btn[data-variant="ghost"]:hover:not(:disabled):not([aria-pressed="true"]):not([aria-current="page"]),
+    .cp-icon-btn[data-variant="ghost"]:hover:not(:disabled):not([aria-pressed="true"]):not(
+      [aria-current="page"]
+    ),
     .cp-icon-btn[data-variant="outline"]:hover:not(:disabled):not([aria-pressed="true"]) {
       color: color-mix(in srgb, var(--primary) 72%, var(--foreground));
       background: color-mix(in srgb, var(--accent) 28%, var(--background));

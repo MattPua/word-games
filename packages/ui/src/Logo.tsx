@@ -1,21 +1,24 @@
-import { Image, type ImageProps } from "react-native";
+/**
+ * Chill brand mark (web) — raster `/logo.webp` in the shared SVG-mark shell.
+ */
+import type { CSSProperties } from "react";
+import { LOGO_MARK_URLS } from "./spriteAtlas";
+import { PotatoMark } from "./PotatoMark";
 
-export type LogoProps = Omit<ImageProps, "source"> & {
+export type LogoProps = {
   size?: number;
+  className?: string;
+  style?: CSSProperties;
 };
 
-/**
- * Pixel potato-on-couch mark. Web serves `apps/web/public/logo.webp`
- * (from `packages/ui/src/assets/logo.png` via optimize-sprites). PWA manifest still uses `logo.png`.
- */
-export function Logo({ size = 96, style, ...rest }: LogoProps) {
+export function Logo({ size = 96, style, className = "" }: LogoProps) {
   return (
-    <Image
-      source={{ uri: "/logo.webp" }}
-      accessibilityLabel="Couch Potato"
-      style={[{ width: size, height: size }, style]}
-      resizeMode="contain"
-      {...rest}
+    <PotatoMark
+      src={LOGO_MARK_URLS.chill}
+      alt="Couch Potato"
+      size={size}
+      className={className}
+      style={style}
     />
   );
 }

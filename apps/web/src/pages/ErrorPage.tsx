@@ -1,4 +1,3 @@
-import { Text } from "react-native";
 import { useNavigate, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
 import { BrandHeader, EmptyState, PotatoSprite, ScrollShell } from "@couch-potato/ui";
 import { Button } from "@/components/ui/button";
@@ -22,9 +21,9 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
         className="mt-2 cp-fade-up cp-stagger-2"
       />
       {import.meta.env.DEV && error?.message ? (
-        <Text className="mb-4 max-w-sm text-center font-body text-xs text-muted-foreground">
+        <span className="mb-4 max-w-sm text-center font-body text-xs text-muted-foreground">
           {error.message}
-        </Text>
+        </span>
       ) : null}
       <Button
         className="mb-2 cp-chrome-cta"

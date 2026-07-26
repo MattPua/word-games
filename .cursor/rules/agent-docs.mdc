@@ -12,7 +12,9 @@ When the user changes product rules, stack, or lasting conventions — update do
 | Product / game facts | `AGENTS.md` |
 | How to edit code | `.cursor/rules/*.mdc` |
 | Repeatable how-to | `.cursor/skills/*/SKILL.md` |
+| Soft prefs / rejected paths | `.cursor/skills/couch-potato/references/` |
 
 Don’t duplicate the same paragraph into AGENTS + every rule — link or one-liner + pointer. Skip docs for trivial one-offs.
 
+Knowledge map (topic → file): `.cursor/skills/couch-potato/SKILL.md`  
 Skill checklist: `.cursor/skills/sync-agent-docs/SKILL.md`

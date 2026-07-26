@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Check, ChevronRight, Medal, Pencil, Sofa, UserPlus, UserRound } from "lucide-react";
@@ -41,25 +40,22 @@ export function ProfilesPage() {
       />
 
       <div className="cp-crew-columns mb-5 flex flex-col gap-5">
-        <View className="cp-fade-up cp-stagger-1">
+        <div className="cp-fade-up cp-stagger-1">
           {store.profiles.length === 0 ? (
-            <EmptyState
-              title="Nobody on the couch"
-              body="Add a spud so high scores have a home."
-            />
+            <EmptyState title="Nobody on the couch" body="Add a spud so high scores have a home." />
           ) : (
             store.profiles.map((p) => {
               const isActive = p.id === active.id;
               return (
-                <View
+                <div
                   key={p.id}
                   className={cn(
-                    "cp-lobby-card mb-2.5 flex-row items-center justify-between gap-3 p-3.5",
+                    "cp-lobby-card mb-2.5 flex flex-row items-center justify-between gap-3 p-3.5",
                     isActive && "cp-lobby-card-active cp-select-pop",
                   )}
                 >
-                  <View className="min-w-0 flex-1 flex-row items-center gap-3">
-                    <View
+                  <div className="min-w-0 flex-1 flex flex-row items-center gap-3">
+                    <div
                       className={cn(
                         "flex size-10 shrink-0 items-center justify-center rounded-full",
                         isActive
@@ -68,19 +64,16 @@ export function ProfilesPage() {
                       )}
                     >
                       <UserRound className="size-5" strokeWidth={2.25} aria-hidden />
-                    </View>
-                    <View className="min-w-0 flex-1">
-                      <Text
-                        className="font-display text-base font-bold text-foreground"
-                        numberOfLines={1}
-                      >
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="truncate font-display text-base font-bold text-foreground">
                         {p.name}
-                      </Text>
-                      <Text className="font-body text-xs text-muted-foreground">
+                      </span>
+                      <span className="font-body text-xs text-muted-foreground">
                         {p.gamesPlayed} runs · {p.wordsFound} words
-                      </Text>
-                    </View>
-                  </View>
+                      </span>
+                    </div>
+                  </div>
                   <Button
                     variant={isActive ? "secondary" : "outline"}
                     size="sm"
@@ -99,13 +92,13 @@ export function ProfilesPage() {
                       "Sit here"
                     )}
                   </Button>
-                </View>
+                </div>
               );
             })
           )}
-        </View>
+        </div>
 
-        <View className="flex flex-col gap-4 cp-fade-up cp-stagger-1">
+        <div className="flex flex-col gap-4 cp-fade-up cp-stagger-1">
           <button
             type="button"
             onClick={() => navigate({ to: "/achievements" })}
@@ -129,21 +122,21 @@ export function ProfilesPage() {
               aria-hidden
             />
           </button>
-        </View>
+        </div>
       </div>
 
-      <View className="cp-fade-up cp-stagger-2">
+      <div className="cp-fade-up cp-stagger-2">
         <PotatoBoard profile={active} />
-      </View>
+      </div>
 
-      <View className="mb-2 cp-fade-up cp-stagger-3">
+      <div className="mb-2 cp-fade-up cp-stagger-3">
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Name your spud"
           className="mb-2"
         />
-        <View className="flex-row gap-2">
+        <div className="flex flex-row gap-2">
           <Button
             className="flex-1 gap-1.5"
             onClick={() => {
@@ -168,8 +161,8 @@ export function ProfilesPage() {
             <Pencil className="size-4" aria-hidden />
             Rename seated
           </Button>
-        </View>
-      </View>
+        </div>
+      </div>
 
       <Button
         variant="outline"

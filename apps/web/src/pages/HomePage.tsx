@@ -27,12 +27,10 @@ export function HomePage() {
   const [minWordLength, setMinWordLength] = useState(lobby.minWordLength ?? 3);
   const [difficulty, setDifficulty] = useState(lobby.difficulty ?? "easy");
   const [duration, setDuration] = useState(lobby.duration ?? 60);
-  const [blockedWords, setBlockedWords] = useState(
-    () => loadDevicePrefs().customBlockedWords,
-  );
+  const [blockedWords, setBlockedWords] = useState(() => loadDevicePrefs().customBlockedWords);
   const hasLastResults = loadLastRun() != null;
 
-  // First visit → interactive how-to (device pref; Options can replay).
+  // Belt-and-suspenders with route beforeLoad (sync redirect preferred).
   const howToSeen = loadDevicePrefs().howToSeen;
   useEffect(() => {
     if (!howToSeen) {
@@ -40,14 +38,14 @@ export function HomePage() {
     }
   }, [navigate, howToSeen]);
 
-  if (!howToSeen) {
-    return null;
-  }
-
   const onBlockedWords = (next: string[]) => {
     setBlockedWords(next);
     setCustomBlockedWords(next);
   };
+
+  if (!howToSeen) {
+    return null;
+  }
 
   /** Warm Play shell on intent only — never idle-prefetch (ENABLE rides with Play). */
   const warmPlay = () => {

@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getRouteApi, useBlocker, useNavigate } from "@tanstack/react-router";
 import {
@@ -45,6 +44,7 @@ import {
   highScoreKey,
   isAdjacentCells,
   missedLongWords,
+  missedOtherWords,
   quitGame,
   rotateBoard,
   sortWordsByLengthThenAlpha,
@@ -57,7 +57,7 @@ import {
   type GridTopology,
   type MinWordLength,
 } from "@couch-potato/game-engine";
-import { play, setEnabled } from "cuelume";
+import { bind, play, setEnabled } from "cuelume";
 import { isRejectedWordSubmit, playRejectedWordSound } from "../wordRejectSound";
 import { toast } from "sonner";
 import { track } from "../analytics";
@@ -263,14 +263,9 @@ export function PlayPage() {
   /** New board + clock from lobby launch prefs. Does not record the abandoned run. */
   const beginFreshRun = async (isStale?: () => boolean) => {
     // Dynamic — keeps ENABLE JSON out of the Play shell chunk (lobby prefetch / LH cold path).
-    const { dictionaryWithoutWords, getDictionary } = await import(
-      "@couch-potato/dictionary"
-    );
+    const { dictionaryWithoutWords, getDictionary } = await import("@couch-potato/dictionary");
     if (isStale?.()) return;
-    const dict = dictionaryWithoutWords(
-      getDictionary(),
-      loadDevicePrefs().customBlockedWords,
-    );
+    const dict = dictionaryWithoutWords(getDictionary(), loadDevicePrefs().customBlockedWords);
     dictRef.current = dict;
     const minWordLength = (launch.minWordLength ?? 3) as MinWordLength;
     const difficulty = launch.difficulty ?? "easy";
@@ -339,6 +334,11 @@ export function PlayPage() {
       void beginFreshRun();
     }, 0);
   };
+
+  useEffect(() => {
+    bind();
+    setEnabled(loadDevicePrefs().soundEnabled);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -517,6 +517,7 @@ export function PlayPage() {
     const dict = dictRef.current;
     if (!dict) return;
     const missed = missedLongWords(s, dict);
+    const missedMore = missedOtherWords(s, missed);
     const detail = formatRunMeta({
       mode: s.config.mode,
       difficulty,
@@ -527,6 +528,7 @@ export function PlayPage() {
       score: s.score,
       found: sortWordsByLengthThenAlpha(s.found),
       missed,
+      missedMore: missedMore.length ? missedMore : undefined,
       reason: s.ended!,
       mode: s.config.mode,
       grid: s.board.size,
@@ -662,19 +664,16 @@ export function PlayPage() {
       <ConfettiBurst active={celebrate} durationMs={END_FLOURISH_MS} />
 
       {/* One calm top row: primary status + optional words-left count + icon cluster */}
-      <View className="mb-3 flex-row items-center justify-between gap-3">
-        <View className="min-w-0 flex-1 flex-row items-center gap-3">
+      <div className="mb-3 flex flex-row items-center justify-between gap-3">
+        <div className="min-w-0 flex-1 flex flex-row items-center gap-3">
           {/* `.cp-hud-bubble` already bakes in font-display/size/weight — the
               Text just needs to inherit color (bubble sets it per heat tier). */}
           {remaining != null ? (
-            <View
-              className={hudBubbleClass}
-              accessibilityLabel={`${remaining} points left to clear`}
-            >
-              <Text style={{ color: "inherit" }}>{remaining} pts left</Text>
-            </View>
+            <div className={hudBubbleClass} aria-label={`${remaining} points left to clear`}>
+              <span style={{ color: "inherit" }}>{remaining} pts left</span>
+            </div>
           ) : secs != null && state.remainingMs != null ? (
-            <View className="relative shrink-0">
+            <div className="relative shrink-0">
               <TimerRing
                 remainingMs={state.remainingMs}
                 totalMs={timerTotalMs}
@@ -692,24 +691,21 @@ export function PlayPage() {
                   </span>
                 </span>
               ) : null}
-            </View>
+            </div>
           ) : null}
           {showWordsLeft ? (
-            <Text
+            <span
               className="font-display text-sm font-semibold text-muted-foreground"
-              accessibilityLabel={`${wordsLeft} words left on the board`}
+              aria-label={`${wordsLeft} words left on the board`}
             >
               {wordsLeft} left
-            </Text>
+            </span>
           ) : null}
-          <View
-            className="cp-run-badge"
-            accessibilityLabel={`Challenge ${challengeBadge}`}
-          >
-            <Text style={{ color: "inherit" }}>{challengeBadge}</Text>
-          </View>
-        </View>
-        <View className="shrink-0 flex-row items-center gap-2">
+          <div className="cp-run-badge" aria-label={`Challenge ${challengeBadge}`}>
+            <span style={{ color: "inherit" }}>{challengeBadge}</span>
+          </div>
+        </div>
+        <div className="shrink-0 flex flex-row items-center gap-2">
           <IconTooltip label="Pause">
             <Button
               variant="ghost"
@@ -724,8 +720,8 @@ export function PlayPage() {
               <Pause />
             </Button>
           </IconTooltip>
-        </View>
-      </View>
+        </div>
+      </div>
 
       {remaining != null && target > 0 && (
         <ProgressBar value={remaining} max={target} className="mb-4" />
@@ -817,9 +813,7 @@ export function PlayPage() {
             data-testid="rotate-ccw"
           >
             <RotateCcwSquare className="size-4 shrink-0" aria-hidden />
-            <span className="font-body text-[0.65rem] font-bold uppercase tracking-wide">
-              Spin
-            </span>
+            <span className="font-body text-[0.65rem] font-bold uppercase tracking-wide">Spin</span>
           </Button>
         </IconTooltip>
 
@@ -847,9 +841,7 @@ export function PlayPage() {
             aria-label="Spin board right"
             data-testid="rotate-cw"
           >
-            <span className="font-body text-[0.65rem] font-bold uppercase tracking-wide">
-              Spin
-            </span>
+            <span className="font-body text-[0.65rem] font-bold uppercase tracking-wide">Spin</span>
             <RotateCwSquare className="size-4 shrink-0" aria-hidden />
           </Button>
         </IconTooltip>

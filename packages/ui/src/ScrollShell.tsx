@@ -1,4 +1,3 @@
-import { View } from "react-native";
 import type { ReactNode } from "react";
 import { Shell } from "./Shell";
 
@@ -20,10 +19,12 @@ export function ScrollShell({
   shellClassName?: string;
 }) {
   return (
-    <View className="flex min-h-0 w-full flex-1 flex-col">
+    <div className="flex min-h-0 w-full flex-1 flex-col">
       <div className="cp-shell-scroll min-h-0 w-full flex-1 overflow-y-auto overscroll-contain">
-        <Shell className={`!h-auto min-h-full !flex-none ${shellClassName}`.trim()}>{children}</Shell>
+        <Shell className={`!h-auto min-h-full !flex-none ${shellClassName}`.trim()}>
+          {children}
+        </Shell>
       </div>
-    </View>
+    </div>
   );
 }

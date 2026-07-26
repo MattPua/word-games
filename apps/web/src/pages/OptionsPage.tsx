@@ -14,7 +14,6 @@ import {
   VolumeX,
 } from "lucide-react";
 import { BrandHeader, LogoOptions, PrefChoiceGroup, ScrollShell } from "@couch-potato/ui";
-import { setEnabled } from "cuelume";
 import {
   loadDevicePrefs,
   setFontPreference,
@@ -54,7 +53,10 @@ export function OptionsPage() {
     const enabled = next === "on";
     setSound(enabled);
     setSoundEnabled(enabled);
-    setEnabled(enabled);
+    void import("cuelume").then(({ bind, setEnabled }) => {
+      bind();
+      setEnabled(enabled);
+    });
   };
 
   const setJamChoice = (next: "on" | "off") => {
@@ -81,11 +83,7 @@ export function OptionsPage() {
       <div className="mb-3 flex justify-end">
         <ChromeNav />
       </div>
-      <BrandHeader
-        className="mb-4 cp-fade-up"
-        mark={<LogoOptions size={72} />}
-        title="Options"
-      />
+      <BrandHeader className="mb-4 cp-fade-up" mark={<LogoOptions size={72} />} title="Options" />
 
       <div
         className="cp-options-prefs mb-5 cp-fade-up cp-stagger-1"
@@ -205,11 +203,7 @@ export function OptionsPage() {
         </Button>
       </div>
 
-      <Button
-        variant="outline"
-        className="cp-chrome-cta"
-        onClick={() => navigate({ to: "/" })}
-      >
+      <Button variant="outline" className="cp-chrome-cta" onClick={() => navigate({ to: "/" })}>
         <Sofa />
         Back to lobby
       </Button>

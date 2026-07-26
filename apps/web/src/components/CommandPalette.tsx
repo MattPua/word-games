@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { setEnabled } from "cuelume";
 import {
   ALargeSmall,
   CircleHelp,
@@ -131,7 +130,10 @@ function prefActions(): PrefAction[] {
       run: () => {
         const next = !sfxOn;
         setSoundEnabled(next);
-        setEnabled(next);
+        void import("cuelume").then(({ bind, setEnabled }) => {
+          bind();
+          setEnabled(next);
+        });
       },
     },
     {
@@ -202,11 +204,7 @@ export function CommandPalette() {
         </CommandGroup>
         <CommandGroup heading="Options">
           {prefs.map((p) => (
-            <CommandItem
-              key={p.id}
-              value={`${p.label} ${p.keywords}`}
-              onSelect={() => runPref(p)}
-            >
+            <CommandItem key={p.id} value={`${p.label} ${p.keywords}`} onSelect={() => runPref(p)}>
               <p.Icon />
               <span>{p.label}</span>
             </CommandItem>

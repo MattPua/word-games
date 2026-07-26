@@ -1,20 +1,23 @@
-import { Text, View } from "react-native";
+import type { HTMLAttributes } from "react";
 
 export type ScoreBubbleProps = {
   word: string;
   hint?: string;
   className?: string;
-};
+} & Omit<HTMLAttributes<HTMLDivElement>, "children">;
 
-/** Sage word pill for the live swipe word — tactile play chrome (no pts badge). */
-export function ScoreBubble({ word, hint = "Swipe letters", className = "" }: ScoreBubbleProps) {
+/** Sage word pill for the live swipe word — DOM on web (no RN on how-to/play cold path). */
+export function ScoreBubble({
+  word,
+  hint = "Swipe letters",
+  className = "",
+  ...rest
+}: ScoreBubbleProps) {
   const show = word.trim().length > 0;
   return (
-    <View className={`relative items-center justify-center ${className}`}>
-      {/* `.cp-word-pill` / `.cp-word-pill-empty` carry the font (display word vs
-          body hint) — the Text only needs size/weight/color. */}
-      <View className={`cp-word-pill w-full max-w-sm ${show ? "" : "cp-word-pill-empty"}`}>
-        <Text
+    <div className={`relative flex items-center justify-center ${className}`} {...rest}>
+      <div className={`cp-word-pill w-full max-w-sm ${show ? "" : "cp-word-pill-empty"}`}>
+        <p
           className={`text-center leading-none tracking-normal ${
             show
               ? "text-3xl font-bold text-primary-foreground"
@@ -22,8 +25,8 @@ export function ScoreBubble({ word, hint = "Swipe letters", className = "" }: Sc
           }`}
         >
           {show ? word : hint}
-        </Text>
-      </View>
-    </View>
+        </p>
+      </div>
+    </div>
   );
 }

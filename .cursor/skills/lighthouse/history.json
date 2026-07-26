@@ -48,5 +48,95 @@
     "tbt": "0 ms",
     "cls": 0.001,
     "note": "No idle Play prefetch; ENABLE dynamic on Play only; lobby under 500 KiB transfer budget"
+  },
+  {
+    "at": "2026-07-26T14:31:00-04:00",
+    "url": "/",
+    "formFactor": "mobile",
+    "build": "preview:4173",
+    "scores": {
+      "performance": 70,
+      "accessibility": 89,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "transferKiB": 440,
+    "fcp": "5.1 s",
+    "lcp": "5.1 s",
+    "tbt": "0 ms",
+    "cls": 0,
+    "note": "Post how-to ship: cold / → how-to; LCP logo-snore 132KB @506px; grid a11y missing role=row"
+  },
+  {
+    "at": "2026-07-26T14:38:00-04:00",
+    "url": "/how-to",
+    "formFactor": "mobile",
+    "build": "preview:4173",
+    "scores": {
+      "performance": 80,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "transferKiB": 328,
+    "fcp": "3.3 s",
+    "lcp": "4.0 s",
+    "tbt": "0 ms",
+    "cls": 0.001,
+    "note": "Snore/idle/cheer nearest→160px; medals 128px; grid role=row; drop Lexend 500; preload snore; ScoreBubble.web; beforeLoad how-to redirect. Ceiling: NativeWind jsxImportSource → ~216KB RN-web gzip"
+  },
+  {
+    "at": "2026-07-26T14:52:00-04:00",
+    "url": "/",
+    "formFactor": "mobile",
+    "build": "preview:4173",
+    "scores": {
+      "performance": 86,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "transferKiB": 248,
+    "fcp": "2.8 s",
+    "lcp": "3.5 s",
+    "tbt": "0 ms",
+    "cls": 0.001,
+    "note": "Dropped NativeWind + react-native-web; packages/ui defaults are DOM (*.native.tsx for Expo). Transfer −80 KiB vs prior how-to cold path"
+  },
+  {
+    "at": "2026-07-26T14:54:00-04:00",
+    "url": "/",
+    "formFactor": "mobile",
+    "build": "preview:4173",
+    "scores": {
+      "performance": 86,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "transferKiB": 248,
+    "fcp": "2.8 s",
+    "lcp": "3.5 s",
+    "tbt": "0 ms",
+    "cls": 0.001,
+    "note": "Post-NW-drop re-audit; flat vs 14:52. Top leftovers: unused-js ~54KiB, unused-css ~12KiB, FCP/LCP still over budget under mobile throttle"
+  },
+  {
+    "at": "2026-07-26T15:05:00-04:00",
+    "url": "/",
+    "formFactor": "mobile",
+    "build": "preview:4173",
+    "scores": {
+      "performance": 92,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "transferKiB": 204,
+    "fcp": "2.3 s",
+    "lcp": "2.9 s",
+    "tbt": "0 ms",
+    "cls": 0.001,
+    "note": "Eager how-to (cold redirect); lazy lobby; drop Lexend 600; defer tooltip to pointer/key; cuelume off root; how-to SFX dynamic; PotatoMark lazy. vs 14:54 P86→92, transfer 248→204"
   }
 ]

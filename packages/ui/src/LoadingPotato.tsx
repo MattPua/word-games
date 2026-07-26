@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 import { Logo } from "./Logo";
 
 export type LoadingPotatoProps = {
@@ -12,12 +11,12 @@ export function LoadingPotato({
   className = "",
 }: LoadingPotatoProps) {
   return (
-    <View className={`flex-1 items-center justify-center px-6 py-12 ${className}`}>
+    <div className={`flex flex-1 flex-col items-center justify-center px-6 py-12 ${className}`}>
       <Logo size={88} />
-      <Text className="mt-4 text-center font-display text-xl text-foreground">{message}</Text>
-      <Text className="mt-1 text-center font-body text-sm text-muted-foreground">
+      <p className="mt-4 text-center font-display text-xl text-foreground">{message}</p>
+      <p className="mt-1 text-center font-body text-sm text-muted-foreground">
         Soft cushions. Soft letters. Almost there.
-      </Text>
-    </View>
+      </p>
+    </div>
   );
 }

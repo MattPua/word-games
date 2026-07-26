@@ -17,14 +17,8 @@ import { lucideReactImportOptimizer } from "./vite.lucide-optimize";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const nativewindRoot = path.dirname(require.resolve("nativewind/package.json"));
-const rnWebRoot = path.dirname(require.resolve("react-native-web/package.json"));
-const lucideEsmRoot = path.dirname(
-  require.resolve("lucide-react/dist/esm/createLucideIcon.mjs"),
-);
-const lucideIconsRoot = path.dirname(
-  require.resolve("lucide-react/dist/esm/icons/sofa.mjs"),
-);
+const lucideEsmRoot = path.dirname(require.resolve("lucide-react/dist/esm/createLucideIcon.mjs"));
+const lucideIconsRoot = path.dirname(require.resolve("lucide-react/dist/esm/icons/sofa.mjs"));
 
 function escapeAttr(value: string): string {
   return value
@@ -63,20 +57,7 @@ export default defineConfig(({ mode }) => ({
     seoHtmlPlugin(),
     /** Per-icon lucide imports — avoid Vite crawling the whole barrel (#1944). */
     lucideReactImportOptimizer(),
-    react({
-      babel: {
-        plugins: [
-          [
-            "@babel/plugin-transform-react-jsx",
-            {
-              runtime: "automatic",
-              importSource: "nativewind",
-            },
-          ],
-        ],
-      },
-      jsxImportSource: "nativewind",
-    }),
+    react(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "apple-touch-icon.png", "robots.txt", "logo.png"],
@@ -169,37 +150,26 @@ export default defineConfig(({ mode }) => ({
     }),
   ],
   define: {
-    global: "globalThis",
     __DEV__: JSON.stringify(mode !== "production"),
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // Absolute paths so packages/ui (outside app) resolves correctly after Expo added real RN
-      "react-native": rnWebRoot,
-      nativewind: nativewindRoot,
       "@couch-potato/ui": path.resolve(__dirname, "../../packages/ui/src"),
       "@couch-potato/game-engine": path.resolve(__dirname, "../../packages/game-engine/src"),
       "@couch-potato/dictionary": path.resolve(__dirname, "../../packages/dictionary/src"),
       // lucide has no package exports for icons/* / helpers — alias for the optimizer (#1944)
       "lucide-react/icons": lucideIconsRoot,
-      "lucide-react/createLucideIcon": path.join(
-        lucideEsmRoot,
-        "createLucideIcon.mjs",
-      ),
+      "lucide-react/createLucideIcon": path.join(lucideEsmRoot, "createLucideIcon.mjs"),
       "lucide-react/Icon": path.join(lucideEsmRoot, "Icon.mjs"),
     },
     dedupe: ["react", "react-dom"],
-    extensions: [".web.tsx", ".web.ts", ".tsx", ".ts", ".web.js", ".js", ".mjs"],
+    // Prefer *.native only on Metro; web defaults are unsuffixed DOM files.
+    extensions: [".tsx", ".ts", ".jsx", ".js", ".mjs"],
   },
   optimizeDeps: {
-    include: ["react-native-web", "nativewind"],
     // Don't prebundle the lucide barrel — optimizer rewrites to per-icon paths.
     exclude: ["lucide-react"],
-    esbuildOptions: {
-      loader: { ".js": "jsx" },
-      resolveExtensions: [".web.js", ".js", ".mjs", ".ts", ".tsx"],
-    },
   },
   server: { port: 5173 },
 }));

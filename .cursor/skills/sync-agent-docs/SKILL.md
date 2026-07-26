@@ -13,7 +13,9 @@ Agents **self-update** living docs. If a lasting decision just landed, patch doc
    - Process / repo conventions (commit format, etc.) → `AGENTS.md` Code style
    - How to edit code → `.cursor/rules/*.mdc`
    - Repeatable checklist → `.cursor/skills/*/SKILL.md`
+   - Soft prefs / rejected approaches (not code law) → `.cursor/skills/couch-potato/references/` — see skill `couch-potato` for the topic map
 3. Don’t duplicate long prose across files — one authoritative place + pointers.
 4. Skip trivial one-off fixes that aren’t lasting knowledge.
 
 Always-on rule: `.cursor/rules/agent-docs.mdc`.
+Knowledge map: `.cursor/skills/couch-potato/SKILL.md`.

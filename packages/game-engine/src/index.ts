@@ -44,6 +44,7 @@ export {
   tickTimer,
   quitGame,
   missedLongWords,
+  missedOtherWords,
   highScoreKey,
   type GameMode,
   type EndReason,

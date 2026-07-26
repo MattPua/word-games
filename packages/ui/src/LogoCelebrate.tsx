@@ -1,24 +1,55 @@
-import { Image, type ImageProps } from "react-native";
+/**
+ * Results celebrate mark (web) — raster body + SVG pixel sparkles.
+ */
+import type { CSSProperties } from "react";
+import { LOGO_MARK_URLS } from "./spriteAtlas";
+import { PotatoMark } from "./PotatoMark";
 
-export type LogoCelebrateProps = Omit<ImageProps, "source"> & {
+export type LogoCelebrateProps = {
   size?: number;
+  className?: string;
+  style?: CSSProperties;
 };
 
-/**
- * Pixel potato mid-celebration — results-screen hero (not the chill lobby
- * `Logo`). Web serves `apps/web/public/logo-celebrate.webp` (from
- * `packages/ui/src/assets/logo-celebrate.png` via optimize-sprites) — see AGENTS.md Brand. Source art is
- * a PixelLab celebrate render with a black knockout background; the shipped
- * asset must land with a transparent (not black) alpha, matching `Logo`.
- */
-export function LogoCelebrate({ size = 96, style, ...rest }: LogoCelebrateProps) {
+export function LogoCelebrate({ size = 96, style, className = "" }: LogoCelebrateProps) {
   return (
-    <Image
-      source={{ uri: "/logo-celebrate.webp" }}
-      accessibilityLabel="Couch Potato celebrating"
-      style={[{ width: size, height: size }, style]}
-      resizeMode="contain"
-      {...rest}
-    />
+    <PotatoMark
+      src={LOGO_MARK_URLS.celebrate}
+      alt="Couch Potato celebrating"
+      size={size}
+      className={`cp-potato-celebrate ${className}`.trim()}
+      bodyClassName="cp-potato-celebrate-body"
+      style={style}
+    >
+      <svg
+        className="cp-potato-mark-overlay"
+        viewBox="0 0 72 72"
+        width={size}
+        height={size}
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden
+        overflow="visible"
+      >
+        <g className="cp-potato-sparkle cp-potato-sparkle-1" transform="translate(8 10)">
+          <PixelSparkle size={6} />
+        </g>
+        <g className="cp-potato-sparkle cp-potato-sparkle-2" transform="translate(58 14)">
+          <PixelSparkle size={5} />
+        </g>
+        <g className="cp-potato-sparkle cp-potato-sparkle-3" transform="translate(52 48)">
+          <PixelSparkle size={4} />
+        </g>
+      </svg>
+    </PotatoMark>
+  );
+}
+
+function PixelSparkle({ size }: { size: number }) {
+  const s = size / 5;
+  return (
+    <g fill="#c4a574">
+      <rect x={2 * s} y={0} width={s} height={5 * s} />
+      <rect x={0} y={2 * s} width={5 * s} height={s} />
+    </g>
   );
 }

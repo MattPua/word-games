@@ -12,7 +12,15 @@ import {
 } from "./config";
 import { findAllWords, findPathForWord } from "./findWords";
 import { buildBoard, generateBoard } from "./generate";
-import { createGame, highScoreKey, quitGame, submitPath, tickTimer } from "./game";
+import {
+  createGame,
+  highScoreKey,
+  missedLongWords,
+  missedOtherWords,
+  quitGame,
+  submitPath,
+  tickTimer,
+} from "./game";
 import { isValidPath, wordFromPath } from "./path";
 import { createSeededRng } from "./rng";
 import { rotateBoard, rotateLettersCW } from "./rotate";
@@ -413,6 +421,33 @@ describe("wordLists", () => {
   });
 });
 
+describe("missedOtherWords", () => {
+  it("lists leftovers outside the long tease, no overlap", () => {
+    const board = buildBoard(
+      [
+        ["C", "A", "T"],
+        ["S", "E", "A"],
+        ["T", "X", "X"],
+      ],
+      miniDict,
+      3,
+      "square",
+    );
+    const state = createGame(board, {
+      mode: "timed",
+      duration: 60,
+      difficulty: "medium",
+      minWordLength: 3,
+    });
+    const long = missedLongWords(state, miniDict);
+    const more = missedOtherWords(state, long);
+    const leftover = new Set(board.allWords.filter((w) => !state.found.includes(w)));
+    expect(long.every((w) => leftover.has(w))).toBe(true);
+    expect(more.every((w) => leftover.has(w) && !long.includes(w))).toBe(true);
+    expect(long.length + more.length).toBe(leftover.size);
+  });
+});
+
 describe("computeTargets", () => {
   it("never exceeds maxScore (achievable)", () => {
     const t = computeTargets(10);
@@ -749,76 +784,64 @@ describe("generateBoard", () => {
     }
   });
 
-  it(
-    "prefers ≥1 word of length ≥6 with the real lexicon when possible",
-    () => {
-      const dict = createDictionary();
-      // Spot-check square + hex on 4×4 / 5×5 — ge6 floor + fallback ranking.
-      for (const { size, topology, seed } of [
-        { size: 4 as const, topology: "square" as const, seed: 1 },
-        { size: 4 as const, topology: "hex" as const, seed: 2 },
-        { size: 5 as const, topology: "square" as const, seed: 3 },
-        { size: 5 as const, topology: "hex" as const, seed: 7 },
-        { size: 4 as const, topology: "square" as const, seed: 42 },
-      ]) {
-        const board = generateBoard({ size, dict, topology, seed });
-        expect(
-          board.allWords.some((w) => w.length >= 6),
-          `${topology} ${size}×${size} seed ${seed}`,
-        ).toBe(true);
-      }
-    },
-    30_000,
-  );
+  it("prefers ≥1 word of length ≥6 with the real lexicon when possible", () => {
+    const dict = createDictionary();
+    // Spot-check square + hex on 4×4 / 5×5 — ge6 floor + fallback ranking.
+    for (const { size, topology, seed } of [
+      { size: 4 as const, topology: "square" as const, seed: 1 },
+      { size: 4 as const, topology: "hex" as const, seed: 2 },
+      { size: 5 as const, topology: "square" as const, seed: 3 },
+      { size: 5 as const, topology: "hex" as const, seed: 7 },
+      { size: 4 as const, topology: "square" as const, seed: 42 },
+    ]) {
+      const board = generateBoard({ size, dict, topology, seed });
+      expect(
+        board.allWords.some((w) => w.length >= 6),
+        `${topology} ${size}×${size} seed ${seed}`,
+      ).toBe(true);
+    }
+  }, 30_000);
 
-  it(
-    "asks larger grids for more long words while keeping a short-word base",
-    () => {
-      const dict = createDictionary();
-      const cases = [
-        { size: 5 as const, topology: "square" as const, seed: 11, minGe6: 5, minGe5: 12 },
-        { size: 6 as const, topology: "square" as const, seed: 13, minGe6: 10, minGe5: 24 },
-        { size: 5 as const, topology: "hex" as const, seed: 17, minGe6: 2, minGe5: 6 },
-        { size: 6 as const, topology: "hex" as const, seed: 19, minGe6: 5, minGe5: 12 },
-      ];
-      for (const { size, topology, seed, minGe6, minGe5 } of cases) {
-        const board = generateBoard({ size, dict, topology, seed });
-        const ge5 = board.allWords.filter((w) => w.length >= 5).length;
-        const ge6 = board.allWords.filter((w) => w.length >= 6).length;
-        const ge3 = board.allWords.filter((w) => w.length >= 3).length;
-        expect(ge6, `${topology} ${size} ge6`).toBeGreaterThanOrEqual(minGe6);
-        expect(ge5, `${topology} ${size} ge5`).toBeGreaterThanOrEqual(minGe5);
-        // Short crumbs still present (not a long-only board).
-        expect(ge3, `${topology} ${size} ge3`).toBeGreaterThan(ge6);
-      }
-    },
-    60_000,
-  );
+  it("asks larger grids for more long words while keeping a short-word base", () => {
+    const dict = createDictionary();
+    const cases = [
+      { size: 5 as const, topology: "square" as const, seed: 11, minGe6: 5, minGe5: 12 },
+      { size: 6 as const, topology: "square" as const, seed: 13, minGe6: 10, minGe5: 24 },
+      { size: 5 as const, topology: "hex" as const, seed: 17, minGe6: 2, minGe5: 6 },
+      { size: 6 as const, topology: "hex" as const, seed: 19, minGe6: 5, minGe5: 12 },
+    ];
+    for (const { size, topology, seed, minGe6, minGe5 } of cases) {
+      const board = generateBoard({ size, dict, topology, seed });
+      const ge5 = board.allWords.filter((w) => w.length >= 5).length;
+      const ge6 = board.allWords.filter((w) => w.length >= 6).length;
+      const ge3 = board.allWords.filter((w) => w.length >= 3).length;
+      expect(ge6, `${topology} ${size} ge6`).toBeGreaterThanOrEqual(minGe6);
+      expect(ge5, `${topology} ${size} ge5`).toBeGreaterThanOrEqual(minGe5);
+      // Short crumbs still present (not a long-only board).
+      expect(ge3, `${topology} ${size} ge3`).toBeGreaterThan(ge6);
+    }
+  }, 60_000);
 
-  it(
-    "lands 8+ and often 10+ letter words on longer boards when possible",
-    () => {
-      const dict = createDictionary();
-      // Soft ge10 on square 5/6 + hex 6 — may loosen, but ranking should clear often.
-      for (const { size, topology, minSaw10 } of [
-        { size: 5 as const, topology: "square" as const, minSaw10: 8 },
-        { size: 6 as const, topology: "square" as const, minSaw10: 12 },
-        { size: 6 as const, topology: "hex" as const, minSaw10: 6 },
-      ]) {
-        let saw8 = 0;
-        let saw10 = 0;
-        const n = 24;
-        for (let seed = 1; seed <= n; seed++) {
-          const board = generateBoard({ size, dict, topology, seed });
-          if (board.allWords.some((w) => w.length >= 8)) saw8++;
-          if (board.allWords.some((w) => w.length >= 10)) saw10++;
-        }
-        expect(saw8, `${topology} ${size} 8+`).toBeGreaterThanOrEqual(10);
-        expect(saw10, `${topology} ${size} 10+`).toBeGreaterThanOrEqual(minSaw10);
+  it("lands 8+ and often 10+ letter words on longer boards when possible", () => {
+    const dict = createDictionary();
+    // Soft ge10 on square 5/6 + hex 6 — may loosen, but ranking should clear often.
+    for (const { size, topology, minSaw10 } of [
+      { size: 5 as const, topology: "square" as const, minSaw10: 8 },
+      { size: 6 as const, topology: "square" as const, minSaw10: 12 },
+      { size: 6 as const, topology: "hex" as const, minSaw10: 6 },
+    ]) {
+      let saw8 = 0;
+      let saw10 = 0;
+      const n = 24;
+      for (let seed = 1; seed <= n; seed++) {
+        const board = generateBoard({ size, dict, topology, seed });
+        if (board.allWords.some((w) => w.length >= 8)) saw8++;
+        if (board.allWords.some((w) => w.length >= 10)) saw10++;
       }
-    },
-    120_000,
-  );
+      expect(saw8, `${topology} ${size} 8+`).toBeGreaterThanOrEqual(10);
+      expect(saw10, `${topology} ${size} 10+`).toBeGreaterThanOrEqual(minSaw10);
+    }
+  }, 120_000);
 
   it("falls back without a ≥6 word when the lexicon cannot provide one", () => {
     // miniDict max popular length is 4–5 — no path can yield a ≥6 word.

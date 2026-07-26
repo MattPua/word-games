@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 import { useNavigate } from "@tanstack/react-router";
 import { Sofa } from "lucide-react";
 import {
@@ -70,22 +69,22 @@ export function AchievementsPage() {
 
       <div className="cp-medals-columns mb-5">
         {SECTIONS.map((section, i) => (
-          <View key={section.title} className={`cp-fade-up cp-stagger-${Math.min(i + 1, 3)}`}>
+          <div key={section.title} className={`cp-fade-up cp-stagger-${Math.min(i + 1, 3)}`}>
             <div className="mb-1 flex items-center gap-2">
               <MedalsCategorySprite frame={section.frame} size={40} />
               <h2 className="text-base font-bold text-foreground">{section.title}</h2>
             </div>
-            <Text className="mb-3 font-body text-xs text-muted-foreground">{section.blurb}</Text>
-            <View className="cp-lobby-card p-4">
-              <View className="gap-4">
+            <span className="mb-3 font-body text-xs text-muted-foreground">{section.blurb}</span>
+            <div className="cp-lobby-card p-4">
+              <div className="gap-4">
                 {section.ids.map((id) => {
                   const progress = progressById.get(id);
                   if (!progress) return null;
                   return <AchievementTrackRow key={id} progress={progress} detailed />;
                 })}
-              </View>
-            </View>
-          </View>
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 

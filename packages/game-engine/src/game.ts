@@ -149,6 +149,18 @@ export function missedLongWords(state: GameState, dict: Dictionary, limit = 8): 
     .slice(0, limit);
 }
 
+/**
+ * Other unfound board words after the long tease — shorter crumbs + non-popular.
+ * `exclude` = words already shown under Long ones left.
+ */
+export function missedOtherWords(state: GameState, exclude: readonly string[] = []): string[] {
+  const found = new Set(state.found);
+  const skip = new Set(exclude);
+  return state.board.allWords
+    .filter((w) => !found.has(w) && !skip.has(w))
+    .sort(compareWordsByLengthThenAlpha);
+}
+
 export function highScoreKey(
   profileId: string,
   size: number,

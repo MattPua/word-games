@@ -1,6 +1,12 @@
-import { useCallback, useRef, useState } from "react";
-import { View, Text, type LayoutChangeEvent, type GestureResponderEvent } from "react-native";
-import { HEX_CLIP } from "./hexLayout";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type TransitionEvent as ReactTransitionEvent,
+} from "react";
+import { cellCenter, HEX_CLIP, hexAspect, hexRowStyle } from "./hexLayout";
 import {
   applyPathCell,
   cellKey,
@@ -13,9 +19,14 @@ import {
 } from "./pathCells";
 
 export type { Cell, LetterGridProps };
-export { applyPathCell, cellKey, cellsEqual, isAdjacent, isInBacktrackZone } from "./pathCells";
+export { applyPathCell } from "./pathCells";
+export { cellCenter, HEX_CLIP, hexAspect } from "./hexLayout";
 
-/** Square letter board with pointer-driven path selection (RN / Expo). */
+/**
+ * Web LetterGrid — tactile cream tiles in a thick sage frame.
+ * Path stroke + topology-matched select (square rings / hex tile tint).
+ * Hex select is the clipped tile itself — `--cp-tile-gap` cannot offset it.
+ */
 export function LetterGrid({
   letters,
   selected = [],
@@ -25,40 +36,29 @@ export function LetterGrid({
   className = "",
   topology = "square",
   isAdjacent: adjacentFn = isAdjacent,
+  boardTurnDeg = 0,
+  boardTurning = false,
+  interactive = true,
+  onBoardTurnEnd,
 }: LetterGridProps) {
-  const size = letters.length;
-  const [layout, setLayout] = useState({ w: 0, h: 0, x: 0, y: 0 });
   const dragging = useRef(false);
   const pathRef = useRef<Cell[]>([]);
+  const pointerId = useRef<number | null>(null);
+  const interactiveRef = useRef(interactive);
+  interactiveRef.current = interactive;
   const selectedSet = new Set(selected.map(cellKey));
   const hex = topology === "hex";
 
-  const hitTest = useCallback(
-    (pageX: number, pageY: number): { cell: Cell; allowBacktrack: boolean } | null => {
-      if (!layout.w || !size) return null;
-      const localX = pageX - layout.x;
-      const localY = pageY - layout.y;
-      if (localX < 0 || localY < 0 || localX > layout.w || localY > layout.h) {
-        return null;
-      }
-      const colF = (localX / layout.w) * size;
-      const rowF = (localY / layout.h) * size;
-      const col = Math.min(size - 1, Math.floor(colF));
-      const row = Math.min(size - 1, Math.floor(rowF));
-      const nx = colF - col;
-      const ny = rowF - row;
-      // Full-cell pitch includes gutters — only accept clear interior hits.
-      if (!isInTileHitZone(nx, ny)) return null;
-      return {
-        cell: { row, col },
-        allowBacktrack: isInBacktrackZone(nx, ny),
-      };
-    },
-    [layout, size],
-  );
+  useEffect(() => {
+    if (interactive) return;
+    dragging.current = false;
+    pointerId.current = null;
+    pathRef.current = [];
+  }, [interactive]);
 
   const touch = useCallback(
     (cell: Cell, allowBacktrack: boolean) => {
+      if (!interactiveRef.current) return;
       const next = applyPathCell(pathRef.current, cell, adjacentFn, {
         allowBacktrack,
       });
@@ -69,92 +69,254 @@ export function LetterGrid({
     [onPathChange, adjacentFn],
   );
 
-  const onLayout = (e: LayoutChangeEvent) => {
-    const { width, height } = e.nativeEvent.layout;
-    const target = e.target as unknown as {
-      measureInWindow?: (cb: (x: number, y: number, w: number, h: number) => void) => void;
-    };
-    target.measureInWindow?.((x, y) => {
-      setLayout({ w: width, h: height, x, y });
-    });
-    if (!target.measureInWindow) {
-      setLayout({ w: width, h: height, x: 0, y: 0 });
-    }
-  };
+  /** Tile under point + hit/backtrack zones (edge inset = swipe gutter). */
+  const hit = useCallback(
+    (clientX: number, clientY: number): { cell: Cell; allowBacktrack: boolean } | null => {
+      const stack = document.elementsFromPoint(clientX, clientY);
+      for (const el of stack) {
+        const tile = (el as Element).closest?.("[data-tile]") as HTMLElement | null;
+        if (!tile) continue;
+        const row = Number(tile.dataset.row);
+        const col = Number(tile.dataset.col);
+        if (Number.isNaN(row) || Number.isNaN(col)) continue;
+        const rect = tile.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) continue;
+        const nx = (clientX - rect.left) / rect.width;
+        const ny = (clientY - rect.top) / rect.height;
+        // Margin gap + edge inset — skip fringe so diagonals don’t clip neighbors.
+        if (!isInTileHitZone(nx, ny)) continue;
+        return { cell: { row, col }, allowBacktrack: isInBacktrackZone(nx, ny) };
+      }
+      return null;
+    },
+    [],
+  );
 
-  const onStart = (e: GestureResponderEvent) => {
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!interactiveRef.current) return;
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    e.preventDefault();
     dragging.current = true;
+    pointerId.current = e.pointerId;
     pathRef.current = [];
     onPathChange?.([]);
-    const { pageX, pageY } = e.nativeEvent;
-    const found = hitTest(pageX, pageY);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const found = hit(e.clientX, e.clientY);
     if (found) touch(found.cell, true);
   };
 
-  const onMove = (e: GestureResponderEvent) => {
-    if (!dragging.current) return;
-    const { pageX, pageY } = e.nativeEvent;
-    const found = hitTest(pageX, pageY);
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!dragging.current || pointerId.current !== e.pointerId) return;
+    e.preventDefault();
+    const found = hit(e.clientX, e.clientY);
     if (!found) return;
+    // New adjacent cells append on full tile; backtrack needs center zone.
     const onPath = pathRef.current.some((c) => cellsEqual(c, found.cell));
     touch(found.cell, !onPath || found.allowBacktrack);
   };
 
-  const onEnd = () => {
-    if (!dragging.current) return;
+  const endPointer = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!dragging.current || pointerId.current !== e.pointerId) return;
     dragging.current = false;
+    pointerId.current = null;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      /* already released */
+    }
+    if (!interactiveRef.current) {
+      pathRef.current = [];
+      return;
+    }
     onPathEnd?.(pathRef.current);
     pathRef.current = [];
   };
 
+  const onSpinTransitionEnd = (e: ReactTransitionEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    // Only the board transform — ignore letter counter-rotate bubbles (filtered by target).
+    if (e.propertyName !== "transform") return;
+    if (!boardTurning) return;
+    onBoardTurnEnd?.();
+  };
+
+  const spinStyle = {
+    "--cp-board-turn": `${boardTurnDeg}deg`,
+  } as CSSProperties;
+
+  const n = letters.length;
+  const aspect = hex ? hexAspect(n) : { w: 1, h: 1 };
+  const connectors =
+    selected.length > 1
+      ? selected.slice(1).map((cell, i) => {
+          const prev = selected[i]!;
+          const a = cellCenter(prev.row, prev.col, n, topology);
+          const b = cellCenter(cell.row, cell.col, n, topology);
+          return (
+            <line
+              key={`${cellKey(prev)}-${cellKey(cell)}`}
+              x1={a.x}
+              y1={a.y}
+              x2={b.x}
+              y2={b.y}
+              stroke="var(--path)"
+              strokeWidth={n >= 6 ? 7 : 10}
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+              opacity="0.72"
+            />
+          );
+        })
+      : null;
+
+  /** Square select rings — play swipe only. Results replay (`interactive={false}`)
+   * already paints select on the tile; stacking SVG discs on 6×6 reads as double blobs. */
+  const cellPitch = 100 / n;
+  const ringR = Math.min(6.5, cellPitch * 0.36);
+  const squareRings =
+    interactive && !hex && selected.length > 0
+      ? selected.map((cell) => {
+          const c = cellCenter(cell.row, cell.col, n, topology);
+          return (
+            <circle
+              key={`ring-${cellKey(cell)}`}
+              cx={c.x}
+              cy={c.y}
+              r={ringR}
+              fill="var(--tile-select-ring)"
+              stroke="var(--path)"
+              strokeWidth="2.75"
+              vectorEffect="non-scaling-stroke"
+              opacity="0.9"
+            />
+          );
+        })
+      : null;
+
   return (
-    <View className={`cp-board-frame w-full ${className}`}>
-      <View
-        className="cp-board-well aspect-square w-full"
-        style={{ touchAction: "none" } as object}
-        onLayout={onLayout}
-        onStartShouldSetResponder={() => true}
-        onMoveShouldSetResponder={() => true}
-        onResponderGrant={onStart}
-        onResponderMove={onMove}
-        onResponderRelease={onEnd}
-        onResponderTerminate={onEnd}
-        accessibilityLabel="Letter grid"
+    // Frame + box-shadow stay planted; only `.cp-board-spin` rotates (shadow must not ride transform).
+    <div className={`cp-board-frame w-full ${className}`}>
+      <div
+        className={`cp-board-spin w-full ${boardTurning ? "is-turning" : ""}`}
+        style={spinStyle}
+        onTransitionEnd={onSpinTransitionEnd}
       >
-        {letters.map((row, rowIndex) => (
-          <View key={rowIndex} className="flex-1 flex-row">
-            {row.map((letter, colIndex) => {
-              const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
-              return (
-                <View
-                  key={`${rowIndex}-${colIndex}`}
-                  testID={`tile-${rowIndex}-${colIndex}`}
-                  className={`cp-tile ${hex ? "cp-tile-hex" : ""} ${active ? "cp-tile-active" : ""}`}
-                  style={
-                    {
-                      margin: 5,
-                      ...(hex
-                        ? {
+        <div
+          role="grid"
+          aria-label="Letter grid"
+          aria-busy={boardTurning || undefined}
+          className="cp-board-well relative w-full select-none"
+          style={{
+            touchAction: "none",
+            WebkitUserSelect: "none",
+            pointerEvents: interactive ? undefined : "none",
+          }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endPointer}
+          onPointerCancel={endPointer}
+        >
+          {/* Play surface = tile layout box (inside well pad). Path SVG shares this box. */}
+          <div
+            className="cp-board-play relative w-full"
+            data-size={n}
+            style={{
+              aspectRatio: hex ? `${aspect.w} / ${aspect.h}` : "1",
+            }}
+          >
+            <svg
+              className="pointer-events-none absolute inset-0 z-[5] h-full w-full"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              aria-hidden
+            >
+              {connectors}
+              {squareRings}
+            </svg>
+            <div
+              className={
+                hex ? "relative z-10 h-full w-full" : "relative z-10 grid h-full min-h-0 w-full"
+              }
+              style={
+                hex
+                  ? undefined
+                  : {
+                      // CSS grid + in-cell tile margin (no `gap`): keeps centers at
+                      // (i+0.5)/n so path SVG / select rings match tiles. Flex rows
+                      // overflowed 6×6; gap would desync cellCenter.
+                      gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`,
+                      gridTemplateRows: `repeat(${n}, minmax(0, 1fr))`,
+                    }
+              }
+            >
+              {letters.map((row, rowIndex) =>
+                hex ? (
+                  <div
+                    key={rowIndex}
+                    className="absolute flex"
+                    role="row"
+                    style={hexRowStyle(rowIndex, n)}
+                  >
+                    {row.map((letter, colIndex) => {
+                      const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
+                      return (
+                        <div
+                          key={`${rowIndex}-${colIndex}`}
+                          role="gridcell"
+                          data-tile
+                          data-row={rowIndex}
+                          data-col={colIndex}
+                          data-testid={`tile-${rowIndex}-${colIndex}`}
+                          className={`cp-tile cp-tile-hex ${
+                            active ? "cp-tile-active cp-tile-selected" : ""
+                          } ${dropping ? "cp-tile-drop" : ""}`}
+                          style={{
                             clipPath: HEX_CLIP,
                             borderRadius: 0,
-                          }
-                        : null),
-                      ...(dropping
-                        ? {
-                            transform: [{ translateY: 800 }],
-                            opacity: 0,
-                          }
-                        : null),
-                    } as object
-                  }
-                >
-                  <Text className="cp-tile-letter">{letter}</Text>
-                </View>
-              );
-            })}
-          </View>
-        ))}
-      </View>
-    </View>
+                            ...(dropping
+                              ? { animationDelay: `${(rowIndex * n + colIndex) * 28}ms` }
+                              : null),
+                            zIndex: active ? 6 : 1,
+                          }}
+                        >
+                          <span className="cp-tile-letter">{letter}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div key={rowIndex} role="row" style={{ display: "contents" }}>
+                    {row.map((letter, colIndex) => {
+                      const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
+                      return (
+                        <div
+                          key={`${rowIndex}-${colIndex}`}
+                          role="gridcell"
+                          data-tile
+                          data-row={rowIndex}
+                          data-col={colIndex}
+                          data-testid={`tile-${rowIndex}-${colIndex}`}
+                          className={`cp-tile cp-tile-square ${
+                            active ? "cp-tile-active cp-tile-selected" : ""
+                          } ${dropping ? "cp-tile-drop" : ""}`}
+                          style={{
+                            ...(dropping
+                              ? { animationDelay: `${(rowIndex * n + colIndex) * 28}ms` }
+                              : null),
+                            zIndex: active ? 6 : 1,
+                          }}
+                        >
+                          <span className="cp-tile-letter">{letter}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

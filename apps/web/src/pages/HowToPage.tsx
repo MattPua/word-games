@@ -14,8 +14,6 @@ import { isAdjacentCells, scoreWord, wordFromPath } from "@couch-potato/game-eng
 import { Button } from "@/components/ui/button";
 import { setHowToSeen, loadLaunch } from "../storage";
 import { playSearchFromLaunch } from "../playLaunchSearch";
-import { playAcceptedWordSound } from "../wordAcceptSound";
-import { playRejectedWordSound } from "../wordRejectSound";
 
 /**
  * Fixed 4×4 demo board — CAT (row), DOG (turn), GOLD (reuse), LONGEST (haul).
@@ -155,7 +153,9 @@ export function HowToPage() {
     const word = wordFromPath(DEMO_LETTERS, finalPath).toLowerCase();
     setPath([]);
     if (word === step.target) {
-      playAcceptedWordSound(word.length, { firstWord: firstCatch });
+      void import("../wordAcceptSound").then((m) =>
+        m.playAcceptedWordSound(word.length, { firstWord: firstCatch }),
+      );
       setFirstCatch(false);
       const pts = scoreWord(word.length);
       setFlash(step.showPoints ? `${word.toUpperCase()} +${pts}` : word.toUpperCase());
@@ -170,7 +170,7 @@ export function HowToPage() {
       return;
     }
     if (word.length >= 3) {
-      playRejectedWordSound();
+      void import("../wordRejectSound").then((m) => m.playRejectedWordSound());
       setFlash(word === "" ? "" : "Not that one");
       window.setTimeout(() => setFlash(""), 900);
     }
@@ -190,13 +190,29 @@ export function HowToPage() {
           />
 
           {done ? (
-            <div className="mb-5 space-y-3 text-center" data-testid="howto-done">
-              <p className="font-body text-base text-foreground">
-                You know the swipe. Time for a real haul.
-              </p>
-              <p className="font-body text-sm text-muted-foreground">
-                Replay anytime from Options.
-              </p>
+            <div className="space-y-4 text-center" data-testid="howto-done">
+              <div className="space-y-2">
+                <p className="font-body text-base text-foreground">
+                  You know the swipe. Time for a real haul.
+                </p>
+                <p className="font-body text-sm text-muted-foreground">
+                  Replay anytime from Options.
+                </p>
+              </div>
+              {/* CTA hugs copy — not a viewport-bottom sticky bar (huge empty middle). */}
+              <div className="cp-lobby-play !border-0 !bg-transparent !pb-2 !pt-1 !shadow-none">
+                <div className="cp-lobby-play-inner flex justify-center">
+                  <Button
+                    size="lg"
+                    className="cp-play-cta cp-chrome-cta min-w-0 gap-2.5 text-lg"
+                    onClick={startRun}
+                    data-testid="howto-play-run"
+                  >
+                    <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
+                    Play a run
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="mb-4 space-y-1" data-testid="howto-coach">
@@ -231,41 +247,29 @@ export function HowToPage() {
         </Shell>
       </div>
 
-      <div className="w-full shrink-0">
-        <Shell className="cp-shell-howto !h-auto !flex-none max-w-md pb-0 pt-0">
-          <div className="cp-lobby-play shrink-0">
-            <div className="cp-lobby-play-inner flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-              {done ? (
+      {!done ? (
+        <div className="w-full shrink-0">
+          <Shell className="cp-shell-howto !h-auto !flex-none max-w-md pb-0 pt-0">
+            <div className="cp-lobby-play shrink-0">
+              <div className="cp-lobby-play-inner flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                 <Button
                   size="lg"
-                  className="cp-play-cta min-w-0 flex-1 gap-2.5 text-lg"
-                  onClick={startRun}
-                  data-testid="howto-play-run"
+                  variant="outline"
+                  className="min-w-0 flex-1 sm:flex-none"
+                  onClick={finish}
+                  data-testid="howto-skip"
                 >
-                  <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
-                  Play a run
+                  <Sofa className="size-4 shrink-0" aria-hidden />
+                  Skip
                 </Button>
-              ) : (
-                <>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="min-w-0 flex-1 sm:flex-none"
-                    onClick={finish}
-                    data-testid="howto-skip"
-                  >
-                    <Sofa className="size-4 shrink-0" aria-hidden />
-                    Skip
-                  </Button>
-                  <p className="min-w-0 flex-1 text-center font-body text-xs text-muted-foreground sm:text-left">
-                    {demoing ? "Ghost swipe first…" : "Your turn. Swipe the word."}
-                  </p>
-                </>
-              )}
+                <p className="min-w-0 flex-1 text-center font-body text-xs text-muted-foreground sm:text-left">
+                  {demoing ? "Ghost swipe first…" : "Your turn. Swipe the word."}
+                </p>
+              </div>
             </div>
-          </div>
-        </Shell>
-      </div>
+          </Shell>
+        </div>
+      ) : null}
     </div>
   );
 }

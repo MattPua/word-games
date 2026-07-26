@@ -3,28 +3,23 @@ import {
   createRoute,
   HeadContent,
   Outlet,
+  redirect,
   useRouterState,
 } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
-import { bind, setEnabled } from "cuelume";
-import { LoadingPotato } from "@couch-potato/ui";
-import { HomePage } from "./pages/HomePage";
-import { PlaySkeleton } from "@/components/PlaySkeleton";
+import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { loadDevicePrefs } from "./storage";
 import { applyMenuMusicEnabled, menuMusicSceneForPath, setMenuMusicScene } from "./menuMusic";
 import { applyFontPreference, applyTheme } from "./theme";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import {
-  COMMAND_PALETTE_OPEN,
-  markCommandPaletteWantOpen,
-} from "./commandPaletteBus";
+import { COMMAND_PALETTE_OPEN, markCommandPaletteWantOpen } from "./commandPaletteBus";
 import { DEFAULT_TITLE, pageHead } from "./seo";
-import type { ReactNode } from "react";
 import { prefetchPlayPage } from "./playPrefetch";
 import { validatePlaySearch } from "./playLaunchSearch";
+import { HowToPage } from "./pages/HowToPage";
 
-const PlayPage = lazy(() =>
-  prefetchPlayPage().then((m) => ({ default: m.PlayPage })),
+const HomePage = lazy(() => import("./pages/HomePage").then((m) => ({ default: m.HomePage })));
+const PlayPage = lazy(() => prefetchPlayPage().then((m) => ({ default: m.PlayPage })));
+const PlaySkeleton = lazy(() =>
+  import("@/components/PlaySkeleton").then((m) => ({ default: m.PlaySkeleton })),
 );
 const ResultsPage = lazy(() =>
   import("./pages/ResultsPage").then((m) => ({ default: m.ResultsPage })),
@@ -38,30 +33,18 @@ const AchievementsPage = lazy(() =>
 const OptionsPage = lazy(() =>
   import("./pages/OptionsPage").then((m) => ({ default: m.OptionsPage })),
 );
-const HowToPage = lazy(() =>
-  import("./pages/HowToPage").then((m) => ({ default: m.HowToPage })),
-);
 const CommandPalette = lazy(() =>
   import("@/components/CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
 
-function LazyPage({
-  Page,
-  fallback,
-}: {
-  Page: ComponentType;
-  fallback?: ReactNode;
-}) {
+/** Minimal cold fallback — keeps LoadingPotato / PlaySkeleton off the root chunk. */
+const coldFallback = (label: string) => (
+  <div className="flex flex-1" aria-busy="true" aria-label={label} />
+);
+
+function LazyPage({ Page, fallback }: { Page: ComponentType; fallback?: ReactNode }) {
   return (
-    <Suspense
-      fallback={
-        fallback ?? (
-          <div className="flex flex-1 items-center justify-center p-8">
-            <LoadingPotato />
-          </div>
-        )
-      }
-    >
+    <Suspense fallback={fallback ?? coldFallback("Loading")}>
       <Page />
     </Suspense>
   );
@@ -98,13 +81,52 @@ function DeferredCommandPalette() {
   );
 }
 
+/**
+ * Radix tooltip provider on first pointer/key — keeps tooltip off cold LCP.
+ * IconTooltip no-ops until then.
+ */
+function DeferredTooltipProvider({ children }: { children: ReactNode }) {
+  const [wrap, setWrap] = useState<ComponentType<{ children: ReactNode }> | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const boot = () => {
+      window.removeEventListener("pointerdown", boot);
+      window.removeEventListener("keydown", boot);
+      void import("@/components/ui/tooltip").then((m) => {
+        if (cancelled) return;
+        const Provider = m.TooltipProvider;
+        setWrap(
+          () =>
+            function TipRoot({ children: tipChildren }: { children: ReactNode }) {
+              return (
+                <Provider delayDuration={400} skipDelayDuration={200}>
+                  {tipChildren}
+                </Provider>
+              );
+            },
+        );
+      });
+    };
+    window.addEventListener("pointerdown", boot, { once: true, passive: true });
+    window.addEventListener("keydown", boot, { once: true });
+    return () => {
+      cancelled = true;
+      window.removeEventListener("pointerdown", boot);
+      window.removeEventListener("keydown", boot);
+    };
+  }, []);
+
+  if (!wrap) return children;
+  const TipRoot = wrap;
+  return <TipRoot>{children}</TipRoot>;
+}
+
 function RootLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
-    bind();
     const prefs = loadDevicePrefs();
-    setEnabled(prefs.soundEnabled);
     applyMenuMusicEnabled(prefs.menuMusicEnabled);
     applyTheme(prefs.themePreference);
     applyFontPreference(prefs.fontPreference);
@@ -126,7 +148,7 @@ function RootLayout() {
   }, []);
 
   return (
-    <TooltipProvider delayDuration={400} skipDelayDuration={200}>
+    <DeferredTooltipProvider>
       <HeadContent />
       <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
         <main className="flex min-h-0 flex-1 flex-col">
@@ -134,7 +156,7 @@ function RootLayout() {
         </main>
         <DeferredCommandPalette />
       </div>
-    </TooltipProvider>
+    </DeferredTooltipProvider>
   );
 }
 
@@ -148,15 +170,40 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: HomePage,
-  head: () => pageHead("Lobby"),
+  beforeLoad: () => {
+    // Sync redirect — avoid empty Home paint then client navigate (hurts LCP).
+    if (!loadDevicePrefs().howToSeen) {
+      throw redirect({ to: "/how-to" });
+    }
+  },
+  component: () => <LazyPage Page={HomePage} fallback={coldFallback("Loading lobby")} />,
+  head: () => ({
+    ...pageHead("Lobby"),
+    links: [
+      {
+        rel: "preload",
+        as: "image",
+        href: "/logo-snore.webp",
+        type: "image/webp",
+      },
+    ],
+  }),
 });
 
 const playRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/play",
   validateSearch: (search: Record<string, unknown>) => validatePlaySearch(search),
-  component: () => <LazyPage Page={PlayPage} fallback={<PlaySkeleton />} />,
+  component: () => (
+    <LazyPage
+      Page={PlayPage}
+      fallback={
+        <Suspense fallback={coldFallback("Fluffing the letter cushions")}>
+          <PlaySkeleton />
+        </Suspense>
+      }
+    />
+  ),
   head: () => pageHead("Play"),
 });
 
@@ -191,14 +238,19 @@ const optionsRoute = createRoute({
 const howToRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/how-to",
-  // No LoadingPotato mark — avoids a second mascot fetch before PotatoSnoreSvg.
-  component: () => (
-    <LazyPage
-      Page={HowToPage}
-      fallback={<div className="flex flex-1" aria-busy="true" aria-label="Loading how-to" />}
-    />
-  ),
-  head: () => pageHead("How to play"),
+  // Eager — cold visits redirect here; lazy how-to added a 3G JS waterfall (hurts FCP/LCP).
+  component: HowToPage,
+  head: () => ({
+    ...pageHead("How to play"),
+    links: [
+      {
+        rel: "preload",
+        as: "image",
+        href: "/logo-snore.webp",
+        type: "image/webp",
+      },
+    ],
+  }),
 });
 
 export const routeTree = rootRoute.addChildren([
