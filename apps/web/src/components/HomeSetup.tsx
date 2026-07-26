@@ -7,6 +7,7 @@ import {
   History,
   LayoutGrid,
   Ruler,
+  ShieldBan,
   Sofa,
   Sun,
   Timer,
@@ -17,6 +18,7 @@ import { SURVIVAL_START_SECONDS } from "@couch-potato/game-engine";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { IconTooltip } from "@/components/ui/tooltip";
+import { WordBanInput } from "@/components/WordBanInput";
 
 type Mode = "target" | "timed" | "survival";
 type Topology = "square" | "hex";
@@ -38,12 +40,14 @@ export type HomeSetupProps = {
   minWordLength: MinLen;
   difficulty: Difficulty;
   duration: Duration;
+  blockedWords: string[];
   onMode: (v: Mode) => void;
   onGrid: (v: Grid) => void;
   onTopology: (v: Topology) => void;
   onMinWordLength: (v: MinLen) => void;
   onDifficulty: (v: Difficulty) => void;
   onDuration: (v: Duration) => void;
+  onBlockedWords: (v: string[]) => void;
 };
 
 /** Growth rings vs 4×4 base: outer (newest) = potato gold, mid = soft sage accent. */
@@ -229,12 +233,14 @@ export function HomeSetup({
   minWordLength,
   difficulty,
   duration,
+  blockedWords,
   onMode,
   onGrid,
   onTopology,
   onMinWordLength,
   onDifficulty,
   onDuration,
+  onBlockedWords,
 }: HomeSetupProps) {
   return (
     <div className="cp-lobby-setup flex flex-col gap-5">
@@ -385,94 +391,96 @@ export function HomeSetup({
             </div>
           </section>
 
-          {/* Challenge: difficulty or duration */}
+          {/* Challenge: How hard? always; Timed also picks How long? */}
           <section
             key={mode}
             aria-label={mode === "timed" ? "Sprint" : "Challenge"}
             className="cp-lobby-panel cp-option-swap"
           >
             <div className="mb-3 flex items-end justify-between gap-2">
-              <LobbySectionTitle icon={mode === "timed" ? Timer : Gauge}>
-                {mode === "timed" ? "How long?" : "How hard?"}
-              </LobbySectionTitle>
-              {mode === "timed" ? (
-                <p className="font-body text-xs text-muted-foreground">{duration}s sprint</p>
-              ) : mode === "survival" ? (
+              <LobbySectionTitle icon={Gauge}>How hard?</LobbySectionTitle>
+              {mode === "survival" ? (
                 <p className="font-body text-xs text-muted-foreground">
                   {SURVIVAL_START_SECONDS[difficulty]}s start clock
                 </p>
               ) : null}
             </div>
 
-            {mode !== "timed" ? (
-              <div
-                role="group"
-                aria-label="Challenge"
-                className="cp-lobby-choice-row cp-lobby-choice-row-3 gap-2"
-              >
-                {DIFFICULTY.map(({ value, label, hint, Icon }) => {
-                  const active = difficulty === value;
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      aria-pressed={active}
-                      aria-label={`${label}: ${hint}`}
-                      onClick={() => onDifficulty(value)}
+            <div
+              role="group"
+              aria-label="Challenge"
+              className="cp-lobby-choice-row cp-lobby-choice-row-3 gap-2"
+            >
+              {DIFFICULTY.map(({ value, label, hint, Icon }) => {
+                const active = difficulty === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={active}
+                    aria-label={`${label}: ${hint}`}
+                    onClick={() => onDifficulty(value)}
+                    className={cn(
+                      "cp-lobby-challenge flex min-w-0 flex-col items-center gap-1 px-1 py-2.5",
+                      active && "cp-lobby-challenge-active cp-select-pop",
+                      active && value === "hard" && "cp-lobby-challenge-hard",
+                    )}
+                  >
+                    <span
                       className={cn(
-                        "cp-lobby-challenge flex min-w-0 flex-col items-center gap-1 px-1 py-2.5",
-                        active && "cp-lobby-challenge-active cp-select-pop",
-                        active && value === "hard" && "cp-lobby-challenge-hard",
+                        "cp-lobby-glyph text-muted-foreground",
+                        active &&
+                          (value === "hard" ? "text-secondary-foreground" : "text-secondary"),
                       )}
+                      aria-hidden
                     >
-                      <span
+                      <Icon
+                        className="size-5"
+                        strokeWidth={2.25}
+                        fill={active ? "currentColor" : "none"}
+                        fillOpacity={active ? 0.22 : 0}
+                      />
+                    </span>
+                    <span className="font-display text-sm font-bold">{label}</span>
+                    <span className="font-body text-center text-[0.65rem] leading-tight text-muted-foreground [overflow-wrap:anywhere]">
+                      {hint}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {mode === "timed" ? (
+              <div className="mt-4">
+                <div className="mb-3 flex items-end justify-between gap-2">
+                  <LobbySectionTitle icon={Timer}>How long?</LobbySectionTitle>
+                  <p className="font-body text-xs text-muted-foreground">{duration}s sprint</p>
+                </div>
+                <div
+                  role="group"
+                  aria-label="Sprint length"
+                  className="cp-lobby-choice-row cp-lobby-choice-row-4 gap-2"
+                >
+                  {DURATIONS.map((s) => {
+                    const active = duration === s;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => onDuration(s)}
                         className={cn(
-                          "cp-lobby-glyph text-muted-foreground",
-                          active &&
-                            (value === "hard" ? "text-secondary-foreground" : "text-secondary"),
+                          "cp-lobby-challenge flex min-w-0 items-center justify-center py-3 font-display text-sm font-bold tabular-nums leading-none",
+                          active && "cp-lobby-challenge-active cp-select-pop",
                         )}
-                        aria-hidden
                       >
-                        <Icon
-                          className="size-5"
-                          strokeWidth={2.25}
-                          fill={active ? "currentColor" : "none"}
-                          fillOpacity={active ? 0.22 : 0}
-                        />
-                      </span>
-                      <span className="font-display text-sm font-bold">{label}</span>
-                      <span className="font-body text-center text-[0.65rem] leading-tight text-muted-foreground [overflow-wrap:anywhere]">
-                        {hint}
-                      </span>
-                    </button>
-                  );
-                })}
+                        {s}s
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            ) : (
-              <div
-                role="group"
-                aria-label="Sprint length"
-                className="cp-lobby-choice-row cp-lobby-choice-row-4 gap-2"
-              >
-                {DURATIONS.map((s) => {
-                  const active = duration === s;
-                  return (
-                    <button
-                      key={s}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => onDuration(s)}
-                      className={cn(
-                        "cp-lobby-challenge flex min-w-0 items-center justify-center py-3 font-display text-sm font-bold tabular-nums leading-none",
-                        active && "cp-lobby-challenge-active cp-select-pop",
-                      )}
-                    >
-                      {s}s
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            ) : null}
           </section>
         </div>
 
@@ -528,6 +536,16 @@ export function HomeSetup({
                 );
               })}
             </div>
+          </section>
+
+          <section aria-label="Ban list" className="cp-lobby-panel">
+            <div className="mb-3 flex flex-col gap-0.5">
+              <LobbySectionTitle icon={ShieldBan}>Ban list</LobbySectionTitle>
+              <p className="font-body text-xs text-muted-foreground">
+                Keep these off new boards and swipes
+              </p>
+            </div>
+            <WordBanInput words={blockedWords} onChange={onBlockedWords} />
           </section>
         </aside>
       </div>

@@ -18,7 +18,7 @@ function historyLabel(h: GameHistoryEntry) {
   if (h.mode === "survival") {
     return `${h.grid}×${h.grid} survival ${h.difficulty ?? "?"} · ${h.minWordLength}+`;
   }
-  return `${h.grid}×${h.grid} ${h.duration ?? "?"}s · ${h.minWordLength}+`;
+  return `${h.grid}×${h.grid} ${h.difficulty ?? "?"} · ${h.duration ?? "?"}s · ${h.minWordLength}+`;
 }
 
 function StatCard({
@@ -96,11 +96,11 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
                 className="py-2"
               />
             ) : (
-              <View>
+              <div className="cp-crew-board-scroll">
                 {highs.map((h) => (
                   <View
                     key={h.key}
-                    className="mb-2 rounded-ui border-2 border-border bg-card px-3 py-2"
+                    className="mb-2 rounded-ui border-2 border-border bg-card px-3 py-2 last:mb-0"
                   >
                     <View className="flex-row items-center justify-between">
                       <Text className="flex-1 font-body text-sm text-foreground">{h.label}</Text>
@@ -111,7 +111,7 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
                     </Text>
                   </View>
                 ))}
-              </View>
+              </div>
             )}
           </View>
 
@@ -127,7 +127,7 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
                 className="py-2"
               />
             ) : (
-              <div className="cp-crew-recent-scroll">
+              <div className="cp-crew-board-scroll">
                 {recent.map((h) => (
                   <View
                     key={h.id}

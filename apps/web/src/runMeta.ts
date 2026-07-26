@@ -11,18 +11,16 @@ export function formatDifficulty(d: "easy" | "medium" | "hard"): string {
   return d === "easy" ? "Easy" : d === "medium" ? "Medium" : "Hard";
 }
 
-/** Compact HUD chip: difficulty for Goal/Survival, duration for Timed. */
+/** Compact HUD chip: Easy / Medium / Hard for every mode (Timed duration lives on the ring). */
 export function formatRunChallengeBadge(run: RunMetaInput): string {
-  if (run.mode === "timed") return `${run.duration ?? 60}s`;
   return formatDifficulty(run.difficulty ?? "easy");
 }
 
-/** Results line under the haul: mode · challenge · min length. */
+/** Results line under the haul: mode · challenge · (duration) · min length. */
 export function formatRunMeta(run: RunMetaInput): string {
   const min = `${run.minWordLength ?? 3}+`;
-  if (run.mode === "timed") return `Timed · ${run.duration ?? 60}s · ${min}`;
-  if (run.mode === "survival") {
-    return `Survival · ${formatDifficulty(run.difficulty ?? "easy")} · ${min}`;
-  }
-  return `Goal · ${formatDifficulty(run.difficulty ?? "easy")} · ${min}`;
+  const diff = formatDifficulty(run.difficulty ?? "easy");
+  if (run.mode === "timed") return `Timed · ${diff} · ${run.duration ?? 60}s · ${min}`;
+  if (run.mode === "survival") return `Survival · ${diff} · ${min}`;
+  return `Goal · ${diff} · ${min}`;
 }

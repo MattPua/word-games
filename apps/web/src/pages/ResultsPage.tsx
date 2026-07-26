@@ -69,7 +69,11 @@ export function ResultsPage() {
   );
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
 
-  const celebratory = run != null && (run.reason === "won" || run.isHighScore);
+  // Win / high score / timeout get the full results curtain call; quit still
+  // gets hero pop-in + haul count-up (softer, no confetti spam on intentional End run).
+  const celebratory =
+    run != null && (run.reason === "won" || run.isHighScore || run.reason === "timeout");
+  const showCelebrateMark = celebratory || (run != null && run.score > 0);
   const topology = (run?.topology ?? "square") as GridTopology;
   const letters = run?.letters;
   const hasBoard = Boolean(letters && letters.length > 0);
@@ -133,7 +137,7 @@ export function ResultsPage() {
           mark={
             <View className="cp-pop-in">
               <View className="cp-logo-float">
-                {celebratory ? <LogoCelebrate size={96} /> : <Logo size={96} />}
+                {showCelebrateMark ? <LogoCelebrate size={96} /> : <Logo size={96} />}
               </View>
             </View>
           }
@@ -146,7 +150,9 @@ export function ResultsPage() {
         </View>
         <View className="cp-results-haul cp-pop-in">
           <View
-            className={`cp-results-haul-tag ${run.isHighScore ? "cp-results-haul-tag-gold" : celebratory ? "cp-results-haul-tag-gold" : ""}`}
+            className={`cp-results-haul-tag ${
+              run.isHighScore || run.reason === "won" ? "cp-results-haul-tag-gold" : ""
+            }`}
           >
             <Text
               className={`font-display text-5xl font-bold tabular-nums text-foreground ${

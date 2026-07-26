@@ -70,8 +70,32 @@ export type DevicePrefs = {
   themePreference: ThemePreference;
   /** Default clean (Lexend display); pixel = Jersey 15. Body/tiles stay Lexend either way. */
   fontPreference: FontPreference;
+  /**
+   * Extra house-ban tokens (lowercase a–z, ≥3). Device-local; snapshotted into the
+   * play lexicon at run start so mid-edit never touches an open haul.
+   */
+  customBlockedWords: string[];
   activeProfileId: string;
 };
+
+/** Soft cap so lobby pills stay usable. */
+export const CUSTOM_BLOCK_CAP = 32;
+
+export function normalizeCustomBlockedWords(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (typeof item !== "string") continue;
+    const w = item.trim().toLowerCase();
+    if (!/^[a-z]+$/.test(w) || w.length < 3) continue;
+    if (seen.has(w)) continue;
+    seen.add(w);
+    out.push(w);
+    if (out.length >= CUSTOM_BLOCK_CAP) break;
+  }
+  return out;
+}
 
 function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string }): DevicePrefs {
   return {
@@ -80,6 +104,7 @@ function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string
     showWordsLeft: prefs.showWordsLeft ?? false,
     themePreference: prefs.themePreference ?? "system",
     fontPreference: prefs.fontPreference === "pixel" ? "pixel" : "clean",
+    customBlockedWords: normalizeCustomBlockedWords(prefs.customBlockedWords),
     activeProfileId: prefs.activeProfileId ?? "",
   };
 }
@@ -156,6 +181,7 @@ export function defaultBlob(): StoredBlob {
       showWordsLeft: false,
       themePreference: "system",
       fontPreference: "clean",
+      customBlockedWords: [],
       activeProfileId: id,
     },
   };
@@ -334,6 +360,13 @@ export function setThemePreference(pref: ThemePreference) {
 export function setFontPreference(pref: FontPreference) {
   const store = loadStore();
   store.prefs.fontPreference = pref;
+  saveStore(store);
+}
+
+/** Replace the device house-ban list (normalized + capped). */
+export function setCustomBlockedWords(words: string[]) {
+  const store = loadStore();
+  store.prefs.customBlockedWords = normalizeCustomBlockedWords(words);
   saveStore(store);
 }
 
@@ -619,8 +652,16 @@ export function loadLaunch(): PlayLaunch {
 /** Human label from engine highScoreKey (strips profile id prefix). */
 export function formatHighScoreLabel(scoreKey: string): string {
   const parts = scoreKey.split(":");
-  // profileId:size:topology:target|survival:difficulty:minN  OR  …:timed:duration:minN
-  // Legacy (no topology): profileId:size:target:…
+  // Current: profileId:size:topology:target|survival:difficulty:minN
+  //          …:timed:duration:difficulty:minN
+  // Legacy timed (no difficulty): …:timed:duration:minN
+  // Legacy (no topology): profileId:size:mode:…
+  if (parts.length >= 7 && parts[3] === "timed") {
+    const [, size, topology, , duration, difficulty, minPart] = parts;
+    const min = (minPart ?? "").replace(/^min/, "") || "?";
+    const shape = topology === "hex" ? "Honeycomb" : "square";
+    return `${size}×${size} ${shape} · Timed · ${difficulty} · ${duration}s · ${min}+`;
+  }
   if (parts.length >= 6) {
     const [, size, topology, mode, detail, minPart] = parts;
     const min = (minPart ?? "").replace(/^min/, "") || "?";

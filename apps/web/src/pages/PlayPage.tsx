@@ -25,7 +25,8 @@ import {
   Shell,
   type Cell,
 } from "@couch-potato/ui";
-import { getDictionary } from "@couch-potato/dictionary";
+import { dictionaryWithoutWords, getDictionary } from "@couch-potato/dictionary";
+import type { Dictionary } from "@couch-potato/dictionary";
 import { PlaySkeleton } from "@/components/PlaySkeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { IconTooltip } from "@/components/ui/tooltip";
 import { PrefChoiceGroup } from "@/components/PrefChoiceGroup";
+import { TimerRing } from "@/components/TimerRing";
 import {
   createGame,
   generateBoard,
@@ -79,13 +81,17 @@ import { applyTheme, resolveTheme } from "../theme";
 import { playAcceptedWordSound } from "../wordAcceptSound";
 import { formatRunChallengeBadge, formatRunMeta } from "../runMeta";
 import { playLaunchFromSearch } from "../playLaunchSearch";
+import { playRunEndSound, runEndPill, type RunEndReason } from "../runEndFlourish";
 
 const playRouteApi = getRouteApi("/play");
 
-const WIN_FLOURISH_MS = 1300;
+/** Board tile-drop + confetti hold before Results (won / timeout / quit). */
+const END_FLOURISH_MS = 1300;
 const BOARD_CLEAR_FLASH_MS = 1400;
 /** Must match `.cp-board-spin.is-turning` in `apps/web/src/index.css`. */
 const BOARD_SPIN_MS = 300;
+/** End/Leave within this window after board ready → lobby, no haul recorded. */
+const EARLY_QUIT_MS = 3000;
 
 const REJECT_FLASH: Record<"short" | "invalid" | "duplicate", string> = {
   short: "Too short",
@@ -123,7 +129,8 @@ function timerBaselineSeconds(config: GameConfig): number | null {
 
 export function PlayPage() {
   const navigate = useNavigate();
-  const dict = useMemo(() => getDictionary(), []);
+  /** Per-run lexicon (house bans snapshotted at beginFreshRun — not live prefs). */
+  const dictRef = useRef<Dictionary>(getDictionary());
   const search = playRouteApi.useSearch();
   const launch = useMemo(() => {
     const next = playLaunchFromSearch(search);
@@ -140,7 +147,9 @@ export function PlayPage() {
   );
   const lastFoundIdRef = useRef(0);
   const [firstWord, setFirstWord] = useState(true);
-  const [celebrate, setCelebrate] = useState(false);
+  /** Non-null while the end-run curtain call plays (tiles drop + confetti). */
+  const [endBeat, setEndBeat] = useState<RunEndReason | null>(null);
+  const celebrate = endBeat != null;
   const prefs = useMemo(() => loadDevicePrefs(), []);
   const [sound, setSound] = useState(prefs.soundEnabled);
   const [menuMusic, setMenuMusic] = useState(prefs.menuMusicEnabled);
@@ -157,9 +166,14 @@ export function PlayPage() {
   const rotateStepsRef = useRef<1 | -1>(1);
   const hudSignalRef = useRef<{ remaining: number | null; score: number } | null>(null);
   const timerUrgencyRef = useRef<0 | 1 | 2>(0);
+  /** Wall-clock when board became ready (`beginFreshRun`); 0 = not started. */
+  const runStartedAtRef = useRef(0);
   /** Open run in progress — leave dumps the haul (no results). Finish → /results is allowed. */
   const runActiveRef = useRef(false);
   runActiveRef.current = Boolean(state && !state.ended);
+
+  const isEarlyBail = () =>
+    runStartedAtRef.current > 0 && performance.now() - runStartedAtRef.current < EARLY_QUIT_MS;
 
   const shouldBlockLeave = useCallback(
     ({
@@ -187,6 +201,17 @@ export function PlayPage() {
   const leavePromptOpen = leaveBlocker.status === "blocked";
   /** Clock freeze for Couch break or leave-run confirm (without opening Couch break UI). */
   const clockPaused = paused || leavePromptOpen;
+
+  /** Misclick grace: discard run, skip results/medals, back to lobby. */
+  const bailToLobby = () => {
+    finished.current = true;
+    runStartedAtRef.current = 0;
+    runActiveRef.current = false;
+    setPaused(false);
+    setState(null);
+    leaveBlocker.reset?.();
+    navigate({ to: "/" });
+  };
   /** Survival: total clock ever granted (start + all refills) so we can derive time survived at the end. */
   const survivalBudgetMsRef = useRef(0);
   /** Goal: wall-clock active play (pause excluded) for Potato Board WPM. */
@@ -238,34 +263,37 @@ export function PlayPage() {
 
   /** New board + clock from lobby launch prefs. Does not record the abandoned run. */
   const beginFreshRun = () => {
+    const dict = dictionaryWithoutWords(
+      getDictionary(),
+      loadDevicePrefs().customBlockedWords,
+    );
+    dictRef.current = dict;
     const minWordLength = (launch.minWordLength ?? 3) as MinWordLength;
+    const difficulty = launch.difficulty ?? "easy";
     const board = generateBoard({
       size: launch.grid,
       dict,
       topology,
       minWordLength,
-      // Timed has no difficulty knob — generateBoard defaults to a medium letter mix.
-      difficulty:
-        launch.mode === "target" || launch.mode === "survival"
-          ? (launch.difficulty ?? "easy")
-          : undefined,
+      difficulty,
     });
     const config: GameConfig =
       launch.mode === "target"
         ? {
             mode: "target" as const,
-            difficulty: launch.difficulty ?? "easy",
+            difficulty,
             minWordLength,
           }
         : launch.mode === "survival"
           ? {
               mode: "survival" as const,
-              difficulty: launch.difficulty ?? "easy",
+              difficulty,
               minWordLength,
             }
           : {
               mode: "timed" as const,
               duration: launch.duration ?? 60,
+              difficulty,
               minWordLength,
             };
     survivalBudgetMsRef.current =
@@ -282,6 +310,7 @@ export function PlayPage() {
       topology: board.topology,
       size: board.size,
     });
+    runStartedAtRef.current = performance.now();
   };
 
   const restartRun = () => {
@@ -295,7 +324,7 @@ export function PlayPage() {
     setFlash("");
     setLastFound(null);
     setFirstWord(true);
-    setCelebrate(false);
+    setEndBeat(null);
     setBoardTurnDeg(0);
     setBoardTurning(false);
     setHudPulse(false);
@@ -316,7 +345,7 @@ export function PlayPage() {
       cancelled = true;
       window.clearTimeout(genId);
     };
-  }, [dict, launch, topology]);
+  }, [launch, topology]);
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -447,8 +476,7 @@ export function PlayPage() {
   const finish = async (s: GameState) => {
     const profile = getActiveProfile();
     const key = highScoreKey(profile.id, s.board.size, s.config, s.board.topology);
-    const difficulty =
-      s.config.mode === "target" || s.config.mode === "survival" ? s.config.difficulty : undefined;
+    const difficulty = s.config.difficulty;
     const survivalDurationMs =
       s.config.mode === "survival" ? survivalBudgetMsRef.current - (s.remainingMs ?? 0) : undefined;
     // Flush any in-flight Goal tick before reading wall-clock.
@@ -481,7 +509,7 @@ export function PlayPage() {
       survivalDurationMs,
       activePlayMs,
     });
-    const missed = missedLongWords(s, dict);
+    const missed = missedLongWords(s, dictRef.current);
     const detail = formatRunMeta({
       mode: s.config.mode,
       difficulty,
@@ -513,17 +541,11 @@ export function PlayPage() {
       words: s.found.length,
     });
 
-    if (s.ended === "won") {
-      setCelebrate(true);
-      // Board-clear SFX already covered sparkle/bloom/ready — keep confetti only.
-      if (!boardClearedRef.current) {
-        play("bloom");
-        window.setTimeout(() => play("sparkle"), 180);
-      }
-      await new Promise((r) => window.setTimeout(r, WIN_FLOURISH_MS));
-    } else {
-      play("ready");
-    }
+    // Every finish gets the same curtain call (tile drop + confetti + pill), not
+    // only Goal wins — timeout/quit are big loop beats too.
+    setEndBeat(s.ended!);
+    playRunEndSound(s.ended!, { boardAlreadyCleared: boardClearedRef.current });
+    await new Promise((r) => window.setTimeout(r, END_FLOURISH_MS));
 
     navigate({ to: "/results" });
   };
@@ -541,10 +563,7 @@ export function PlayPage() {
   const boardLocked = celebrate || boardTurning || paused || leavePromptOpen;
   const challengeBadge = formatRunChallengeBadge({
     mode: state.config.mode,
-    difficulty:
-      state.config.mode === "target" || state.config.mode === "survival"
-        ? state.config.difficulty
-        : undefined,
+    difficulty: state.config.difficulty,
     duration: state.config.mode === "timed" ? state.config.duration : undefined,
   });
   const heatProgress =
@@ -553,11 +572,19 @@ export function PlayPage() {
   const timerBaselineSec = timerBaselineSeconds(state.config);
   const timerUrgency =
     secs != null && timerBaselineSec != null ? hudTimerUrgency(secs, timerBaselineSec) : 0;
+  const timerTotalMs =
+    state.remainingMs == null
+      ? 0
+      : state.config.mode === "timed"
+        ? state.config.duration * 1000
+        : Math.max(
+            SURVIVAL_START_SECONDS[state.config.difficulty] * 1000,
+            survivalBudgetMsRef.current,
+            state.remainingMs,
+          );
   const hudBubbleClass = [
     "cp-hud-bubble",
     heatTier > 0 ? `cp-hud-heat-${heatTier}` : "",
-    timerUrgency === 1 ? "cp-hud-timer-warn" : "",
-    timerUrgency === 2 ? "cp-hud-timer-critical" : "",
     hudPulse ? "is-pulsing" : "",
   ]
     .filter(Boolean)
@@ -625,7 +652,7 @@ export function PlayPage() {
 
   return (
     <Shell className="relative overflow-hidden cp-fade-up">
-      <ConfettiBurst active={celebrate} durationMs={WIN_FLOURISH_MS} />
+      <ConfettiBurst active={celebrate} durationMs={END_FLOURISH_MS} />
 
       {/* One calm top row: primary status + optional words-left count + icon cluster */}
       <View className="mb-3 flex-row items-center justify-between gap-3">
@@ -639,14 +666,14 @@ export function PlayPage() {
             >
               <Text style={{ color: "inherit" }}>{remaining} pts left</Text>
             </View>
-          ) : secs != null ? (
+          ) : secs != null && state.remainingMs != null ? (
             <View className="relative shrink-0">
-              <View
-                className={`${hudBubbleClass} cp-hud-bubble-timer`}
-                accessibilityLabel={`${secs} seconds left`}
-              >
-                <Text style={{ color: "inherit" }}>{secs}s</Text>
-              </View>
+              <TimerRing
+                remainingMs={state.remainingMs}
+                totalMs={timerTotalMs}
+                urgency={timerUrgency}
+                pulsing={hudPulse}
+              />
               {survivalBump ? (
                 <span
                   key={survivalBump.id}
@@ -698,7 +725,7 @@ export function PlayPage() {
       )}
 
       <ScoreBubble
-        word={celebrate ? "Couch clear!" : currentWord || flash}
+        word={endBeat ? runEndPill(endBeat, state.config.mode) : currentWord || flash}
         hint={
           remaining != null
             ? `Clear the couch · ${state.config.minWordLength}+`
@@ -725,7 +752,7 @@ export function PlayPage() {
             ? undefined
             : (p) => {
                 if (rotatingRef.current) return;
-                const { state: next, result } = submitPath(state, p, dict);
+                const { state: next, result } = submitPath(state, p, dictRef.current);
                 setPath([]);
                 if (result.ok) {
                   track("word_found", {
@@ -854,7 +881,13 @@ export function PlayPage() {
               variant="ghost"
               className="cp-end-run-btn min-w-0 flex-1 justify-center gap-2 sm:flex-none"
               data-testid="leave-run-confirm"
-              onClick={() => leaveBlocker.proceed?.()}
+              onClick={() => {
+                if (isEarlyBail()) {
+                  bailToLobby();
+                  return;
+                }
+                leaveBlocker.proceed?.();
+              }}
             >
               Leave run
             </Button>
@@ -889,7 +922,7 @@ export function PlayPage() {
 
           <div className="flex flex-col gap-3">
             <PrefChoiceGroup
-              label="SFX"
+              label="Sound effects"
               value={sound ? "on" : "off"}
               onChange={(v) => setSoundOn(v === "on")}
               data-testid="pause-sfx"
@@ -935,6 +968,10 @@ export function PlayPage() {
                   className="cp-end-run-btn min-w-0 flex-1 justify-center gap-2"
                   data-testid="end-run"
                   onClick={() => {
+                    if (isEarlyBail()) {
+                      bailToLobby();
+                      return;
+                    }
                     closePause();
                     setState(quitGame(state));
                   }}

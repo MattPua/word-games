@@ -1,9 +1,11 @@
 import { PotatoSprite, Shell } from "@couch-potato/ui";
 import {
   getActiveProfile,
+  loadDevicePrefs,
   loadLastRun,
   loadLaunch,
   saveLaunch,
+  setCustomBlockedWords,
   type PlayLaunch,
 } from "../storage";
 import { useNavigate } from "@tanstack/react-router";
@@ -26,6 +28,9 @@ export function HomePage() {
   const [minWordLength, setMinWordLength] = useState(lobby.minWordLength ?? 3);
   const [difficulty, setDifficulty] = useState(lobby.difficulty ?? "easy");
   const [duration, setDuration] = useState(lobby.duration ?? 60);
+  const [blockedWords, setBlockedWords] = useState(
+    () => loadDevicePrefs().customBlockedWords,
+  );
   const hasLastResults = loadLastRun() != null;
 
   // Warm play chunk + ENABLE lexicon while the lobby sits idle — Play click
@@ -45,11 +50,16 @@ export function HomePage() {
     return () => window.clearTimeout(t);
   }, []);
 
+  const onBlockedWords = (next: string[]) => {
+    setBlockedWords(next);
+    setCustomBlockedWords(next);
+  };
+
   const play = () => {
     void prefetchPlayPage();
     const launch: PlayLaunch =
       mode === "timed"
-        ? { mode, grid, topology, duration, minWordLength }
+        ? { mode, grid, topology, duration, difficulty, minWordLength }
         : { mode, grid, topology, difficulty, minWordLength };
     saveLaunch(launch);
     track("game_started", { mode, grid, topology, minWordLength });
@@ -82,12 +92,14 @@ export function HomePage() {
             minWordLength={minWordLength}
             difficulty={difficulty}
             duration={duration}
+            blockedWords={blockedWords}
             onMode={setMode}
             onGrid={setGrid}
             onTopology={setTopology}
             onMinWordLength={setMinWordLength}
             onDifficulty={setDifficulty}
             onDuration={setDuration}
+            onBlockedWords={onBlockedWords}
           />
           <div className="h-4" aria-hidden />
         </Shell>

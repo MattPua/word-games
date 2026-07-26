@@ -3,7 +3,7 @@
  *
  * Examples:
  *   /play?mode=goal&grid=5&board=hex&diff=hard&min=4
- *   /play?mode=timed&grid=4&board=square&time=90&min=3
+ *   /play?mode=timed&grid=4&board=square&time=90&diff=medium&min=3
  *   /play?mode=survival&grid=6&board=hex&diff=easy&min=3
  *
  * `mode=goal` is the share spelling for engine `target` (lobby card name).
@@ -97,7 +97,11 @@ export function playSearchFromLaunch(launch: PlayLaunch): PlaySearch {
     min: (n.minWordLength ?? 3) as PlaySearch["min"],
   };
   if (n.mode === "timed") {
-    return { ...base, time: (n.duration ?? 60) as PlaySearch["time"] };
+    return {
+      ...base,
+      time: (n.duration ?? 60) as PlaySearch["time"],
+      diff: (n.difficulty ?? "medium") as NonNullable<PlaySearch["diff"]>,
+    };
   }
   return { ...base, diff: (n.difficulty ?? "easy") as NonNullable<PlaySearch["diff"]> };
 }

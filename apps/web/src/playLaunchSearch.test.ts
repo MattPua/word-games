@@ -30,6 +30,7 @@ describe("playLaunchSearch", () => {
       grid: 4,
       topology: "square",
       duration: 90,
+      difficulty: "medium",
       minWordLength: 3,
     });
     expect(playSearchFromLaunch(timed)).toEqual({
@@ -38,6 +39,7 @@ describe("playLaunchSearch", () => {
       board: "square",
       min: 3,
       time: 90,
+      diff: "medium",
     });
     expect(playLaunchFromSearch(playSearchFromLaunch(timed))).toEqual(timed);
   });

@@ -216,19 +216,7 @@
     box-shadow: 0 2px 14px color-mix(in srgb, var(--secondary) 28%, transparent);
   }
 
-  /* Timed HUD urgency — destructive terracotta when clock runs low */
-  .cp-hud-bubble.cp-hud-timer-warn {
-    background: color-mix(in srgb, var(--destructive) 12%, var(--hud-bubble));
-    border-color: color-mix(in srgb, var(--destructive) 32%, var(--border));
-    color: var(--destructive);
-  }
-
-  .cp-hud-bubble.cp-hud-timer-critical {
-    background: color-mix(in srgb, var(--destructive) 22%, var(--card));
-    border-color: color-mix(in srgb, var(--destructive) 50%, var(--border));
-    color: var(--destructive);
-    box-shadow: 0 2px 12px color-mix(in srgb, var(--destructive) 24%, transparent);
-  }
+  /* Timed HUD urgency lived on the pill; Timed/Survival now use `.cp-timer-ring-*`. */
 
   @keyframes cp-hud-pulse {
     0%,
@@ -523,6 +511,36 @@
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--secondary) 35%, transparent);
   }
 
+  .cp-word-ban-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    max-width: 100%;
+    border-radius: var(--radius);
+    border: 2px solid color-mix(in srgb, var(--destructive) 35%, var(--border));
+    background: color-mix(in srgb, var(--destructive) 12%, var(--card));
+    color: var(--foreground);
+    padding: 0.2rem 0.2rem 0.2rem 0.45rem;
+  }
+
+  .cp-word-ban-tag-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: calc(var(--radius) - 1px);
+    color: var(--muted-foreground);
+    transition:
+      background-color 140ms ease,
+      color 140ms ease;
+  }
+
+  .cp-word-ban-tag-x:hover {
+    background: color-mix(in srgb, var(--destructive) 18%, transparent);
+    color: var(--destructive);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .cp-word-chip-interactive {
       transition: none;
@@ -608,9 +626,79 @@
     line-height: 1;
   }
 
-  /* Timer pills: reserve width so 9s → 99s → 999s doesn't shove the challenge badge. */
-  .cp-hud-bubble-timer {
-    min-width: 5.25rem;
+  /*
+   * Timed / Survival clock — circular arc drains as time falls; terracotta when low.
+   * Fixed 44px box (matches icon-btn) so digit growth never layout-shifts the HUD.
+   */
+  .cp-timer-ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    color: var(--foreground);
+  }
+
+  .cp-timer-ring-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .cp-timer-ring-track {
+    stroke: color-mix(in srgb, var(--border) 85%, var(--muted));
+  }
+
+  .cp-timer-ring-arc {
+    stroke: var(--path);
+    transition:
+      stroke-dashoffset 250ms linear,
+      stroke 380ms ease;
+  }
+
+  .cp-timer-ring-label {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: var(--font-display-tracking, -0.01em);
+    color: inherit;
+  }
+
+  .cp-timer-ring-warn {
+    color: var(--destructive);
+  }
+
+  .cp-timer-ring-warn .cp-timer-ring-arc {
+    stroke: color-mix(in srgb, var(--destructive) 78%, var(--path));
+  }
+
+  .cp-timer-ring-critical {
+    color: var(--destructive);
+  }
+
+  .cp-timer-ring-critical .cp-timer-ring-arc {
+    stroke: var(--destructive);
+  }
+
+  .cp-timer-ring-critical .cp-timer-ring-track {
+    stroke: color-mix(in srgb, var(--destructive) 28%, var(--border));
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cp-timer-ring.is-pulsing {
+      animation: cp-hud-pulse 0.42s cubic-bezier(0.34, 1.35, 0.64, 1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cp-timer-ring-arc {
+      transition: stroke 380ms ease;
+    }
   }
 
   /* Survival refill — absolute beside the clock (out of flow) so +Ns never layout-shifts HUD.
@@ -694,7 +782,8 @@
   .cp-lobby-chip,
   .cp-lobby-challenge {
     border-radius: var(--radius);
-    border: 2px solid transparent;
+    /* Visible idle border — transparent made selected cards look taller on cream/dark. */
+    border: 2px solid var(--border);
     background: var(--muted);
     color: var(--foreground);
     transition:
@@ -1323,10 +1412,12 @@
   display: grid;
   min-width: 0;
   width: 100%;
+  align-items: stretch;
 }
 
 .cp-lobby-choice-row > * {
   min-width: 0;
+  height: 100%;
 }
 
 .cp-lobby-choice-row-2 {
@@ -1483,8 +1574,8 @@
   }
 }
 
-/* Recent runs — capped height so Couch crew doesn’t grow forever (last 20). */
-.cp-crew-recent-scroll {
+/* Potato Board lists — capped height so Couch crew doesn’t grow forever. */
+.cp-crew-board-scroll {
   max-height: min(40vh, 22rem);
   overflow-x: clip;
   overflow-y: auto;
@@ -1495,16 +1586,16 @@
   scrollbar-color: color-mix(in srgb, var(--muted-foreground) 42%, transparent) transparent;
 }
 
-.cp-crew-recent-scroll::-webkit-scrollbar {
+.cp-crew-board-scroll::-webkit-scrollbar {
   width: 6px;
 }
 
-.cp-crew-recent-scroll::-webkit-scrollbar-thumb {
+.cp-crew-board-scroll::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: color-mix(in srgb, var(--muted-foreground) 42%, transparent);
 }
 
-.cp-crew-recent-scroll::-webkit-scrollbar-track {
+.cp-crew-board-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
