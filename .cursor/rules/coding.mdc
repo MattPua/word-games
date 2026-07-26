@@ -5,7 +5,8 @@ alwaysApply: true
 
 # Coding
 
-- **TPP DRY**: one authoritative place per piece of knowledge (game rules in engine, theme in `packages/ui`). Knowledge/intent — not line-dedupe.
+- **TPP DRY**: one authoritative place per piece of knowledge (game rules in engine, theme + shared UI in `packages/ui`). Knowledge/intent — not line-dedupe.
+- **UI package ownership (hard):** reusable presentational components → `packages/ui`. `apps/web/src/components` is **not** a second UI kit — only shadcn under `components/ui/` + app/route composition. See `AGENTS.md` Stack + `.cursor/rules/ui.mdc`.
 - No over-abstraction, no one-export files, no layers “for later.”
 - **Bun** workspaces with a root **`catalog`** for shared dependency versions (`"pkg": "catalog:"` in workspace package.json — don’t repeat the same version pins).
 - **Vite (web):** lucide barrel imports are rewritten to per-icon paths at build/dev (`apps/web/vite.lucide-optimize.ts`) — keep `from "lucide-react"` in source; see `AGENTS.md` Vite / lucide.
@@ -13,6 +14,6 @@ alwaysApply: true
 - **Vitest** for engine/dictionary.
 - Engine owns adjacency, scoring, targets, gen thresholds, accept/reject. UI displays and wires input.
 - Player-facing copy: game voice (see `ui.mdc` / `AGENTS.md`) — not sterile form labels.
-- **Web images:** prefer **WebP** over PNG when shipping to `apps/web/public` (see `AGENTS.md` Image formats). Pixel art → `bun run sprites:optimize` (sharp lossless + exact); platform-required PNG (`apple-touch-icon`, some OG, PWA `logo.png`) stays PNG.
+- **Web images:** prefer **WebP** over PNG when shipping to `apps/web/public` (see `AGENTS.md` Image formats). Pixel art masters live in **`packages/ui/src/assets/`** → `bun run sprites:optimize` (sharp lossless + exact); platform-required PNG (`apple-touch-icon`, some OG, PWA `logo.png`) stays PNG.
 - Coincidental similar code with different meaning stays separate.
 - **Commits:** Conventional Commits (authoritative detail in `AGENTS.md` Code style) — `feat:`, `fix:`, `docs:`, etc.; optional scope; imperative subject.
