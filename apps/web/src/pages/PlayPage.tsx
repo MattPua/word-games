@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getRouteApi, useBlocker, useNavigate } from "@tanstack/react-router";
 import {
   CirclePlay,
   CircleStop,
@@ -9,6 +9,7 @@ import {
   Moon,
   Music2,
   Pause,
+  RotateCcw,
   RotateCcwSquare,
   RotateCwSquare,
   Sun,
@@ -19,18 +20,19 @@ import { MusicOff } from "@/icons/MusicOff";
 import {
   ConfettiBurst,
   LetterGrid,
-  LoadingPotato,
   ProgressBar,
   ScoreBubble,
   Shell,
   type Cell,
 } from "@couch-potato/ui";
 import { getDictionary } from "@couch-potato/dictionary";
+import { PlaySkeleton } from "@/components/PlaySkeleton";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -62,9 +64,11 @@ import { playBoardClearedSound } from "../boardClearSound";
 import {
   getActiveProfile,
   loadDevicePrefs,
-  loadLaunch,
   recordFinishedRun,
+  saveBoardSnapshot,
   saveLastRun,
+  saveLaunch,
+  cloneLetters,
   setMenuMusicEnabled,
   setShowWordsLeft,
   setSoundEnabled,
@@ -73,6 +77,10 @@ import {
 import { applyMenuMusicEnabled } from "../menuMusic";
 import { applyTheme, resolveTheme } from "../theme";
 import { playAcceptedWordSound } from "../wordAcceptSound";
+import { formatRunChallengeBadge, formatRunMeta } from "../runMeta";
+import { playLaunchFromSearch } from "../playLaunchSearch";
+
+const playRouteApi = getRouteApi("/play");
 
 const WIN_FLOURISH_MS = 1300;
 const BOARD_CLEAR_FLASH_MS = 1400;
@@ -116,7 +124,13 @@ function timerBaselineSeconds(config: GameConfig): number | null {
 export function PlayPage() {
   const navigate = useNavigate();
   const dict = useMemo(() => getDictionary(), []);
-  const launch = useMemo(() => loadLaunch(), []);
+  const search = playRouteApi.useSearch();
+  const launch = useMemo(() => {
+    const next = playLaunchFromSearch(search);
+    saveLaunch(next);
+    return next;
+    // Prefer field deps — search object identity can churn every render.
+  }, [search.mode, search.grid, search.board, search.min, search.diff, search.time]);
   const topology = (launch.topology ?? "square") as GridTopology;
   const [state, setState] = useState<GameState | null>(null);
   const [path, setPath] = useState<Cell[]>([]);
@@ -143,6 +157,36 @@ export function PlayPage() {
   const rotateStepsRef = useRef<1 | -1>(1);
   const hudSignalRef = useRef<{ remaining: number | null; score: number } | null>(null);
   const timerUrgencyRef = useRef<0 | 1 | 2>(0);
+  /** Open run in progress — leave dumps the haul (no results). Finish → /results is allowed. */
+  const runActiveRef = useRef(false);
+  runActiveRef.current = Boolean(state && !state.ended);
+
+  const shouldBlockLeave = useCallback(
+    ({
+      current,
+      next,
+    }: {
+      current: { pathname: string };
+      next: { pathname: string; fullPath: string };
+    }) => {
+      if (!runActiveRef.current) return false;
+      if (next.pathname === "/results" || next.fullPath === "/results") return false;
+      // Search-param sync on the same play URL is not leaving.
+      if (current.pathname === "/play" && next.pathname === "/play") return false;
+      return true;
+    },
+    [],
+  );
+  const enableLeaveBeforeUnload = useCallback(() => runActiveRef.current, []);
+
+  const leaveBlocker = useBlocker({
+    shouldBlockFn: shouldBlockLeave,
+    enableBeforeUnload: enableLeaveBeforeUnload,
+    withResolver: true,
+  });
+  const leavePromptOpen = leaveBlocker.status === "blocked";
+  /** Clock freeze for Couch break or leave-run confirm (without opening Couch break UI). */
+  const clockPaused = paused || leavePromptOpen;
   /** Survival: total clock ever granted (start + all refills) so we can derive time survived at the end. */
   const survivalBudgetMsRef = useRef(0);
   /** Goal: wall-clock active play (pause excluded) for Potato Board WPM. */
@@ -192,7 +236,8 @@ export function PlayPage() {
     window.setTimeout(() => setFlash(""), BOARD_CLEAR_FLASH_MS);
   };
 
-  useEffect(() => {
+  /** New board + clock from lobby launch prefs. Does not record the abandoned run. */
+  const beginFreshRun = () => {
     const minWordLength = (launch.minWordLength ?? 3) as MinWordLength;
     const board = generateBoard({
       size: launch.grid,
@@ -227,7 +272,50 @@ export function PlayPage() {
       config.mode === "survival" ? SURVIVAL_START_SECONDS[config.difficulty] * 1000 : 0;
     goalElapsedMsRef.current = 0;
     goalTickAtRef.current = null;
+    finished.current = false;
+    boardClearedRef.current = false;
+    hudSignalRef.current = null;
+    timerUrgencyRef.current = 0;
     setState(createGame(board, config));
+    saveBoardSnapshot({
+      letters: board.letters,
+      topology: board.topology,
+      size: board.size,
+    });
+  };
+
+  const restartRun = () => {
+    if (rotateFallbackRef.current != null) {
+      window.clearTimeout(rotateFallbackRef.current);
+      rotateFallbackRef.current = null;
+    }
+    rotatingRef.current = false;
+    setPaused(false);
+    setPath([]);
+    setFlash("");
+    setLastFound(null);
+    setFirstWord(true);
+    setCelebrate(false);
+    setBoardTurnDeg(0);
+    setBoardTurning(false);
+    setHudPulse(false);
+    setSurvivalBump(null);
+    // Drop board so PlaySkeleton paints while sync gen holds the thread.
+    setState(null);
+    window.setTimeout(() => beginFreshRun(), 0);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    // Yield so PlaySkeleton can paint before sync board gen holds the main thread.
+    const genId = window.setTimeout(() => {
+      if (cancelled) return;
+      beginFreshRun();
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(genId);
+    };
   }, [dict, launch, topology]);
 
   useEffect(() => {
@@ -284,16 +372,16 @@ export function PlayPage() {
   }, []);
 
   useEffect(() => {
-    if (!state || state.remainingMs == null || state.ended || paused) return;
+    if (!state || state.remainingMs == null || state.ended || clockPaused) return;
     const id = window.setInterval(() => {
       setState((s) => (s ? tickTimer(s, 250) : s));
     }, 250);
     return () => window.clearInterval(id);
-  }, [state?.remainingMs == null, state?.ended, paused]);
+  }, [state?.remainingMs == null, state?.ended, clockPaused]);
 
   // Goal has no engine clock — accumulate wall time while unpaused for WPM.
   useEffect(() => {
-    if (!state || state.ended || paused || state.config.mode !== "target") {
+    if (!state || state.ended || clockPaused || state.config.mode !== "target") {
       goalTickAtRef.current = null;
       return;
     }
@@ -306,7 +394,7 @@ export function PlayPage() {
       goalTickAtRef.current = now;
     }, 250);
     return () => window.clearInterval(id);
-  }, [state?.ended, paused, state?.config.mode]);
+  }, [state?.ended, clockPaused, state?.config.mode]);
 
   useEffect(() => {
     if (!state) return;
@@ -337,7 +425,7 @@ export function PlayPage() {
   }, [state?.remainingMs, state?.config]);
 
   useEffect(() => {
-    if (celebrate || !state || state.ended) return;
+    if (celebrate || !state || state.ended || leavePromptOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.preventDefault();
@@ -348,7 +436,7 @@ export function PlayPage() {
     // Capture so we own Escape (open + close) before Radix dismiss.
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [paused, celebrate, state?.ended, state == null]);
+  }, [paused, celebrate, state?.ended, state == null, leavePromptOpen]);
 
   useEffect(() => {
     if (!state?.ended || finished.current) return;
@@ -394,12 +482,12 @@ export function PlayPage() {
       activePlayMs,
     });
     const missed = missedLongWords(s, dict);
-    const detail =
-      s.config.mode === "target"
-        ? `${s.config.difficulty} · ${s.config.minWordLength}+`
-        : s.config.mode === "survival"
-          ? `Survival · ${s.config.difficulty} · ${s.config.minWordLength}+`
-          : `${s.config.duration}s · ${s.config.minWordLength}+`;
+    const detail = formatRunMeta({
+      mode: s.config.mode,
+      difficulty,
+      duration: s.config.mode === "timed" ? s.config.duration : undefined,
+      minWordLength: s.config.minWordLength,
+    });
     saveLastRun({
       score: s.score,
       found: sortWordsByLengthThenAlpha(s.found),
@@ -408,6 +496,7 @@ export function PlayPage() {
       mode: s.config.mode,
       grid: s.board.size,
       topology: s.board.topology,
+      letters: cloneLetters(s.board.letters),
       detail,
       isHighScore: isHigh,
       minWordLength: s.config.minWordLength,
@@ -440,11 +529,7 @@ export function PlayPage() {
   };
 
   if (!state) {
-    return (
-      <Shell>
-        <LoadingPotato message="Fluffing the letter cushions…" />
-      </Shell>
-    );
+    return <PlaySkeleton />;
   }
 
   const currentWord = wordFromPath(state.board.letters, path).toUpperCase();
@@ -453,7 +538,15 @@ export function PlayPage() {
   const wordsLeft = state.board.allWords.length - state.found.length;
   const secs = state.remainingMs != null ? Math.ceil(state.remainingMs / 1000) : null;
   const adjacent = (a: Cell, b: Cell) => isAdjacentCells(a, b, state.board.topology);
-  const boardLocked = celebrate || boardTurning || paused;
+  const boardLocked = celebrate || boardTurning || paused || leavePromptOpen;
+  const challengeBadge = formatRunChallengeBadge({
+    mode: state.config.mode,
+    difficulty:
+      state.config.mode === "target" || state.config.mode === "survival"
+        ? state.config.difficulty
+        : undefined,
+    duration: state.config.mode === "timed" ? state.config.duration : undefined,
+  });
   const heatProgress =
     remaining != null && target > 0 ? Math.min(1, Math.max(0, 1 - remaining / target)) : 0;
   const heatTier = remaining != null ? hudHeatTier(heatProgress) : 0;
@@ -471,7 +564,16 @@ export function PlayPage() {
     .join(" ");
 
   const applyRotate = (steps: 1 | -1) => {
-    setState((s) => (s ? { ...s, board: rotateBoard(s.board, steps) } : s));
+    setState((s) => {
+      if (!s) return s;
+      const board = rotateBoard(s.board, steps);
+      saveBoardSnapshot({
+        letters: board.letters,
+        topology: board.topology,
+        size: board.size,
+      });
+      return { ...s, board };
+    });
     play("ready");
   };
 
@@ -495,7 +597,7 @@ export function PlayPage() {
   };
 
   const rotate = (dir: 1 | -1) => {
-    if (celebrate || paused || rotatingRef.current) return;
+    if (celebrate || paused || leavePromptOpen || rotatingRef.current) return;
     setPath([]);
     const reduceMotion =
       typeof window !== "undefined" &&
@@ -538,18 +640,25 @@ export function PlayPage() {
               <Text style={{ color: "inherit" }}>{remaining} pts left</Text>
             </View>
           ) : secs != null ? (
-            <View className={hudBubbleClass} accessibilityLabel={`${secs} seconds left`}>
-              <Text style={{ color: "inherit" }}>{secs}s</Text>
+            <View className="relative shrink-0">
+              <View
+                className={`${hudBubbleClass} cp-hud-bubble-timer`}
+                accessibilityLabel={`${secs} seconds left`}
+              >
+                <Text style={{ color: "inherit" }}>{secs}s</Text>
+              </View>
+              {survivalBump ? (
+                <span
+                  key={survivalBump.id}
+                  className="cp-survival-bump-anchor"
+                  aria-label={`Plus ${survivalBump.seconds} seconds`}
+                >
+                  <span className="cp-survival-bump cp-catch-in" aria-hidden>
+                    +{survivalBump.seconds}s
+                  </span>
+                </span>
+              ) : null}
             </View>
-          ) : null}
-          {survivalBump ? (
-            <span
-              key={survivalBump.id}
-              className="cp-survival-bump cp-catch-in"
-              aria-label={`Plus ${survivalBump.seconds} seconds`}
-            >
-              +{survivalBump.seconds}s
-            </span>
           ) : null}
           {showWordsLeft ? (
             <Text
@@ -559,6 +668,12 @@ export function PlayPage() {
               {wordsLeft} left
             </Text>
           ) : null}
+          <View
+            className="cp-run-badge"
+            accessibilityLabel={`Challenge ${challengeBadge}`}
+          >
+            <Text style={{ color: "inherit" }}>{challengeBadge}</Text>
+          </View>
         </View>
         <View className="shrink-0 flex-row items-center gap-2">
           <IconTooltip label="Pause">
@@ -589,7 +704,7 @@ export function PlayPage() {
             ? `Clear the couch · ${state.config.minWordLength}+`
             : state.config.mode === "survival"
               ? `Keep the clock fed · ${state.config.minWordLength}+`
-              : `${state.config.minWordLength}+ letters`
+              : `Nab all you can · ${state.config.minWordLength}+`
         }
         className="mb-4"
       />
@@ -660,7 +775,7 @@ export function PlayPage() {
             variant="secondary"
             size="sm"
             className="h-11 min-h-11 shrink-0 gap-1 px-2.5"
-            disabled={celebrate || boardTurning || paused}
+            disabled={boardLocked}
             onClick={() => rotate(-1)}
             aria-label="Spin board left"
             data-testid="rotate-ccw"
@@ -691,7 +806,7 @@ export function PlayPage() {
             variant="secondary"
             size="sm"
             className="h-11 min-h-11 shrink-0 gap-1 px-2.5"
-            disabled={celebrate || boardTurning || paused}
+            disabled={boardLocked}
             onClick={() => rotate(1)}
             aria-label="Spin board right"
             data-testid="rotate-cw"
@@ -703,6 +818,49 @@ export function PlayPage() {
           </Button>
         </IconTooltip>
       </div>
+
+      <Dialog
+        open={leavePromptOpen}
+        onOpenChange={(open) => {
+          if (!open) leaveBlocker.reset?.();
+        }}
+      >
+        <DialogContent
+          showClose={false}
+          className="gap-3"
+          data-testid="leave-run-guard"
+          onEscapeKeyDown={(e) => {
+            e.preventDefault();
+            leaveBlocker.reset?.();
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Leave this run?</DialogTitle>
+            <DialogDescription>
+              Walking away dumps this haul. No results, no medals tick. Use End run from Couch break
+              if you want to keep the score.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              className="min-w-0 flex-1 justify-center sm:flex-none"
+              data-testid="leave-run-stay"
+              onClick={() => leaveBlocker.reset?.()}
+            >
+              Keep playing
+            </Button>
+            <Button
+              variant="ghost"
+              className="cp-end-run-btn min-w-0 flex-1 justify-center gap-2 sm:flex-none"
+              data-testid="leave-run-confirm"
+              onClick={() => leaveBlocker.proceed?.()}
+            >
+              Leave run
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={paused}
@@ -770,22 +928,33 @@ export function PlayPage() {
                 { value: "dark", label: "Night", Icon: Moon },
               ]}
             />
-            <div className="mt-1 flex flex-wrap gap-2 border-t-2 border-border pt-3">
-              <Button
-                variant="ghost"
-                className="cp-end-run-btn min-w-0 flex-1 justify-center gap-2.5"
-                data-testid="end-run"
-                onClick={() => {
-                  closePause();
-                  setState(quitGame(state));
-                }}
-              >
-                <CircleStop className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
-                End run
-              </Button>
+            <div className="mt-1 flex flex-col gap-2 border-t-2 border-border pt-3 sm:flex-row sm:items-stretch">
+              <div className="flex min-w-0 flex-1 gap-2 sm:contents">
+                <Button
+                  variant="ghost"
+                  className="cp-end-run-btn min-w-0 flex-1 justify-center gap-2"
+                  data-testid="end-run"
+                  onClick={() => {
+                    closePause();
+                    setState(quitGame(state));
+                  }}
+                >
+                  <CircleStop className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
+                  End run
+                </Button>
+                <Button
+                  variant="outline"
+                  className="min-w-0 flex-1 justify-center gap-2"
+                  data-testid="restart-run"
+                  onClick={restartRun}
+                >
+                  <RotateCcw className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
+                  Restart
+                </Button>
+              </div>
               <Button
                 data-pause-resume
-                className="min-w-0 flex-[1.15] justify-center gap-2.5"
+                className="w-full justify-center gap-2 sm:w-auto sm:min-w-0 sm:flex-[1.15]"
                 onClick={closePause}
               >
                 <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />

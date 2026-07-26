@@ -1,7 +1,7 @@
-@import "@fontsource/lexend/500.css";
-@import "@fontsource/lexend/600.css";
-@import "@fontsource/lexend/700.css";
-/* Jersey 15 (pixel Titles) loads on demand in theme.ts — keep off lobby cold path. */
+@import "@fontsource/lexend/latin-500.css";
+@import "@fontsource/lexend/latin-600.css";
+@import "@fontsource/lexend/latin-700.css";
+/* Jersey 15 (pixel Titles) loads on demand in theme.ts — latin only, off lobby cold path. */
 @import "@couch-potato/ui/theme.css";
 
 @tailwind base;
@@ -159,6 +159,26 @@
     @apply mb-2 font-display text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground;
   }
 
+  /* Quiet run-meta chip — difficulty (Goal/Survival) or duration (Timed). */
+  .cp-run-badge {
+    @apply inline-flex shrink-0 items-center justify-center font-display text-xs font-bold uppercase tracking-[0.08em];
+    min-height: 1.75rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius);
+    border: 2px solid color-mix(in srgb, var(--secondary) 45%, var(--border));
+    background: color-mix(in srgb, var(--secondary) 18%, var(--card));
+    color: var(--foreground);
+  }
+
+  .cp-run-badge-quiet {
+    border-color: var(--border);
+    background: var(--muted);
+    color: var(--muted-foreground);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: none;
+  }
+
   /* Primary status pill — heat 0 muted → 1 soft sage → 2 path sage → 3 potato gold */
   .cp-hud-bubble {
     @apply inline-flex min-h-11 items-center justify-center rounded-full px-4 font-display text-lg font-bold leading-none tabular-nums shadow-sm backdrop-blur-sm;
@@ -282,7 +302,9 @@
     border-radius: var(--radius);
     background: var(--board-well);
     box-shadow: inset 0 3px 10px color-mix(in srgb, #000 28%, transparent);
+    /* Extra bottom pad clears the tile lip shadow (`0 3px 0`) so 6×6 doesn’t clip. */
     padding: var(--cp-board-pad);
+    padding-bottom: calc(var(--cp-board-pad) + 3px);
     cursor: grab;
   }
 
@@ -296,7 +318,10 @@
     flex: 1;
     align-items: center;
     justify-content: center;
-    /* Wider gutters cut accidental neighbor swipes; margin is outside hit box. */
+    /* Wider gutters cut accidental neighbor swipes; margin is outside hit box.
+       Square boards: CSS grid cells + this margin (not flex rows, not grid gap)
+       so 6×6 fits and cellCenter path/rings stay aligned. Hex: margin inside
+       absolute rows. */
     margin: var(--cp-tile-gap);
     border-radius: 0.35rem;
     cursor: inherit;
@@ -332,15 +357,30 @@
     box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent);
   }
 
+  .cp-board-play {
+    container-type: inline-size;
+    container-name: board-play;
+  }
+
   .cp-tile-letter {
     position: relative;
     z-index: 1;
     pointer-events: none;
     font-family: var(--font-body);
     font-weight: 700;
-    font-size: clamp(1.35rem, 6.5vw, 1.85rem);
+    /* Size to the board (cqi), not the viewport — vw kept glyphs oversized on
+       mini Results / 6×6 and forced the bottom row to clip. */
+    font-size: clamp(1.05rem, 9cqi, 1.85rem);
     line-height: 1;
     letter-spacing: 0.02em;
+  }
+
+  .cp-board-play[data-size="5"] .cp-tile-letter {
+    font-size: clamp(0.95rem, 8cqi, 1.65rem);
+  }
+
+  .cp-board-play[data-size="6"] .cp-tile-letter {
+    font-size: clamp(0.8rem, 6.5cqi, 1.45rem);
   }
 
   .cp-tile-active {
@@ -356,6 +396,15 @@
   .cp-tile-active::before {
     background: linear-gradient(180deg, var(--tile-select-top) 0%, var(--tile-select-bottom) 100%);
     box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
+  }
+
+  /* Square: grid cell + tile margin (same gutter as hex). No grid `gap` —
+     that would shift centers off cellCenter path/ring math. */
+  .cp-tile-square {
+    min-width: 0;
+    min-height: 0;
+    align-self: stretch;
+    justify-self: stretch;
   }
 
   /* Hex: select = tile face (clip-path). Ring via drop-shadow so it follows the hex, not a square. */
@@ -456,6 +505,30 @@
     border: 2px solid var(--border);
   }
 
+  .cp-word-chip-interactive {
+    cursor: pointer;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .cp-word-chip-interactive:hover {
+    border-color: color-mix(in srgb, var(--secondary) 55%, var(--border));
+  }
+
+  .cp-word-chip-selected {
+    border-color: var(--secondary);
+    background: color-mix(in srgb, var(--secondary) 22%, var(--card));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--secondary) 35%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cp-word-chip-interactive {
+      transition: none;
+    }
+  }
+
   /*
    * Missed-words collapse — same 0fr/1fr grid recipe as `.cp-lobby-more-panel`
    * (chevron rotate handled inline via Tailwind `rotate-180` on the trigger).
@@ -535,20 +608,36 @@
     line-height: 1;
   }
 
-  /* Survival HUD refill feedback — brief "+Ns" pill beside the clock pill on accept. */
+  /* Timer pills: reserve width so 9s → 99s → 999s doesn't shove the challenge badge. */
+  .cp-hud-bubble-timer {
+    min-width: 5.25rem;
+  }
+
+  /* Survival refill — absolute beside the clock (out of flow) so +Ns never layout-shifts HUD.
+     Prefer horizontal offset over negative top — Play Shell is overflow-hidden. */
+  .cp-survival-bump-anchor {
+    position: absolute;
+    left: calc(100% + 0.3rem);
+    top: 50%;
+    translate: 0 -50%;
+    z-index: 2;
+    pointer-events: none;
+  }
+
   .cp-survival-bump {
     display: inline-flex;
     align-items: center;
-    height: 1.6rem;
-    padding: 0 0.55rem;
+    height: 1.45rem;
+    padding: 0 0.45rem;
     border-radius: 9999px;
     background: var(--secondary);
     color: var(--secondary-foreground);
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 0.72rem;
     font-weight: 700;
     line-height: 1;
     white-space: nowrap;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--secondary) 55%, #2c322e);
   }
 
   /* Home lobby tagline — always under wordmark (see unlayered `.cp-lobby-brand`) */
@@ -1177,19 +1266,20 @@
 
 /*
  * Web chrome-page wide layout — lobby, Couch crew, Results, Achievements
- * (Couch medals), and similar widen + go multi-col on md+ (see AGENTS.md
- * "Desktop real estate", ui.mdc). Shell stays max-w-md by default (**play**
- * stays narrow; **Options** stays play-narrow too).
+ * (Couch medals), Options, and similar widen + go multi-col on md+ (see
+ * AGENTS.md "Desktop real estate", ui.mdc). Shell stays max-w-md by default
+ * (**play** stays narrow).
  * `.cp-shell-lobby` / `.cp-shell-crew` / `.cp-shell-results` /
- * `.cp-shell-medals` widen on the same scale; `.cp-lobby` / `.cp-crew` /
- * `.cp-results` / `.cp-medals` are containers for each page's own 2-col
- * breakpoints below.
+ * `.cp-shell-medals` / `.cp-shell-options` widen on the same scale; `.cp-lobby`
+ * / `.cp-crew` / `.cp-results` / `.cp-medals` / `.cp-options` are containers
+ * for each page's own multi-col breakpoints below.
  */
 @media (min-width: 768px) {
   .cp-shell.cp-shell-lobby,
   .cp-shell.cp-shell-crew,
   .cp-shell.cp-shell-results,
-  .cp-shell.cp-shell-medals {
+  .cp-shell.cp-shell-medals,
+  .cp-shell.cp-shell-options {
     max-width: 42rem; /* 3xl */
   }
 }
@@ -1198,7 +1288,8 @@
   .cp-shell.cp-shell-lobby,
   .cp-shell.cp-shell-crew,
   .cp-shell.cp-shell-results,
-  .cp-shell.cp-shell-medals {
+  .cp-shell.cp-shell-medals,
+  .cp-shell.cp-shell-options {
     max-width: 56rem; /* 4xl */
   }
 }
@@ -1207,7 +1298,8 @@
   .cp-shell.cp-shell-lobby,
   .cp-shell.cp-shell-crew,
   .cp-shell.cp-shell-results,
-  .cp-shell.cp-shell-medals {
+  .cp-shell.cp-shell-medals,
+  .cp-shell.cp-shell-options {
     max-width: 64rem; /* 5xl */
   }
 }
@@ -1391,9 +1483,34 @@
   }
 }
 
+/* Recent runs — capped height so Couch crew doesn’t grow forever (last 20). */
+.cp-crew-recent-scroll {
+  max-height: min(40vh, 22rem);
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline-end: 0.15rem;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--muted-foreground) 42%, transparent) transparent;
+}
+
+.cp-crew-recent-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cp-crew-recent-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted-foreground) 42%, transparent);
+}
+
+.cp-crew-recent-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /*
- * Results (`/results`) — medals | haul/missed 2-col at the same 44rem container
- * tier as crew/lobby. CTAs = one hugging row (Play again | Back to lobby).
+ * Results (`/results`) — medals full-width, then haul/missed | board replay
+ * at the 44rem container tier. CTAs = one hugging row (Play again | Back to lobby).
  */
 .cp-results {
   container-type: inline-size;
@@ -1402,7 +1519,7 @@
   overflow-x: clip;
 }
 
-.cp-results-columns {
+.cp-results-replay {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -1413,6 +1530,50 @@
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
+}
+
+/* Mini replay board — hug a play-narrow column inside wide results chrome. */
+.cp-results-board {
+  width: 100%;
+  max-width: 16.5rem;
+}
+
+.cp-results-board .cp-board-frame {
+  padding: 0.45rem;
+}
+
+/* Replay select — no scale/juicy dual rings; path stroke is the trace. */
+.cp-results-board .cp-tile-active {
+  transform: none;
+  box-shadow:
+    0 0 0 2px var(--tile-select-ring),
+    0 1px 0 color-mix(in srgb, var(--path) 70%, #2c322e);
+}
+
+.cp-results-board .cp-tile-selected {
+  animation: none;
+}
+
+/* Phone: board first so path stays in view while scrolling words. */
+.cp-results-board-card {
+  order: -1;
+}
+
+@container results (min-width: 44rem) {
+  .cp-results-replay {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(15rem, 0.9fr);
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .cp-results-board-card {
+    order: 0;
+    position: sticky;
+    top: 0.5rem;
+    z-index: 1;
+    align-self: start;
+  }
 }
 
 /* Play again + Back to lobby — side-by-side hug cluster; wrap only if too tight. */
@@ -1435,19 +1596,6 @@
   width: 100%;
   max-width: 18rem;
   margin-inline: auto;
-}
-
-@container results (min-width: 44rem) {
-  .cp-results-columns {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-    gap: 1.25rem;
-    align-items: start;
-  }
-
-  .cp-results-columns-solo {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 /*
@@ -1478,6 +1626,38 @@
   }
 }
 
+/*
+ * Options (`/options`) — same wide shell tier as crew/results. Pref choice
+ * groups: phone stack; ≥36rem 2-col; ≥44rem 3-col so the page fits a desktop
+ * viewport without scrolling. Cards hug content (`align-items: start`).
+ */
+.cp-options {
+  container-type: inline-size;
+  container-name: options;
+  overflow-x: clip;
+}
+
+.cp-options-prefs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@container options (min-width: 36rem) {
+  .cp-options-prefs {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem 1.25rem;
+    align-items: start;
+  }
+}
+
+@container options (min-width: 44rem) {
+  .cp-options-prefs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 /* Lobby sticky Play — owns bottom safe-area + shadow room (Shell lobby uses pb-0) */
 .cp-lobby-play {
   position: relative;
@@ -1490,9 +1670,10 @@
 
 /*
  * Lobby Play CTA — star of the sticky bar. Chunky pixel-block toy press:
- * idle offset shadow + inset highlight; hover lifts/scales with potato-tinged
- * sage; press sinks. Beats default Button hover utilities via !important
- * on transform (same recipe as .cp-icon-btn). Reduced-motion = color only.
+ * idle offset shadow + inset highlight; hover lifts/scales with a fresher
+ * sage (accent lift — not muddy potato-olive); press sinks with deeper sage.
+ * Beats default Button hover utilities via !important on transform (same
+ * recipe as .cp-icon-btn). Reduced-motion = color only.
  */
 .cp-play-cta {
   border: 2px solid color-mix(in srgb, var(--primary) 58%, #2c322e);
@@ -1504,7 +1685,6 @@
     box-shadow 180ms ease,
     background-color 160ms ease,
     border-color 160ms ease,
-    filter 160ms ease,
     color 160ms ease;
 }
 
@@ -1523,13 +1703,13 @@
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .cp-play-cta:hover:not(:disabled):not(:active) {
     transform: translateY(-3px) scale(1.03) !important;
-    background: color-mix(in srgb, var(--primary) 78%, var(--secondary));
-    border-color: color-mix(in srgb, var(--secondary) 42%, var(--primary));
-    filter: brightness(1.08);
+    /* Accent lift = fresher sage; potato stays on focus ring, not the fill. */
+    background: color-mix(in srgb, var(--primary) 48%, var(--accent));
+    border-color: color-mix(in srgb, var(--primary) 40%, var(--accent));
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent),
-      0 7px 0 0 color-mix(in srgb, var(--primary) 52%, #2c322e),
-      0 12px 18px -8px color-mix(in srgb, var(--secondary) 45%, transparent);
+      inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent),
+      0 7px 0 0 color-mix(in srgb, var(--primary) 55%, #2c322e),
+      0 12px 18px -8px color-mix(in srgb, var(--primary) 35%, transparent);
   }
 
   .cp-play-cta:hover:not(:disabled):not(:active) .cp-lobby-glyph {
@@ -1539,22 +1719,20 @@
   /* Keep potato focus ring while hovered (hover alone is more specific) */
   .cp-play-cta:hover:not(:disabled):not(:active):focus-visible {
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent),
-      0 7px 0 0 color-mix(in srgb, var(--primary) 52%, #2c322e),
-      0 12px 18px -8px color-mix(in srgb, var(--secondary) 45%, transparent),
+      inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent),
+      0 7px 0 0 color-mix(in srgb, var(--primary) 55%, #2c322e),
+      0 12px 18px -8px color-mix(in srgb, var(--primary) 35%, transparent),
       0 0 0 2px var(--background),
       0 0 0 5px color-mix(in srgb, var(--secondary) 75%, var(--primary)) !important;
   }
 }
 
 /*
- * Press = sink + short lip, not a muddy olive dunk.
- * Fill stays potato-tinged sage (same family as hover); no brightness/black wash.
+ * Press = sink + short lip. Deeper sage (not potato mud / brightness dunk).
  */
 .cp-play-cta:active:not(:disabled) {
-  background: color-mix(in srgb, var(--primary) 78%, var(--secondary));
-  border-color: color-mix(in srgb, var(--secondary) 28%, var(--primary));
-  filter: none;
+  background: color-mix(in srgb, var(--primary) 78%, #444a3c);
+  border-color: color-mix(in srgb, var(--primary) 50%, #2c322e);
   box-shadow:
     inset 0 2px 0 color-mix(in srgb, var(--primary) 42%, #2c322e),
     inset 0 -1px 0 color-mix(in srgb, #fff 10%, transparent),
@@ -1574,9 +1752,8 @@
 
 @media (hover: hover) and (prefers-reduced-motion: reduce) {
   .cp-play-cta:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--primary) 78%, var(--secondary));
-    border-color: color-mix(in srgb, var(--secondary) 42%, var(--primary));
-    filter: brightness(1.06);
+    background: color-mix(in srgb, var(--primary) 48%, var(--accent));
+    border-color: color-mix(in srgb, var(--primary) 40%, var(--accent));
   }
 }
 
@@ -1585,7 +1762,6 @@
     transition:
       background-color 160ms ease,
       border-color 160ms ease,
-      filter 160ms ease,
       box-shadow 160ms ease;
   }
 

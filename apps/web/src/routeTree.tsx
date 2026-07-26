@@ -9,6 +9,7 @@ import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
 import { bind, setEnabled } from "cuelume";
 import { LoadingPotato } from "@couch-potato/ui";
 import { HomePage } from "./pages/HomePage";
+import { PlaySkeleton } from "@/components/PlaySkeleton";
 import { loadDevicePrefs } from "./storage";
 import { applyMenuMusicEnabled, menuMusicSceneForPath, setMenuMusicScene } from "./menuMusic";
 import { applyFontPreference, applyTheme } from "./theme";
@@ -18,9 +19,12 @@ import {
   markCommandPaletteWantOpen,
 } from "./commandPaletteBus";
 import { DEFAULT_TITLE, pageHead } from "./seo";
+import type { ReactNode } from "react";
+import { prefetchPlayPage } from "./playPrefetch";
+import { validatePlaySearch } from "./playLaunchSearch";
 
 const PlayPage = lazy(() =>
-  import("./pages/PlayPage").then((m) => ({ default: m.PlayPage })),
+  prefetchPlayPage().then((m) => ({ default: m.PlayPage })),
 );
 const ResultsPage = lazy(() =>
   import("./pages/ResultsPage").then((m) => ({ default: m.ResultsPage })),
@@ -38,13 +42,21 @@ const CommandPalette = lazy(() =>
   import("@/components/CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
 
-function LazyPage({ Page }: { Page: ComponentType }) {
+function LazyPage({
+  Page,
+  fallback,
+}: {
+  Page: ComponentType;
+  fallback?: ReactNode;
+}) {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-1 items-center justify-center p-8">
-          <LoadingPotato />
-        </div>
+        fallback ?? (
+          <div className="flex flex-1 items-center justify-center p-8">
+            <LoadingPotato />
+          </div>
+        )
       }
     >
       <Page />
@@ -140,7 +152,8 @@ const indexRoute = createRoute({
 const playRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/play",
-  component: () => <LazyPage Page={PlayPage} />,
+  validateSearch: (search: Record<string, unknown>) => validatePlaySearch(search),
+  component: () => <LazyPage Page={PlayPage} fallback={<PlaySkeleton />} />,
   head: () => pageHead("Play"),
 });
 

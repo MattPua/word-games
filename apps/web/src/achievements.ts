@@ -133,7 +133,8 @@ export const TRACKS: readonly TrackDef[] = [
     label: "Word rush",
     hint: "Most words found in a single run",
     unit: "words",
-    milestones: [5, 10, 15, 25, 40],
+    // Keep early thresholds; ENABLE boards can clear 100+ — append only.
+    milestones: [5, 10, 15, 25, 40, 75, 120, 200],
     value: (c) => c.bestRunWords,
   },
   {
@@ -502,13 +503,34 @@ export function formatSurvivalSeconds(sec: number): string {
   return s === 0 ? `${m}m` : `${m}m ${s}s`;
 }
 
-const UNLOCK_DATE_FMT = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
+const UNLOCK_RELATIVE = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
-/** Game-voice unlock line — "Unlocked Jul 25, 2026" (no em dashes). */
-export function formatUnlockDate(ms: number): string {
-  return `Unlocked ${UNLOCK_DATE_FMT.format(new Date(ms))}`;
+/** Game-voice unlock line — relative ("Unlocked yesterday", "Unlocked 3 days ago"). No em dashes. */
+export function formatUnlockDate(ms: number, now = Date.now()): string {
+  const diffMs = ms - now;
+  const absMs = Math.abs(diffMs);
+  // Sub-minute: RelativeTimeFormat would say "0 minutes ago" / "this minute".
+  if (absMs < 45_000) return "Unlocked just now";
+
+  const sec = Math.round(diffMs / 1000);
+  let value: number;
+  let unit: Intl.RelativeTimeFormatUnit;
+  if (absMs < 45 * 60_000) {
+    value = Math.round(sec / 60);
+    unit = "minute";
+  } else if (absMs < 22 * 60 * 60_000) {
+    value = Math.round(sec / 3600);
+    unit = "hour";
+  } else if (absMs < 30 * 24 * 60 * 60_000) {
+    value = Math.round(sec / 86_400);
+    unit = "day";
+  } else if (absMs < 365 * 24 * 60 * 60_000) {
+    value = Math.round(sec / (30 * 86_400));
+    unit = "month";
+  } else {
+    value = Math.round(sec / (365 * 86_400));
+    unit = "year";
+  }
+
+  return `Unlocked ${UNLOCK_RELATIVE.format(value, unit)}`;
 }

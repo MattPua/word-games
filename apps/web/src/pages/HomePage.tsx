@@ -2,35 +2,58 @@ import { PotatoSprite, Shell } from "@couch-potato/ui";
 import {
   getActiveProfile,
   loadLastRun,
+  loadLaunch,
   saveLaunch,
   type PlayLaunch,
 } from "../storage";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { track } from "../analytics";
 import { BrandHeader } from "@/components/BrandHeader";
 import { ChromeNav } from "@/components/ChromeNav";
 import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
+import { prefetchPlayPage } from "../playPrefetch";
+import { playSearchFromLaunch } from "../playLaunchSearch";
 
 export function HomePage() {
   const navigate = useNavigate();
   const profile = getActiveProfile();
-  const [mode, setMode] = useState<"target" | "timed" | "survival">("target");
-  const [grid, setGrid] = useState<4 | 5 | 6>(4);
-  const [topology, setTopology] = useState<"square" | "hex">("square");
-  const [minWordLength, setMinWordLength] = useState<3 | 4 | 5>(3);
-  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
-  const [duration, setDuration] = useState<30 | 60 | 90 | 120>(60);
+  // Restore last-played lobby prefs (session launch, else durable last-launch).
+  const [lobby] = useState(() => loadLaunch());
+  const [mode, setMode] = useState(lobby.mode);
+  const [grid, setGrid] = useState(lobby.grid);
+  const [topology, setTopology] = useState(lobby.topology ?? "square");
+  const [minWordLength, setMinWordLength] = useState(lobby.minWordLength ?? 3);
+  const [difficulty, setDifficulty] = useState(lobby.difficulty ?? "easy");
+  const [duration, setDuration] = useState(lobby.duration ?? 60);
   const hasLastResults = loadLastRun() != null;
 
+  // Warm play chunk + ENABLE lexicon while the lobby sits idle — Play click
+  // should land on PlaySkeleton immediately, not wait on download/parse.
+  useEffect(() => {
+    const warm = () => {
+      void prefetchPlayPage();
+      void import("@couch-potato/dictionary").then((m) => {
+        m.getDictionary();
+      });
+    };
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(warm, { timeout: 2000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const t = window.setTimeout(warm, 400);
+    return () => window.clearTimeout(t);
+  }, []);
+
   const play = () => {
+    void prefetchPlayPage();
     const launch: PlayLaunch =
       mode === "timed"
         ? { mode, grid, topology, duration, minWordLength }
         : { mode, grid, topology, difficulty, minWordLength };
     saveLaunch(launch);
     track("game_started", { mode, grid, topology, minWordLength });
-    navigate({ to: "/play" });
+    navigate({ to: "/play", search: playSearchFromLaunch(launch) });
   };
 
   return (

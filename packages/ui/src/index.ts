@@ -11,6 +11,7 @@ import { PotatoSprite } from "./PotatoSprite";
 import { LoadingPotato } from "./LoadingPotato";
 import { EmptyState } from "./EmptyState";
 import { ConfettiBurst } from "./ConfettiBurst";
+import { HEX_CLIP, hexAspect, hexRowStyle } from "./hexLayout";
 
 export {
   Button,
@@ -27,6 +28,9 @@ export {
   EmptyState,
   ConfettiBurst,
   applyPathCell,
+  HEX_CLIP,
+  hexAspect,
+  hexRowStyle,
 };
 export type { Cell };
 export type { MedalsCategoryFrame, PotatoSpriteFrame } from "./spriteAtlas";

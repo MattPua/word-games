@@ -160,7 +160,7 @@ export function LetterGrid({
               x2={b.x}
               y2={b.y}
               stroke="var(--path)"
-              strokeWidth="10"
+              strokeWidth={n >= 6 ? 7 : 10}
               strokeLinecap="round"
               vectorEffect="non-scaling-stroke"
               opacity="0.72"
@@ -169,9 +169,12 @@ export function LetterGrid({
         })
       : null;
 
-  /** Square select rings only — hex select is painted on each tile (gap-proof). */
+  /** Square select rings — play swipe only. Results replay (`interactive={false}`)
+   * already paints select on the tile; stacking SVG discs on 6×6 reads as double blobs. */
+  const cellPitch = 100 / n;
+  const ringR = Math.min(6.5, cellPitch * 0.36);
   const squareRings =
-    !hex && selected.length > 0
+    interactive && !hex && selected.length > 0
       ? selected.map((cell) => {
           const c = cellCenter(cell.row, cell.col, n, topology);
           return (
@@ -179,7 +182,7 @@ export function LetterGrid({
               key={`ring-${cellKey(cell)}`}
               cx={c.x}
               cy={c.y}
-              r={6.5}
+              r={ringR}
               fill="var(--tile-select-ring)"
               stroke="var(--path)"
               strokeWidth="2.75"
@@ -216,6 +219,7 @@ export function LetterGrid({
           {/* Play surface = tile layout box (inside well pad). Path SVG shares this box. */}
           <div
             className="cp-board-play relative w-full"
+            data-size={n}
             style={{
               aspectRatio: hex ? `${aspect.w} / ${aspect.h}` : "1",
             }}
@@ -231,17 +235,59 @@ export function LetterGrid({
             </svg>
             <div
               className={
-                hex ? "relative z-10 h-full w-full" : "relative z-10 flex h-full w-full flex-col"
+                hex
+                  ? "relative z-10 h-full w-full"
+                  : "relative z-10 grid h-full min-h-0 w-full"
+              }
+              style={
+                hex
+                  ? undefined
+                  : {
+                      // CSS grid + in-cell tile margin (no `gap`): keeps centers at
+                      // (i+0.5)/n so path SVG / select rings match tiles. Flex rows
+                      // overflowed 6×6; gap would desync cellCenter.
+                      gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`,
+                      gridTemplateRows: `repeat(${n}, minmax(0, 1fr))`,
+                    }
               }
             >
-              {letters.map((row, rowIndex) => (
-                <div
-                  key={rowIndex}
-                  className={hex ? "absolute flex" : "flex flex-1 flex-row"}
-                  role="row"
-                  style={hex ? hexRowStyle(rowIndex, n) : undefined}
-                >
-                  {row.map((letter, colIndex) => {
+              {letters.map((row, rowIndex) =>
+                hex ? (
+                  <div
+                    key={rowIndex}
+                    className="absolute flex"
+                    role="row"
+                    style={hexRowStyle(rowIndex, n)}
+                  >
+                    {row.map((letter, colIndex) => {
+                      const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
+                      return (
+                        <div
+                          key={`${rowIndex}-${colIndex}`}
+                          role="gridcell"
+                          data-tile
+                          data-row={rowIndex}
+                          data-col={colIndex}
+                          data-testid={`tile-${rowIndex}-${colIndex}`}
+                          className={`cp-tile cp-tile-hex ${
+                            active ? "cp-tile-active cp-tile-selected" : ""
+                          } ${dropping ? "cp-tile-drop" : ""}`}
+                          style={{
+                            clipPath: HEX_CLIP,
+                            borderRadius: 0,
+                            ...(dropping
+                              ? { animationDelay: `${(rowIndex * n + colIndex) * 28}ms` }
+                              : null),
+                            zIndex: active ? 6 : 1,
+                          }}
+                        >
+                          <span className="cp-tile-letter">{letter}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  row.map((letter, colIndex) => {
                     const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
                     return (
                       <div
@@ -251,15 +297,12 @@ export function LetterGrid({
                         data-row={rowIndex}
                         data-col={colIndex}
                         data-testid={`tile-${rowIndex}-${colIndex}`}
-                        className={`cp-tile ${hex ? "cp-tile-hex" : ""} ${
+                        className={`cp-tile cp-tile-square ${
                           active ? "cp-tile-active cp-tile-selected" : ""
                         } ${dropping ? "cp-tile-drop" : ""}`}
                         style={{
-                          ...(hex ? { clipPath: HEX_CLIP, borderRadius: 0 } : null),
                           ...(dropping
-                            ? {
-                                animationDelay: `${(rowIndex * n + colIndex) * 28}ms`,
-                              }
+                            ? { animationDelay: `${(rowIndex * n + colIndex) * 28}ms` }
                             : null),
                           zIndex: active ? 6 : 1,
                         }}
@@ -267,9 +310,9 @@ export function LetterGrid({
                         <span className="cp-tile-letter">{letter}</span>
                       </div>
                     );
-                  })}
-                </div>
-              ))}
+                  })
+                ),
+              )}
             </div>
           </div>
         </div>

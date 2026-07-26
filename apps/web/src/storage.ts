@@ -382,6 +382,8 @@ export type LastRun = {
   mode: "target" | "timed" | "survival";
   grid: number;
   topology?: "square" | "hex";
+  /** Final board letters (post-rotate) for Results mini replay — absent on legacy runs. */
+  letters?: string[][];
   detail: string;
   isHighScore: boolean;
   minWordLength: 3 | 4 | 5;
@@ -458,7 +460,79 @@ export function saveLastRun(run: LastRun) {
 export function loadLastRun(): LastRun | null {
   const id = loadStore().prefs.activeProfileId;
   if (!id) return null;
-  return loadLastRunMap()[id] ?? null;
+  const run = loadLastRunMap()[id] ?? null;
+  if (!run) return null;
+  // Backfill letters from the live-play snapshot when an older finish omitted them.
+  if (!isLettersGrid(run.letters)) {
+    const snap = loadBoardSnapshot();
+    if (snap && snap.size === run.grid) {
+      const patched: LastRun = {
+        ...run,
+        letters: snap.letters,
+        topology: run.topology ?? snap.topology,
+      };
+      saveLastRun(patched);
+      return patched;
+    }
+  }
+  return run;
+}
+
+function isLettersGrid(v: unknown): v is string[][] {
+  return (
+    Array.isArray(v) &&
+    v.length > 0 &&
+    Array.isArray(v[0]) &&
+    v[0]!.length > 0 &&
+    typeof v[0]![0] === "string"
+  );
+}
+
+export type BoardSnapshot = {
+  letters: string[][];
+  topology: "square" | "hex";
+  size: number;
+};
+
+const BOARD_SNAP = "couch-potato:board-snap";
+
+/** Deep-clone final / live board letters for Results replay. */
+export function cloneLetters(letters: string[][]): string[][] {
+  return letters.map((row) => row.slice());
+}
+
+/**
+ * Written while a run is live (and on rotate) so Results can still show the
+ * board if `LastRun.letters` was missing from an older finish path.
+ */
+export function saveBoardSnapshot(snap: BoardSnapshot) {
+  try {
+    localStorage.setItem(
+      BOARD_SNAP,
+      JSON.stringify({
+        ...snap,
+        letters: cloneLetters(snap.letters),
+      }),
+    );
+  } catch {
+    /* ignore quota */
+  }
+}
+
+export function loadBoardSnapshot(): BoardSnapshot | null {
+  try {
+    const raw = localStorage.getItem(BOARD_SNAP);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    const o = parsed as Record<string, unknown>;
+    if (!isLettersGrid(o.letters)) return null;
+    if (typeof o.size !== "number") return null;
+    const topology = o.topology === "hex" ? "hex" : "square";
+    return { letters: o.letters, topology, size: o.size };
+  } catch {
+    return null;
+  }
 }
 
 export type PlayLaunch = {
@@ -471,19 +545,75 @@ export type PlayLaunch = {
 };
 
 const LAUNCH = "couch-potato:launch";
+const LAST_LAUNCH = "couch-potato:last-launch";
 
+const DEFAULT_LAUNCH: PlayLaunch = {
+  mode: "target",
+  grid: 4,
+  topology: "square",
+  difficulty: "easy",
+  minWordLength: 3,
+  duration: 60,
+};
+
+/** Clamp raw JSON into a valid lobby/play launch (session or last-played). */
+export function normalizePlayLaunch(raw: unknown): PlayLaunch {
+  if (!raw || typeof raw !== "object") return { ...DEFAULT_LAUNCH };
+  const o = raw as Record<string, unknown>;
+  const mode =
+    o.mode === "timed" || o.mode === "survival" || o.mode === "target" ? o.mode : "target";
+  const grid = o.grid === 5 || o.grid === 6 ? o.grid : 4;
+  const topology = o.topology === "hex" ? "hex" : "square";
+  const minWordLength =
+    o.minWordLength === 4 || o.minWordLength === 5 ? o.minWordLength : 3;
+  const difficulty =
+    o.difficulty === "medium" || o.difficulty === "hard" || o.difficulty === "easy"
+      ? o.difficulty
+      : "easy";
+  const duration =
+    o.duration === 30 || o.duration === 90 || o.duration === 120 || o.duration === 60
+      ? o.duration
+      : 60;
+  return {
+    mode,
+    grid,
+    topology,
+    minWordLength,
+    difficulty,
+    duration,
+  };
+}
+
+/** Live play launch + durable last-played lobby prefs (device-local). */
 export function saveLaunch(launch: PlayLaunch) {
-  sessionStorage.setItem(LAUNCH, JSON.stringify(launch));
+  const normalized = normalizePlayLaunch(launch);
+  const raw = JSON.stringify(normalized);
+  try {
+    sessionStorage.setItem(LAUNCH, raw);
+  } catch {
+    /* ignore */
+  }
+  try {
+    localStorage.setItem(LAST_LAUNCH, raw);
+  } catch {
+    /* ignore */
+  }
 }
 
 export function loadLaunch(): PlayLaunch {
   try {
-    const raw = sessionStorage.getItem(LAUNCH);
-    if (raw) return JSON.parse(raw) as PlayLaunch;
+    const session = sessionStorage.getItem(LAUNCH);
+    if (session) return normalizePlayLaunch(JSON.parse(session));
   } catch {
     /* ignore */
   }
-  return { mode: "target", grid: 4, topology: "square", difficulty: "easy", minWordLength: 3 };
+  try {
+    const last = localStorage.getItem(LAST_LAUNCH);
+    if (last) return normalizePlayLaunch(JSON.parse(last));
+  } catch {
+    /* ignore */
+  }
+  return { ...DEFAULT_LAUNCH };
 }
 
 /** Human label from engine highScoreKey (strips profile id prefix). */

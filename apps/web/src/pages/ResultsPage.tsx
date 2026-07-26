@@ -1,14 +1,28 @@
 import { Text, View } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown, CirclePlay, Sofa, Sparkles } from "lucide-react";
-import { ConfettiBurst, EmptyState, PotatoSprite } from "@couch-potato/ui";
+import {
+  ConfettiBurst,
+  EmptyState,
+  LetterGrid,
+  Logo,
+  LogoCelebrate,
+  type Cell,
+} from "@couch-potato/ui";
+import {
+  findPathForWord,
+  isAdjacentCells,
+  type GridTopology,
+} from "@couch-potato/game-engine";
 import { loadLastRun, saveLaunch, type PlayLaunch } from "../storage";
 import { BrandHeader } from "@/components/BrandHeader";
 import { Button } from "@/components/ui/button";
 import { WordGroups } from "../components/WordGroups";
 import { ResultsMedals } from "../components/ResultsMedals";
 import { ScrollShell } from "../components/ScrollShell";
+import { formatRunMeta } from "../runMeta";
+import { playSearchFromLaunch } from "../playLaunchSearch";
 
 const MISSED_COLLAPSE_THRESHOLD = 8;
 const CONFETTI_DELAY_MS = 150;
@@ -41,6 +55,10 @@ function useCountUp(target: number, durationMs = 650) {
   return value;
 }
 
+function titleCase(w: string) {
+  return w.length ? w[0]!.toUpperCase() + w.slice(1).toLowerCase() : w;
+}
+
 export function ResultsPage() {
   const navigate = useNavigate();
   const run = loadLastRun();
@@ -49,8 +67,23 @@ export function ResultsPage() {
   const [missedOpen, setMissedOpen] = useState(
     (run?.missed.length ?? 0) <= MISSED_COLLAPSE_THRESHOLD,
   );
+  const [selectedWord, setSelectedWord] = useState<string | null>(null);
 
   const celebratory = run != null && (run.reason === "won" || run.isHighScore);
+  const topology = (run?.topology ?? "square") as GridTopology;
+  const letters = run?.letters;
+  const hasBoard = Boolean(letters && letters.length > 0);
+
+  const highlightPath: Cell[] = useMemo(() => {
+    if (!letters || !selectedWord) return [];
+    return findPathForWord(letters, selectedWord, topology) ?? [];
+  }, [letters, selectedWord, topology]);
+
+  const adjacent = (a: Cell, b: Cell) => isAdjacentCells(a, b, topology);
+
+  const selectWord = (word: string) => {
+    setSelectedWord((prev) => (prev?.toLowerCase() === word.toLowerCase() ? null : word));
+  };
 
   useEffect(() => {
     if (!celebratory) return;
@@ -82,25 +115,35 @@ export function ResultsPage() {
           : "Time's up!"
         : "Run ended";
 
-  const hasMedals = Boolean(run.achievements);
+  const runMeta = formatRunMeta({
+    mode: run.mode,
+    difficulty: run.difficulty,
+    duration: run.duration,
+    minWordLength: run.minWordLength,
+  });
 
   return (
     <ScrollShell shellClassName="relative cp-shell-results cp-results">
       <ConfettiBurst active={celebrate} durationMs={CONFETTI_DURATION_MS} />
 
-      <View className="mb-6 items-center cp-fade-up">
-        {/* Results hero — potato sprite is the brand mark; wordmark + outcome title under it. */}
+      <View className="mb-4 items-center cp-fade-up">
+        {/* Results hero — dedicated marks (celebrate / chill), not the atlas sheet. */}
         <BrandHeader
-          className="mb-2"
+          className="mb-1"
           mark={
             <View className="cp-pop-in">
               <View className="cp-logo-float">
-                <PotatoSprite frame={celebratory ? "cheer" : "idle"} size={148} />
+                {celebratory ? <LogoCelebrate size={96} /> : <Logo size={96} />}
               </View>
             </View>
           }
           title={reasonLabel}
         />
+        <View className="mb-2 items-center">
+          <View className="cp-run-badge cp-run-badge-quiet" accessibilityLabel={runMeta}>
+            <Text style={{ color: "inherit" }}>{runMeta}</Text>
+          </View>
+        </View>
         <View className="cp-results-haul cp-pop-in">
           <View
             className={`cp-results-haul-tag ${run.isHighScore ? "cp-results-haul-tag-gold" : celebratory ? "cp-results-haul-tag-gold" : ""}`}
@@ -122,17 +165,17 @@ export function ResultsPage() {
         </View>
       </View>
 
-      <div
-        className={`cp-results-columns mb-6 ${hasMedals ? "" : "cp-results-columns-solo"}`.trim()}
-      >
-        {run.achievements ? (
+      {run.achievements ? (
+        <div className="mb-6 cp-fade-up">
           <ResultsMedals
             snapshot={run.achievements.snapshot}
             stageUps={run.achievements.stageUps}
             touched={run.achievements.touched}
           />
-        ) : null}
+        </div>
+      ) : null}
 
+      <div className="cp-results-replay mb-6">
         <div className="cp-results-words">
           <View className="cp-lobby-card p-4 cp-fade-up cp-stagger-1">
             <h2 className="mb-2 flex items-center gap-2 text-lg text-foreground">
@@ -144,7 +187,12 @@ export function ResultsPage() {
               Your haul
             </h2>
             {run.found.length ? (
-              <WordGroups words={run.found} variant="found" />
+              <WordGroups
+                words={run.found}
+                variant="found"
+                selectedWord={hasBoard ? selectedWord : undefined}
+                onWordSelect={hasBoard ? selectWord : undefined}
+              />
             ) : (
               <EmptyState
                 title="Nada. Not even 'the'."
@@ -159,7 +207,7 @@ export function ResultsPage() {
               <>
                 <Button
                   variant="ghost"
-                  className="h-auto w-full justify-between px-0 py-0 hover:bg-transparent"
+                  className="h-auto min-h-0 w-full justify-between px-0 py-0 hover:bg-transparent"
                   aria-expanded={missedOpen}
                   aria-controls="results-missed-panel"
                   onClick={() => setMissedOpen((o) => !o)}
@@ -190,7 +238,12 @@ export function ResultsPage() {
                   className={`cp-results-collapse-panel ${missedOpen ? "cp-results-collapse-panel-open" : ""}`}
                 >
                   <View className="cp-results-collapse-panel-inner pt-3">
-                    <WordGroups words={run.missed} variant="missed" />
+                    <WordGroups
+                      words={run.missed}
+                      variant="missed"
+                      selectedWord={hasBoard ? selectedWord : undefined}
+                      onWordSelect={hasBoard ? selectWord : undefined}
+                    />
                   </View>
                 </View>
               </>
@@ -213,6 +266,45 @@ export function ResultsPage() {
             )}
           </View>
         </div>
+
+        <div className="cp-results-board-card cp-lobby-card p-4 cp-fade-up">
+          <h2 className="mb-1 text-center font-display text-lg text-foreground">Your board</h2>
+          {hasBoard && letters ? (
+            <>
+              <p className="mb-3 text-center font-body text-sm text-muted-foreground">
+                Tap a haul word to trace its path.
+              </p>
+              <div className="cp-results-board mx-auto">
+                <LetterGrid
+                  letters={letters}
+                  topology={topology}
+                  isAdjacent={adjacent}
+                  selected={highlightPath}
+                  interactive={false}
+                />
+              </div>
+              {selectedWord ? (
+                <p
+                  className="mt-3 text-center font-display text-base font-bold text-primary"
+                  aria-live="polite"
+                >
+                  {titleCase(selectedWord)}
+                  {highlightPath.length === 0 ? ". Path went missing." : ""}
+                </p>
+              ) : (
+                <p className="mt-3 text-center font-body text-sm text-muted-foreground">
+                  No word picked yet
+                </p>
+              )}
+            </>
+          ) : (
+            <EmptyState
+              title="Board went walkabout"
+              body="This haul predates board replay. Play again and it'll stick around."
+              className="py-2"
+            />
+          )}
+        </div>
       </div>
 
       <div className="cp-results-actions cp-fade-up cp-stagger-3">
@@ -228,7 +320,7 @@ export function ResultsPage() {
               duration: run.duration,
             };
             saveLaunch(launch);
-            navigate({ to: "/play" });
+            navigate({ to: "/play", search: playSearchFromLaunch(launch) });
           }}
         >
           <CirclePlay aria-hidden />
@@ -237,7 +329,17 @@ export function ResultsPage() {
         <Button
           variant="outline"
           className="cp-chrome-cta"
-          onClick={() => navigate({ to: "/" })}
+          onClick={() => {
+            saveLaunch({
+              mode: run.mode,
+              grid: run.grid as 4 | 5 | 6,
+              topology: run.topology,
+              minWordLength: run.minWordLength ?? 3,
+              difficulty: run.difficulty,
+              duration: run.duration,
+            });
+            navigate({ to: "/" });
+          }}
         >
           <Sofa />
           Back to lobby

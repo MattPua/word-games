@@ -336,8 +336,21 @@ describe("normalizeStageUnlockedAt", () => {
 });
 
 describe("formatUnlockDate", () => {
-  it("formats as Unlocked Mon D, YYYY", () => {
-    expect(formatUnlockDate(FIXED_NOW)).toBe("Unlocked Jul 25, 2026");
+  const now = FIXED_NOW;
+
+  it("says just now for sub-minute unlocks", () => {
+    expect(formatUnlockDate(now, now)).toBe("Unlocked just now");
+    expect(formatUnlockDate(now - 10_000, now)).toBe("Unlocked just now");
+  });
+
+  it("uses RelativeTimeFormat auto (yesterday / N days ago)", () => {
+    expect(formatUnlockDate(now - 3 * 60_000, now)).toBe(
+      "Unlocked 3 minutes ago",
+    );
+    expect(formatUnlockDate(now - 86_400_000, now)).toBe("Unlocked yesterday");
+    expect(formatUnlockDate(now - 3 * 86_400_000, now)).toBe(
+      "Unlocked 3 days ago",
+    );
   });
 });
 

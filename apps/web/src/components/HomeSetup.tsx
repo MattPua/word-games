@@ -46,13 +46,18 @@ export type HomeSetupProps = {
   onDuration: (v: Duration) => void;
 };
 
-/** Growth rings vs 4×4 base: mid = potato gold, outer = soft sage accent. */
+/** Growth rings vs 4×4 base: outer (newest) = potato gold, mid = soft sage accent. */
 const SIZE_BASE = 4;
 
-function sizeCellFill(r: number, c: number): { fill: string; opacity: number } {
+function sizeCellFill(
+  r: number,
+  c: number,
+  n: number,
+): { fill: string; opacity: number } {
   const ring = Math.max(r, c);
   if (ring < SIZE_BASE) return { fill: "currentColor", opacity: 0.85 };
-  if (ring === SIZE_BASE) return { fill: "var(--secondary)", opacity: 1 };
+  // Outermost ring of this size is the “extra” highlight (5×5 and 6×6).
+  if (ring === n - 1) return { fill: "var(--secondary)", opacity: 1 };
   return { fill: "var(--accent)", opacity: 1 };
 }
 
@@ -63,7 +68,7 @@ function SquareMini({ n }: { n: number }) {
       {cells.map((i) => {
         const r = Math.floor(i / n);
         const c = i % n;
-        const { fill, opacity } = sizeCellFill(r, c);
+        const { fill, opacity } = sizeCellFill(r, c, n);
         return (
           <rect
             key={i}
@@ -120,7 +125,7 @@ function HexMini({ n }: { n: number }) {
   return (
     <svg viewBox={`0 0 ${vbW} ${vbH}`} className="h-10 w-10" aria-hidden>
       {pts.map((p) => {
-        const { fill, opacity } = sizeCellFill(p.r, p.c);
+        const { fill, opacity } = sizeCellFill(p.r, p.c, n);
         return <polygon key={p.key} points={hexPoints(p.cx, p.cy)} fill={fill} opacity={opacity} />;
       })}
     </svg>
@@ -248,7 +253,7 @@ export function HomeSetup({
                 {
                   value: "timed" as const,
                   title: "Timed",
-                  blurb: "Beat the clock",
+                  blurb: "Nab all you can",
                   Glyph: TimedGlyph,
                 },
                 {
