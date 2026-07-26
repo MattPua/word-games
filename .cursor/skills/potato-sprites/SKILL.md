@@ -39,6 +39,10 @@ non-TS tooling. Keep both in sync — never let the JSON drift from the TS map.
   “animate” a still mark by floating/bobbing/lerping it (`cp-logo-float` is fine for celebrate pop wrappers,
   not as a substitute for real pose frames). `background-position` animations must use `steps(1)` / hard
   holds so the sheet doesn’t smear between cells.
+- **Experiment (SVG snore):** `PotatoSnoreSvg` — same CSS atlas crop as `PotatoSprite` for the
+  **bored** cell (pixel-identical PixelLab art) + soft breath scale + SVG pixel-block Zzz. Not a
+  hand redraw. Lobby A/B vs `PotatoSprite lobbyYawn` (`cp-exp-svg-snore`). Native falls back to bored
+  atlas frame. Keep PixelLab PNG/WebP masters.
 - **Category / feature-specific pose sets** that shouldn't shift interactive `logo-sprite` cheer offsets
   (e.g. Couch medals section headers): a **separate** sheet (`medals-sprite.png`) is OK — keep identity lock
   to `logo.png`, equal cells, transparent bg, own atlas keys in `spriteAtlas.ts`.

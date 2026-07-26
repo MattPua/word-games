@@ -1,4 +1,9 @@
-import { BrandHeader, PotatoSprite, Shell } from "@couch-potato/ui";
+import {
+  BrandHeader,
+  PotatoSnoreSvg,
+  PotatoSprite,
+  Shell,
+} from "@couch-potato/ui";
 import {
   getActiveProfile,
   loadDevicePrefs,
@@ -16,6 +21,17 @@ import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
 import { prefetchPlayPage } from "../playPrefetch";
 import { playSearchFromLaunch } from "../playLaunchSearch";
 
+const SNORE_EXP_KEY = "cp-exp-svg-snore";
+
+/** Lobby experiment: continuous SVG snore vs atlas idle↔bored cuts. */
+function loadSnoreExp(): boolean {
+  try {
+    return localStorage.getItem(SNORE_EXP_KEY) !== "0";
+  } catch {
+    return true;
+  }
+}
+
 export function HomePage() {
   const navigate = useNavigate();
   const profile = getActiveProfile();
@@ -30,6 +46,7 @@ export function HomePage() {
   const [blockedWords, setBlockedWords] = useState(
     () => loadDevicePrefs().customBlockedWords,
   );
+  const [svgSnore, setSvgSnore] = useState(loadSnoreExp);
   const hasLastResults = loadLastRun() != null;
 
   // Warm play chunk + ENABLE lexicon while the lobby sits idle — Play click
@@ -54,6 +71,18 @@ export function HomePage() {
     setCustomBlockedWords(next);
   };
 
+  const flipSnoreExp = () => {
+    setSvgSnore((on) => {
+      const next = !on;
+      try {
+        localStorage.setItem(SNORE_EXP_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
+
   const play = () => {
     void prefetchPlayPage();
     const launch: PlayLaunch =
@@ -73,9 +102,25 @@ export function HomePage() {
           <BrandHeader
             className="mb-4"
             brandHeading
-            mark={<PotatoSprite lobbyYawn size={72} />}
+            mark={
+              svgSnore ? (
+                <PotatoSnoreSvg size={72} />
+              ) : (
+                <PotatoSprite lobbyYawn size={72} />
+              )
+            }
             description="Swipe letters. Find words. Stay on the couch."
           />
+          {/* Temporary A/B — continuous SVG snore vs atlas frame cuts. */}
+          <p className="-mt-2 mb-3">
+            <button
+              type="button"
+              onClick={flipSnoreExp}
+              className="font-body text-xs font-semibold text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            >
+              {svgSnore ? "Compare: atlas doze (frame cuts)" : "Compare: SVG snore (continuous)"}
+            </button>
+          </p>
 
           <div className="mb-3 flex flex-row items-center justify-between gap-2">
             <p className="min-w-0 flex-shrink truncate font-body text-sm font-semibold text-foreground">

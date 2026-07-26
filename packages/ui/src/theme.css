@@ -386,4 +386,98 @@
   .cp-board-spin.is-turning .cp-tile::before {
     transition: none;
   }
+
+  .cp-potato-snore-body,
+  .cp-potato-snore-z {
+    animation: none !important;
+  }
+
+  .cp-potato-snore-z {
+    opacity: 0.55;
+  }
 }
+
+/*
+ * Experimental SVG snore (`PotatoSnoreSvg`) — continuous breath + Zzz.
+ * Separate from atlas `.cp-potato-sprite-lobby` frame cuts. Do not ship as
+ * the only lobby mark until the experiment lands; keeps PixelLab assets intact.
+ */
+.cp-potato-snore {
+  display: block;
+  position: relative;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+.cp-potato-snore-zzz-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.cp-potato-snore-sheet {
+  display: block;
+  background-repeat: no-repeat;
+  background-position-y: center;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.cp-potato-snore-body {
+  transform-origin: center 78%;
+}
+
+.cp-potato-snore-z {
+  opacity: 0;
+}
+
+@keyframes cp-potato-snore-breathe {
+  0%,
+  100% {
+    transform: scale(1, 1) translateY(0);
+  }
+  45% {
+    transform: scale(1.015, 0.985) translateY(2px);
+  }
+  55% {
+    transform: scale(1.02, 0.98) translateY(3px);
+  }
+}
+
+@keyframes cp-potato-snore-z {
+  0% {
+    opacity: 0;
+    transform: translate(0, 6px);
+  }
+  18% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(10px, -22px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cp-potato-snore-body {
+    animation: cp-potato-snore-breathe 2.8s ease-in-out infinite;
+  }
+
+  .cp-potato-snore-z1 {
+    animation: cp-potato-snore-z 3.6s ease-out infinite;
+  }
+
+  .cp-potato-snore-z2 {
+    animation: cp-potato-snore-z 3.6s ease-out 0.55s infinite;
+  }
+
+  .cp-potato-snore-z3 {
+    animation: cp-potato-snore-z 3.6s ease-out 1.1s infinite;
+  }
+}
+
