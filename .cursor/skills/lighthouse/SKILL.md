@@ -41,10 +41,12 @@ Aim for category scores **≥ 95**, stretch **100**. Soft resource budgets for t
 | Resource | Budget |
 | --- | --- |
 | Total transfer | ≤ 500 KB |
-| Script | ≤ 200 KB |
+| Script | ≤ 250 KB (gzip; lobby shell — Play/dict stay lazy). Lucide: per-icon via `vite.lucide-optimize` — don’t re-add a lucide barrel `optimizeDeps.include`. |
 | Stylesheet | ≤ 50 KB |
-| Image | ≤ 300 KB |
+| Image | ≤ 300 KB (lobby may pull `logo-sprite` ~runtime; don’t precache medals/BGM; prefer **WebP** over PNG — `AGENTS.md` Image formats) |
 | Third-party count | ≤ 5 |
+
+**Offline / 3G:** production SW precache stays lean (shell CSS + latin fonts + tiny logos — not Play JS, medals, or BGM). Runtime `CacheFirst` for `/assets/*.js`, images, mp3 after first use. Don’t “fix” Lighthouse by precaching the whole app into install. Keep `menu-bgm.mp3` ~128 kb/s stereo without cover art (see `AGENTS.md` Sounds / cuelume).
 
 Timing (mobile, default Lighthouse throttling):
 
@@ -123,7 +125,7 @@ Fix order:
 - Bun workspaces + Vite; no Next.js
 - **Lobby jam MP3:** must not fetch until music is actually enabled + scene wants play (`menuMusic.ts`) — constructing `Audio` with `preload=auto` on boot tanks LCP
 - **Cold JS ceiling:** NativeWind / `react-native-css-interop` still pulls react-native-web into the lobby chunk even with DOM Shell/Logo. Further ~100pt perf needs a web styling strategy change, not more lazy routes
-- **v1 lexicon:** ship `popular.json` only on play path; keep `enable.json` off the cold graph
+- **Play lexicon:** ship `enable.json` with the Play chunk (CacheFirst after first use); keep lobby cold path free of the dict import
 
 ## Report back
 

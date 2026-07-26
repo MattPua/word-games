@@ -4,8 +4,10 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree";
 import { initAnalytics } from "./analytics";
+import { registerOfflineShell } from "./registerOffline";
 
 initAnalytics();
+registerOfflineShell();
 
 const NotFoundPage = lazy(() =>
   import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })),

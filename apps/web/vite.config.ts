@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -12,11 +13,15 @@ import {
   PRODUCT_NAME,
   jsonLd,
 } from "./src/seo";
+import { lucideReactImportOptimizer } from "./vite.lucide-optimize";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const nativewindRoot = path.dirname(require.resolve("nativewind/package.json"));
 const rnWebRoot = path.dirname(require.resolve("react-native-web/package.json"));
+const lucideIconsRoot = path.dirname(
+  require.resolve("lucide-react/dist/esm/icons/sofa.mjs"),
+);
 
 function escapeAttr(value: string): string {
   return value
@@ -53,6 +58,8 @@ function seoHtmlPlugin(): Plugin {
 export default defineConfig(({ mode }) => ({
   plugins: [
     seoHtmlPlugin(),
+    /** Per-icon lucide imports — avoid Vite crawling the whole barrel (#1944). */
+    lucideReactImportOptimizer(),
     react({
       babel: {
         plugins: [
@@ -66,6 +73,96 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       jsxImportSource: "nativewind",
+    }),
+    VitePWA({
+      registerType: "autoUpdate",
+      includeAssets: ["favicon.png", "apple-touch-icon.png", "robots.txt", "logo.png"],
+      manifest: {
+        name: PRODUCT_NAME,
+        short_name: "Couch Potato",
+        description: DESCRIPTION,
+        theme_color: "#859075",
+        background_color: "#f4f1ea",
+        display: "standalone",
+        orientation: "any",
+        start_url: "/",
+        scope: "/",
+        lang: "en",
+        categories: ["games", "entertainment"],
+        icons: [
+          {
+            src: "/apple-touch-icon.png",
+            sizes: "180x180",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "/logo.png",
+            sizes: "256x256",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+        ],
+      },
+      workbox: {
+        /**
+         * Lean precache for 3G: shell + latin fonts + tiny brand marks.
+         * Route JS, heavy sprites, and BGM cache on first use (CacheFirst) so a
+         * lobby-only visit doesn’t pull Play/dict/medals/audio up front.
+         */
+        globPatterns: [
+          "**/*.{css,html,woff2,ico,svg}",
+          "logo.png",
+          "favicon.png",
+          "apple-touch-icon.png",
+        ],
+        globIgnores: ["**/menu-bgm.mp3", "**/og.png", "**/*jersey*"],
+        navigateFallback: "index.html",
+        cleanupOutdatedCaches: true,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) =>
+              url.pathname.startsWith("/assets/") && /\.js$/i.test(url.pathname),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "cp-js",
+              expiration: {
+                maxEntries: 64,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: ({ url }) =>
+              /\.(?:png|webp)$/i.test(url.pathname) && !url.pathname.endsWith("/og.png"),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "cp-images",
+              expiration: {
+                maxEntries: 48,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: ({ url }) => /\.mp3$/i.test(url.pathname),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "cp-audio",
+              expiration: {
+                maxEntries: 4,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
+      devOptions: {
+        enabled: false,
+      },
     }),
   ],
   define: {
@@ -81,15 +178,19 @@ export default defineConfig(({ mode }) => ({
       "@couch-potato/ui": path.resolve(__dirname, "../../packages/ui/src"),
       "@couch-potato/game-engine": path.resolve(__dirname, "../../packages/game-engine/src"),
       "@couch-potato/dictionary": path.resolve(__dirname, "../../packages/dictionary/src"),
+      // lucide has no package exports for icons/* — alias for the optimizer (#1944)
+      "lucide-react/icons": lucideIconsRoot,
     },
     dedupe: ["react", "react-dom"],
-    extensions: [".web.tsx", ".web.ts", ".tsx", ".ts", ".web.js", ".js"],
+    extensions: [".web.tsx", ".web.ts", ".tsx", ".ts", ".web.js", ".js", ".mjs"],
   },
   optimizeDeps: {
     include: ["react-native-web", "nativewind"],
+    // Don't prebundle the lucide barrel — optimizer rewrites to per-icon paths.
+    exclude: ["lucide-react"],
     esbuildOptions: {
       loader: { ".js": "jsx" },
-      resolveExtensions: [".web.js", ".js", ".ts", ".tsx"],
+      resolveExtensions: [".web.js", ".js", ".mjs", ".ts", ".tsx"],
     },
   },
   server: { port: 5173 },
