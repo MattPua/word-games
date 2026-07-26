@@ -142,7 +142,8 @@ export function menuMusicSceneForPath(pathname: string): MenuMusicScene {
     pathname === "/" ||
     pathname === "/profiles" ||
     pathname === "/achievements" ||
-    pathname === "/options"
+    pathname === "/options" ||
+    pathname === "/how-to"
   ) {
     return "lobby";
   }

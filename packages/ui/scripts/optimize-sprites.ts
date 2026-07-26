@@ -5,6 +5,9 @@
  * PNG masters. WebP `{ lossless: true, exact: true }` is byte-pixel-safe.
  *
  * Usage (repo root): `bun packages/ui/scripts/optimize-sprites.ts`
+ *
+ * Sheets stay in `packages/ui/src/assets/` as crop sources; runtime fetches
+ * cropped single-cell WebPs under `apps/web/public/` (SVG-mark bodies).
  */
 import { copyFile, mkdir, stat, unlink } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
@@ -23,6 +26,9 @@ const SHIP_WEBP = [
   "logo-celebrate",
   "logo-options",
 ] as const;
+
+/** Convert to assets WebP but do **not** ship the full sheet to `public/`. */
+const ASSET_ONLY = new Set(["logo-sprite", "medals-sprite"]);
 
 /**
  * Drop matching `.png` from `public/` after writing WebP.
@@ -47,9 +53,7 @@ async function convertOne(base: (typeof SHIP_WEBP)[number]) {
   const publicPng = join(webPublic, `${base}.png`);
 
   const before = (await stat(pngPath)).size;
-  await sharp(pngPath)
-    .webp({ lossless: true, exact: true, effort: 6 })
-    .toFile(webpPath);
+  await sharp(pngPath).webp({ lossless: true, exact: true, effort: 6 }).toFile(webpPath);
 
   const after = (await stat(webpPath)).size;
 
@@ -66,14 +70,22 @@ async function convertOne(base: (typeof SHIP_WEBP)[number]) {
   }
   for (let i = 0; i < a.length; i++) {
     if (a[i] !== b[i]) {
-      throw new Error(
-        `${base}: pixel drift at byte ${i} (refuse to ship non-exact WebP)`,
-      );
+      throw new Error(`${base}: pixel drift at byte ${i} (refuse to ship non-exact WebP)`);
     }
   }
 
-  await mkdir(dirname(publicWebp), { recursive: true });
-  await copyFile(webpPath, publicWebp);
+  if (!ASSET_ONLY.has(base)) {
+    await mkdir(dirname(publicWebp), { recursive: true });
+    await copyFile(webpPath, publicWebp);
+  } else {
+    // Drop stale full-sheet copies from public if a prior run shipped them.
+    try {
+      await unlink(publicWebp);
+      console.log(`${base}: removed full sheet from public/ (crops only)`);
+    } catch {
+      /* already gone */
+    }
+  }
 
   if (REMOVE_PUBLIC_PNG.has(base)) {
     try {
@@ -85,7 +97,7 @@ async function convertOne(base: (typeof SHIP_WEBP)[number]) {
 
   const saved = Math.round((1 - after / before) * 100);
   console.log(
-    `${base}: ${kb(before)} PNG → ${kb(after)} WebP (−${saved}%)  ${info.width}×${info.height}`,
+    `${base}: ${kb(before)} PNG → ${kb(after)} WebP (−${saved}%)  ${info.width}×${info.height}${ASSET_ONLY.has(base) ? " [asset only]" : ""}`,
   );
 }
 
@@ -93,4 +105,77 @@ for (const base of SHIP_WEBP) {
   await convertOne(base);
 }
 
-console.log("Done. Point atlas / Logo* src at .webp; keep PNG masters in packages/ui/src/assets.");
+async function cropCell(opts: {
+  sheetWebp: string;
+  rect: { x: number; y: number; w: number; h: number };
+  outBase: string;
+  label: string;
+}) {
+  const outUi = join(uiAssets, `${opts.outBase}.webp`);
+  const outPublic = join(webPublic, `${opts.outBase}.webp`);
+  await sharp(opts.sheetWebp)
+    .extract({
+      left: opts.rect.x,
+      top: opts.rect.y,
+      width: opts.rect.w,
+      height: opts.rect.h,
+    })
+    .webp({ lossless: true, exact: true, effort: 6 })
+    .toFile(outUi);
+  await mkdir(dirname(outPublic), { recursive: true });
+  await copyFile(outUi, outPublic);
+  const n = (await stat(outPublic)).size;
+  console.log(
+    `${opts.label}: ${opts.rect.w}×${opts.rect.h} → ${kb(n)} WebP (/${opts.outBase}.webp)`,
+  );
+}
+
+/** Single-cell WebPs for SVG-mark bodies (no runtime full-sheet fetch). */
+async function cropFrameCells() {
+  const { LOGO_SPRITE_FRAMES, MEDALS_SPRITE_FRAMES } = await import("../src/spriteAtlas.ts");
+
+  const logoSheet = join(uiAssets, "logo-sprite.webp");
+  await cropCell({
+    sheetWebp: logoSheet,
+    rect: LOGO_SPRITE_FRAMES.idle,
+    outBase: "logo-idle",
+    label: "logo-idle",
+  });
+  await cropCell({
+    sheetWebp: logoSheet,
+    rect: LOGO_SPRITE_FRAMES.cheer,
+    outBase: "logo-cheer",
+    label: "logo-cheer",
+  });
+  await cropCell({
+    sheetWebp: logoSheet,
+    rect: LOGO_SPRITE_FRAMES.bored,
+    outBase: "logo-snore",
+    label: "logo-snore (bored)",
+  });
+
+  const medalsSheet = join(uiAssets, "medals-sprite.webp");
+  const medalCrops: Array<{
+    frame: keyof typeof MEDALS_SPRITE_FRAMES;
+    outBase: string;
+  }> = [
+    { frame: "bigPicture", outBase: "medals-big-picture" },
+    { frame: "personalBests", outBase: "medals-personal-bests" },
+    { frame: "lengthHauls", outBase: "medals-length-hauls" },
+    { frame: "survival", outBase: "medals-survival" },
+  ];
+  for (const { frame, outBase } of medalCrops) {
+    await cropCell({
+      sheetWebp: medalsSheet,
+      rect: MEDALS_SPRITE_FRAMES[frame],
+      outBase,
+      label: outBase,
+    });
+  }
+}
+
+await cropFrameCells();
+
+console.log(
+  "Done. Runtime marks use cropped /logo-*.webp + /medals-*.webp; sheet masters stay in assets/.",
+);

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ALargeSmall,
+  CircleHelp,
   Eye,
   EyeOff,
   Moon,
@@ -17,6 +18,7 @@ import { setEnabled } from "cuelume";
 import {
   loadDevicePrefs,
   setFontPreference,
+  setHowToSeen,
   setMenuMusicEnabled,
   setShowWordsLeft,
   setSoundEnabled,
@@ -186,6 +188,21 @@ export function OptionsPage() {
             },
           ]}
         />
+      </div>
+
+      <div className="mb-4 flex flex-col items-stretch gap-2 sm:items-center">
+        <Button
+          variant="secondary"
+          className="cp-chrome-cta gap-2"
+          data-testid="options-replay-howto"
+          onClick={() => {
+            setHowToSeen(false);
+            navigate({ to: "/how-to" });
+          }}
+        >
+          <CircleHelp className="size-4 shrink-0" aria-hidden />
+          Replay how-to
+        </Button>
       </div>
 
       <Button

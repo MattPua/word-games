@@ -27,7 +27,6 @@ import {
   TimerRing,
   type Cell,
 } from "@couch-potato/ui";
-import { dictionaryWithoutWords, getDictionary } from "@couch-potato/dictionary";
 import type { Dictionary } from "@couch-potato/dictionary";
 import { PlaySkeleton } from "@/components/PlaySkeleton";
 import { Button } from "@/components/ui/button";
@@ -130,7 +129,7 @@ function timerBaselineSeconds(config: GameConfig): number | null {
 export function PlayPage() {
   const navigate = useNavigate();
   /** Per-run lexicon (house bans snapshotted at beginFreshRun — not live prefs). */
-  const dictRef = useRef<Dictionary>(getDictionary());
+  const dictRef = useRef<Dictionary | null>(null);
   const search = playRouteApi.useSearch();
   const launch = useMemo(() => {
     const next = playLaunchFromSearch(search);
@@ -262,7 +261,12 @@ export function PlayPage() {
   };
 
   /** New board + clock from lobby launch prefs. Does not record the abandoned run. */
-  const beginFreshRun = () => {
+  const beginFreshRun = async (isStale?: () => boolean) => {
+    // Dynamic — keeps ENABLE JSON out of the Play shell chunk (lobby prefetch / LH cold path).
+    const { dictionaryWithoutWords, getDictionary } = await import(
+      "@couch-potato/dictionary"
+    );
+    if (isStale?.()) return;
     const dict = dictionaryWithoutWords(
       getDictionary(),
       loadDevicePrefs().customBlockedWords,
@@ -329,17 +333,18 @@ export function PlayPage() {
     setBoardTurning(false);
     setHudPulse(false);
     setSurvivalBump(null);
-    // Drop board so PlaySkeleton paints while sync gen holds the thread.
+    // Drop board so PlaySkeleton paints while dict + sync gen hold the thread.
     setState(null);
-    window.setTimeout(() => beginFreshRun(), 0);
+    window.setTimeout(() => {
+      void beginFreshRun();
+    }, 0);
   };
 
   useEffect(() => {
     let cancelled = false;
-    // Yield so PlaySkeleton can paint before sync board gen holds the main thread.
+    // Yield so PlaySkeleton can paint before dict fetch + sync board gen.
     const genId = window.setTimeout(() => {
-      if (cancelled) return;
-      beginFreshRun();
+      void beginFreshRun(() => cancelled);
     }, 0);
     return () => {
       cancelled = true;
@@ -509,7 +514,9 @@ export function PlayPage() {
       survivalDurationMs,
       activePlayMs,
     });
-    const missed = missedLongWords(s, dictRef.current);
+    const dict = dictRef.current;
+    if (!dict) return;
+    const missed = missedLongWords(s, dict);
     const detail = formatRunMeta({
       mode: s.config.mode,
       difficulty,
@@ -752,7 +759,9 @@ export function PlayPage() {
             ? undefined
             : (p) => {
                 if (rotatingRef.current) return;
-                const { state: next, result } = submitPath(state, p, dictRef.current);
+                const dict = dictRef.current;
+                if (!dict) return;
+                const { state: next, result } = submitPath(state, p, dict);
                 setPath([]);
                 if (result.ok) {
                   track("word_found", {
@@ -801,14 +810,14 @@ export function PlayPage() {
           <Button
             variant="secondary"
             size="sm"
-            className="h-11 min-h-11 shrink-0 gap-1 px-2.5"
+            className="h-11 min-h-11 shrink-0 gap-1 px-2.5 font-body"
             disabled={boardLocked}
             onClick={() => rotate(-1)}
             aria-label="Spin board left"
             data-testid="rotate-ccw"
           >
             <RotateCcwSquare className="size-4 shrink-0" aria-hidden />
-            <span className="font-display text-[0.65rem] font-bold uppercase tracking-wide">
+            <span className="font-body text-[0.65rem] font-bold uppercase tracking-wide">
               Spin
             </span>
           </Button>
@@ -832,13 +841,13 @@ export function PlayPage() {
           <Button
             variant="secondary"
             size="sm"
-            className="h-11 min-h-11 shrink-0 gap-1 px-2.5"
+            className="h-11 min-h-11 shrink-0 gap-1 px-2.5 font-body"
             disabled={boardLocked}
             onClick={() => rotate(1)}
             aria-label="Spin board right"
             data-testid="rotate-cw"
           >
-            <span className="font-display text-[0.65rem] font-bold uppercase tracking-wide">
+            <span className="font-body text-[0.65rem] font-bold uppercase tracking-wide">
               Spin
             </span>
             <RotateCwSquare className="size-4 shrink-0" aria-hidden />

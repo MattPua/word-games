@@ -1,42 +1,24 @@
 /**
- * Experimental lobby mascot: continuous snore over the real PixelLab bored
- * frame. Same CSS atlas crop as `PotatoSprite` (pixel-identical), plus SVG
- * breath + pixel Zzz — not a hand redraw, assets untouched.
+ * Lobby brand mascot: continuous snore over a cropped bored frame
+ * (`/logo-snore.webp` — single cell from logo-sprite, not the full sheet).
  */
-import type { CSSProperties } from "react";
-import { LOGO_SPRITE_FRAMES, LOGO_SPRITE_SHEET } from "./spriteAtlas";
 import type { PotatoSnoreSvgProps } from "./PotatoSnoreSvg";
+import { LOGO_FRAME_URLS } from "./spriteAtlas";
+import { PotatoMark } from "./PotatoMark.web";
 
 export type { PotatoSnoreSvgProps };
 
-const BORED = LOGO_SPRITE_FRAMES.bored;
-const SHEET = LOGO_SPRITE_SHEET;
-
-function boredOffsetPercent(): number {
-  const maxX = SHEET.width - BORED.w;
-  return maxX > 0 ? (BORED.x / maxX) * 100 : 0;
-}
-
 export function PotatoSnoreSvg({ size = 72, className = "" }: PotatoSnoreSvgProps) {
-  const sheetStyle: CSSProperties = {
-    width: size,
-    height: size,
-    backgroundImage: `url(${SHEET.url})`,
-    backgroundSize: `${SHEET.cols * 100}% ${SHEET.rows * 100}%`,
-    backgroundPositionX: `${boredOffsetPercent()}%`,
-  };
-
   return (
-    <div
-      role="img"
-      aria-label="Couch Potato snoring"
+    <PotatoMark
+      src={LOGO_FRAME_URLS.bored}
+      alt="Couch Potato snoring"
+      size={size}
       className={`cp-potato-snore ${className}`.trim()}
-      style={{ width: size, height: size }}
+      bodyClassName="cp-potato-snore-body"
     >
-      <div className="cp-potato-snore-body cp-potato-snore-sheet" style={sheetStyle} />
-
       <svg
-        className="cp-potato-snore-zzz-layer"
+        className="cp-potato-snore-zzz-layer cp-potato-mark-overlay"
         viewBox="0 0 72 72"
         width={size}
         height={size}
@@ -62,7 +44,7 @@ export function PotatoSnoreSvg({ size = 72, className = "" }: PotatoSnoreSvgProp
           </g>
         </g>
       </svg>
-    </div>
+    </PotatoMark>
   );
 }
 

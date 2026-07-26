@@ -66,6 +66,11 @@ export type DevicePrefs = {
   menuMusicEnabled: boolean;
   /** Unfound valid words on the board (not target pts remaining). Default off = discovery. */
   showWordsLeft: boolean;
+  /**
+   * Player finished (or skipped) the interactive how-to. Default false → gate lobby once.
+   * Options “Replay how-to” clears this.
+   */
+  howToSeen: boolean;
   /** Default system; explicit light/dark once the player picks via the toggle. */
   themePreference: ThemePreference;
   /** Default clean (Lexend display); pixel = Jersey 15. Body/tiles stay Lexend either way. */
@@ -102,6 +107,8 @@ function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string
     soundEnabled: prefs.soundEnabled ?? true,
     menuMusicEnabled: prefs.menuMusicEnabled ?? false,
     showWordsLeft: prefs.showWordsLeft ?? false,
+    // Missing key = legacy install — don't force the coach on existing players.
+    howToSeen: typeof prefs.howToSeen === "boolean" ? prefs.howToSeen : true,
     themePreference: prefs.themePreference ?? "system",
     fontPreference: prefs.fontPreference === "pixel" ? "pixel" : "clean",
     customBlockedWords: normalizeCustomBlockedWords(prefs.customBlockedWords),
@@ -179,6 +186,7 @@ export function defaultBlob(): StoredBlob {
       soundEnabled: true,
       menuMusicEnabled: false,
       showWordsLeft: false,
+      howToSeen: false,
       themePreference: "system",
       fontPreference: "clean",
       customBlockedWords: [],
@@ -348,6 +356,13 @@ export function setMenuMusicEnabled(enabled: boolean) {
 export function setShowWordsLeft(enabled: boolean) {
   const store = loadStore();
   store.prefs.showWordsLeft = enabled;
+  saveStore(store);
+}
+
+/** Mark interactive how-to finished (or clear via Options replay). */
+export function setHowToSeen(seen: boolean) {
+  const store = loadStore();
+  store.prefs.howToSeen = seen;
   saveStore(store);
 }
 

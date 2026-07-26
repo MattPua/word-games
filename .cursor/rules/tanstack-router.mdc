@@ -1,0 +1,17 @@
+---
+description: TanStack Router conventions for apps/web (code-based routes, lazy, head, search)
+globs: apps/web/src/routeTree.tsx,apps/web/src/main.tsx,apps/web/src/pages/**,apps/web/src/playPrefetch.ts,apps/web/src/playLaunchSearch.ts,apps/web/src/seo.ts
+alwaysApply: false
+---
+
+# TanStack Router
+
+Code-based routing only — see `.cursor/skills/tanstack-router` (not file-based / `autoCodeSplitting`).
+
+- Tree + lazy pages: `apps/web/src/routeTree.tsx` (`LazyPage`, Play → `prefetchPlayPage` + `PlaySkeleton`)
+- Boot / Register / default 404·error: `apps/web/src/main.tsx`
+- Titles: `head: () => pageHead(…)` + root `<HeadContent />` (`seo.ts`)
+- `/play` search: `validatePlaySearch` + `getRouteApi("/play")`
+- Narrow subscriptions: `useRouterState({ select })` / `useSearch({ select })`
+- **Never** idle-preload Play (ENABLE); warm on Play intent only
+- New route checklist + upstream links: skill `tanstack-router`

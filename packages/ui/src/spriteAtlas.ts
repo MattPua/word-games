@@ -1,11 +1,7 @@
 export type PotatoSpriteFrame = "idle" | "cheer" | "bored";
 
-/** Couch medals `/achievements` category header poses (`medals-sprite.webp`). */
-export type MedalsCategoryFrame =
-  | "bigPicture"
-  | "personalBests"
-  | "lengthHauls"
-  | "survival";
+/** Couch medals `/achievements` category header poses. */
+export type MedalsCategoryFrame = "bigPicture" | "personalBests" | "lengthHauls" | "survival";
 
 export interface SpriteRect {
   x: number;
@@ -15,15 +11,14 @@ export interface SpriteRect {
 }
 
 /**
- * Frame map for `logo-sprite.webp` — equal 506x512 cells: idle (chill),
- * cheer (arms up + sparkles), bored (slumped / empty-board wait), transparent
- * bg (see AGENTS.md Brand). This is the source of truth consumed by
- * `PotatoSprite`; `assets/logo-sprite.json` mirrors the same rects as a plain-data
- * companion for non-TS/tooling consumers. Keep both in sync if the sheet is
- * ever redone in PixelLab.
+ * Master sheet geometry for `logo-sprite` (PixelLab atlas in `assets/`).
+ * Runtime web marks use cropped single-cell WebPs (`LOGO_FRAME_URLS`) — never
+ * fetch the full sheet on cold routes. Keep rects in sync with
+ * `assets/logo-sprite.json` and `sprites:optimize` crops.
  */
 export const LOGO_SPRITE_SHEET = {
-  url: "/logo-sprite.webp",
+  /** Master only — not shipped to `public/` for runtime fetch. */
+  asset: "logo-sprite.webp",
   cols: 3,
   rows: 1,
   width: 1518,
@@ -38,14 +33,20 @@ export const LOGO_SPRITE_FRAMES: Record<PotatoSpriteFrame, SpriteRect> = {
   bored: { x: 1012, y: 0, w: 506, h: 512 },
 };
 
+/** Web public paths for each logo-sprite cell (lossless crops). */
+export const LOGO_FRAME_URLS: Record<PotatoSpriteFrame, string> = {
+  idle: "/logo-idle.webp",
+  cheer: "/logo-cheer.webp",
+  /** Same bored crop as lobby snore body. */
+  bored: "/logo-snore.webp",
+};
+
 /**
- * Frame map for `medals-sprite.webp` — equal 402×420 cells (4×1):
- * bigPicture (overview sparkles) | personalBests (cheer) | lengthHauls (reach)
- * | survival (sweat / hang on). Separate sheet so logo-sprite idle/cheer/bored
- * interactive offsets stay untouched. Mirror in `assets/medals-sprite.json`.
+ * Master sheet geometry for `medals-sprite`. Runtime uses `MEDALS_FRAME_URLS`.
+ * Mirror rects in `assets/medals-sprite.json`.
  */
 export const MEDALS_SPRITE_SHEET = {
-  url: "/medals-sprite.webp",
+  asset: "medals-sprite.webp",
   cols: 4,
   rows: 1,
   width: 1608,
@@ -60,3 +61,17 @@ export const MEDALS_SPRITE_FRAMES: Record<MedalsCategoryFrame, SpriteRect> = {
   lengthHauls: { x: 804, y: 0, w: 402, h: 420 },
   survival: { x: 1206, y: 0, w: 402, h: 420 },
 };
+
+export const MEDALS_FRAME_URLS: Record<MedalsCategoryFrame, string> = {
+  bigPicture: "/medals-big-picture.webp",
+  personalBests: "/medals-personal-bests.webp",
+  lengthHauls: "/medals-length-hauls.webp",
+  survival: "/medals-survival.webp",
+};
+
+/** Standalone brand marks (PixelLab one-offs, not atlas crops). */
+export const LOGO_MARK_URLS = {
+  chill: "/logo.webp",
+  celebrate: "/logo-celebrate.webp",
+  options: "/logo-options.webp",
+} as const;

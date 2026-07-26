@@ -1,9 +1,4 @@
-import {
-  BrandHeader,
-  PotatoSnoreSvg,
-  PotatoSprite,
-  Shell,
-} from "@couch-potato/ui";
+import { BrandHeader, PotatoSnoreSvg, Shell } from "@couch-potato/ui";
 import {
   getActiveProfile,
   loadDevicePrefs,
@@ -21,17 +16,6 @@ import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
 import { prefetchPlayPage } from "../playPrefetch";
 import { playSearchFromLaunch } from "../playLaunchSearch";
 
-const SNORE_EXP_KEY = "cp-exp-svg-snore";
-
-/** Lobby experiment: continuous SVG snore vs atlas idle↔bored cuts. */
-function loadSnoreExp(): boolean {
-  try {
-    return localStorage.getItem(SNORE_EXP_KEY) !== "0";
-  } catch {
-    return true;
-  }
-}
-
 export function HomePage() {
   const navigate = useNavigate();
   const profile = getActiveProfile();
@@ -46,45 +30,32 @@ export function HomePage() {
   const [blockedWords, setBlockedWords] = useState(
     () => loadDevicePrefs().customBlockedWords,
   );
-  const [svgSnore, setSvgSnore] = useState(loadSnoreExp);
   const hasLastResults = loadLastRun() != null;
 
-  // Warm play chunk + ENABLE lexicon while the lobby sits idle — Play click
-  // should land on PlaySkeleton immediately, not wait on download/parse.
+  // First visit → interactive how-to (device pref; Options can replay).
+  const howToSeen = loadDevicePrefs().howToSeen;
   useEffect(() => {
-    const warm = () => {
-      void prefetchPlayPage();
-      void import("@couch-potato/dictionary").then((m) => {
-        m.getDictionary();
-      });
-    };
-    if (typeof window.requestIdleCallback === "function") {
-      const id = window.requestIdleCallback(warm, { timeout: 2000 });
-      return () => window.cancelIdleCallback(id);
+    if (!howToSeen) {
+      navigate({ to: "/how-to", replace: true });
     }
-    const t = window.setTimeout(warm, 400);
-    return () => window.clearTimeout(t);
-  }, []);
+  }, [navigate, howToSeen]);
+
+  if (!howToSeen) {
+    return null;
+  }
 
   const onBlockedWords = (next: string[]) => {
     setBlockedWords(next);
     setCustomBlockedWords(next);
   };
 
-  const flipSnoreExp = () => {
-    setSvgSnore((on) => {
-      const next = !on;
-      try {
-        localStorage.setItem(SNORE_EXP_KEY, next ? "1" : "0");
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
+  /** Warm Play shell on intent only — never idle-prefetch (ENABLE rides with Play). */
+  const warmPlay = () => {
+    void prefetchPlayPage();
   };
 
   const play = () => {
-    void prefetchPlayPage();
+    warmPlay();
     const launch: PlayLaunch =
       mode === "timed"
         ? { mode, grid, topology, duration, difficulty, minWordLength }
@@ -102,25 +73,9 @@ export function HomePage() {
           <BrandHeader
             className="mb-4"
             brandHeading
-            mark={
-              svgSnore ? (
-                <PotatoSnoreSvg size={72} />
-              ) : (
-                <PotatoSprite lobbyYawn size={72} />
-              )
-            }
+            mark={<PotatoSnoreSvg size={72} />}
             description="Swipe letters. Find words. Stay on the couch."
           />
-          {/* Temporary A/B — continuous SVG snore vs atlas frame cuts. */}
-          <p className="-mt-2 mb-3">
-            <button
-              type="button"
-              onClick={flipSnoreExp}
-              className="font-body text-xs font-semibold text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-            >
-              {svgSnore ? "Compare: atlas doze (frame cuts)" : "Compare: SVG snore (continuous)"}
-            </button>
-          </p>
 
           <div className="mb-3 flex flex-row items-center justify-between gap-2">
             <p className="min-w-0 flex-shrink truncate font-body text-sm font-semibold text-foreground">
@@ -154,6 +109,7 @@ export function HomePage() {
         <Shell className="cp-shell-lobby !h-auto !flex-none pb-0 pt-0">
           <HomePlayBar
             onPlay={play}
+            onWarmPlay={warmPlay}
             onLastResults={hasLastResults ? () => navigate({ to: "/results" }) : undefined}
           />
         </Shell>

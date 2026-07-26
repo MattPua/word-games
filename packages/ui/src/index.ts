@@ -9,6 +9,7 @@ import { LogoOptions } from "./LogoOptions";
 import { MedalsCategorySprite } from "./MedalsCategorySprite";
 import { PotatoSprite } from "./PotatoSprite";
 import { PotatoSnoreSvg } from "./PotatoSnoreSvg";
+import { PotatoGoSvg } from "./PotatoGoSvg";
 import { LoadingPotato } from "./LoadingPotato";
 import { EmptyState } from "./EmptyState";
 import { ConfettiBurst } from "./ConfettiBurst";
@@ -32,6 +33,7 @@ export {
   MedalsCategorySprite,
   PotatoSprite,
   PotatoSnoreSvg,
+  PotatoGoSvg,
   LoadingPotato,
   EmptyState,
   ConfettiBurst,

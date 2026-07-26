@@ -13,7 +13,7 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
       {/* Top-aligned — never vertically center short chrome (huge empty tops). */}
       <BrandHeader
         className="cp-fade-up"
-        mark={<PotatoSprite size={96} />}
+        mark={<PotatoSprite frame="idle" size={96} />}
         title="500"
       />
       <EmptyState

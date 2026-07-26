@@ -38,6 +38,9 @@ const AchievementsPage = lazy(() =>
 const OptionsPage = lazy(() =>
   import("./pages/OptionsPage").then((m) => ({ default: m.OptionsPage })),
 );
+const HowToPage = lazy(() =>
+  import("./pages/HowToPage").then((m) => ({ default: m.HowToPage })),
+);
 const CommandPalette = lazy(() =>
   import("@/components/CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
@@ -185,6 +188,19 @@ const optionsRoute = createRoute({
   head: () => pageHead("Options"),
 });
 
+const howToRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/how-to",
+  // No LoadingPotato mark — avoids a second mascot fetch before PotatoSnoreSvg.
+  component: () => (
+    <LazyPage
+      Page={HowToPage}
+      fallback={<div className="flex flex-1" aria-busy="true" aria-label="Loading how-to" />}
+    />
+  ),
+  head: () => pageHead("How to play"),
+});
+
 export const routeTree = rootRoute.addChildren([
   indexRoute,
   playRoute,
@@ -192,4 +208,5 @@ export const routeTree = rootRoute.addChildren([
   profilesRoute,
   achievementsRoute,
   optionsRoute,
+  howToRoute,
 ]);

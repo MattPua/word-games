@@ -555,9 +555,12 @@ export function HomeSetup({
 
 export function HomePlayBar({
   onPlay,
+  onWarmPlay,
   onLastResults,
 }: {
   onPlay: () => void;
+  /** Prefetch Play shell on hover/focus — not on lobby idle (keeps ENABLE off cold path). */
+  onWarmPlay?: () => void;
   /** Open last finished run on results — omit when none for this profile. */
   onLastResults?: () => void;
 }) {
@@ -568,6 +571,8 @@ export function HomePlayBar({
           size="lg"
           className="cp-play-cta min-w-0 flex-1 gap-2.5 text-lg focus-visible:ring-0 focus-visible:ring-offset-0"
           onClick={onPlay}
+          onPointerEnter={onWarmPlay}
+          onFocus={onWarmPlay}
         >
           <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
           Play

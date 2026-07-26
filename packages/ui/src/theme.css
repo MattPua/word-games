@@ -252,31 +252,30 @@
 }
 
 /*
- * PotatoSprite — steps between the `spriteAtlas.ts` idle/cheer frames via
- * `background-position-x: 0%/100%` (background-image + background-size come
- * from the atlas, set inline by the component so the frame map stays the
- * one source of truth). Base rule covers both call sites:
- *  - pinned `frame` (results win/quit): static, no animation here — the
- *    outer `.cp-logo-float` wrapper owns the bob so a pinned "idle" (quit)
- *    frame never gets the interactive mascot's periodic cheer nudge below.
- *  - `.cp-potato-sprite-lobby` (`lobbyYawn` — home brand): **CSS-stepped atlas
- *    poses** only — idle most of the time, snap to `bored` to doze/sleep on the
- *    couch (same idea as portfolio `cartoon-cat` walk/sleepy faces: discrete
- *    poses via CSS, not a GIF/video, not floating/bobbing a still PNG).
- *    `steps(1)` so `background-position` never lerps through mid-sheet mush.
- *    Respects `prefers-reduced-motion`.
- *  - `.cp-potato-sprite-interactive` (frame omitted — 404):
- *    idle bob (mirrors `cp-soft-float`) + an occasional brief cheer-frame
- *    nudge keep it alive without being busy; hover (or a tap via
- *    `.is-poked` on touch) pokes it into a bigger wiggle + cheer frame.
- *    Cheer sits at 50% along the 3-col sheet (idle 0% | cheer 50% | bored 100%).
- * See AGENTS.md Brand.
+ * Potato marks — raster PixelLab body + optional SVG motion overlay
+ * (`PotatoMark` / `Logo*` / `PotatoSnoreSvg` / cropped `PotatoSprite`).
+ * Never full-sheet `background-image` atlases at runtime. See AGENTS.md Brand
+ * + potato-sprites skill.
  */
-.cp-potato-sprite {
+.cp-potato-mark {
   display: block;
-  background-repeat: no-repeat;
-  background-position: 0% center;
+  position: relative;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+.cp-potato-mark-body {
+  display: block;
   image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.cp-potato-mark-overlay {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
 }
 
 .cp-potato-sprite-interactive {
@@ -284,10 +283,28 @@
   cursor: pointer;
 }
 
-/* Cheer / bored offsets on the 3-col sheet — keep in sync with spriteAtlas.ts */
-:root {
-  --cp-potato-cheer-x: 50%;
-  --cp-potato-bored-x: 100%;
+.cp-potato-poke-cheer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.05s steps(1, end);
+}
+
+.cp-potato-poke-idle {
+  opacity: 1;
+  transition: opacity 0.05s steps(1, end);
+}
+
+.cp-potato-sprite-interactive.is-cheer .cp-potato-poke-cheer,
+.cp-potato-sprite-interactive:hover .cp-potato-poke-cheer,
+.cp-potato-sprite-interactive.is-poked .cp-potato-poke-cheer {
+  opacity: 1;
+}
+
+.cp-potato-sprite-interactive.is-cheer .cp-potato-poke-idle,
+.cp-potato-sprite-interactive:hover .cp-potato-poke-idle,
+.cp-potato-sprite-interactive.is-poked .cp-potato-poke-idle {
+  opacity: 0;
 }
 
 @keyframes cp-potato-sprite-idle {
@@ -297,18 +314,6 @@
   }
   50% {
     transform: translateY(-6px);
-  }
-}
-
-@keyframes cp-potato-sprite-nudge {
-  0%,
-  84%,
-  100% {
-    background-position-x: 0%;
-  }
-  89%,
-  95% {
-    background-position-x: var(--cp-potato-cheer-x);
   }
 }
 
@@ -328,40 +333,52 @@
   }
 }
 
-/*
- * Lobby sleep/doze — hard atlas frame cuts only (idle ↔ bored).
- * No scale/rotate “moving picture” of a still; no GIF/video.
- */
-@keyframes cp-potato-lobby-sleep {
+@keyframes cp-potato-sparkle-twinkle {
   0%,
-  62% {
-    background-position-x: 0%;
-  }
-  63%,
-  88% {
-    background-position-x: var(--cp-potato-bored-x);
-  }
-  89%,
   100% {
-    background-position-x: 0%;
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes cp-potato-gear-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .cp-potato-sprite-interactive {
-    animation:
-      cp-potato-sprite-idle 4.5s ease-in-out infinite,
-      cp-potato-sprite-nudge 7s steps(1, end) infinite;
+    animation: cp-potato-sprite-idle 4.5s ease-in-out infinite;
   }
 
   .cp-potato-sprite-interactive:hover,
   .cp-potato-sprite-interactive.is-poked {
     animation: cp-potato-sprite-wiggle 0.55s ease-in-out;
-    background-position-x: var(--cp-potato-cheer-x);
   }
 
-  .cp-potato-sprite-lobby {
-    animation: cp-potato-lobby-sleep 11s steps(1, end) infinite;
+  .cp-potato-sparkle-1 {
+    animation: cp-potato-sparkle-twinkle 1.8s ease-in-out infinite;
+  }
+
+  .cp-potato-sparkle-2 {
+    animation: cp-potato-sparkle-twinkle 1.8s ease-in-out 0.4s infinite;
+  }
+
+  .cp-potato-sparkle-3 {
+    animation: cp-potato-sparkle-twinkle 1.8s ease-in-out 0.85s infinite;
+  }
+
+  .cp-potato-gear {
+    transform-origin: 60px 14px;
+    animation: cp-potato-gear-spin 8s linear infinite;
   }
 }
 
@@ -371,14 +388,8 @@
   .cp-pop-in,
   .cp-tile-selected,
   .cp-tile-drop,
-  .cp-potato-sprite-interactive,
-  .cp-potato-sprite-lobby {
+  .cp-potato-sprite-interactive {
     animation: none;
-  }
-
-  .cp-potato-sprite-interactive:hover,
-  .cp-potato-sprite-interactive.is-poked {
-    background-position-x: var(--cp-potato-cheer-x);
   }
 
   .cp-board-spin.is-turning,
@@ -388,43 +399,29 @@
   }
 
   .cp-potato-snore-body,
-  .cp-potato-snore-z {
+  .cp-potato-snore-z,
+  .cp-potato-sparkle-1,
+  .cp-potato-sparkle-2,
+  .cp-potato-sparkle-3,
+  .cp-potato-gear {
     animation: none !important;
   }
 
   .cp-potato-snore-z {
     opacity: 0.55;
   }
+
+  .cp-potato-sparkle-1,
+  .cp-potato-sparkle-2,
+  .cp-potato-sparkle-3 {
+    opacity: 0.7;
+  }
 }
 
 /*
- * Experimental SVG snore (`PotatoSnoreSvg`) — continuous breath + Zzz.
- * Separate from atlas `.cp-potato-sprite-lobby` frame cuts. Do not ship as
- * the only lobby mark until the experiment lands; keeps PixelLab assets intact.
+ * Lobby brand snore (`PotatoSnoreSvg`) — bored cell crop + continuous breath
+ * + pixel-block Zzz SVG. Keeps PixelLab art as the body source.
  */
-.cp-potato-snore {
-  display: block;
-  position: relative;
-  line-height: 0;
-  flex-shrink: 0;
-}
-
-.cp-potato-snore-zzz-layer {
-  position: absolute;
-  inset: 0;
-  display: block;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.cp-potato-snore-sheet {
-  display: block;
-  background-repeat: no-repeat;
-  background-position-y: center;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-}
-
 .cp-potato-snore-body {
   transform-origin: center 78%;
 }
@@ -481,3 +478,91 @@
   }
 }
 
+/*
+ * How-to done (`PotatoGoSvg`) — cheer crop + play chevron. Eager bob nudges
+ * toward lobby → Play (game loop), not snore energy.
+ */
+.cp-potato-go-body {
+  transform-origin: center 80%;
+}
+
+.cp-potato-go-play {
+  opacity: 0.95;
+  transform-origin: 4px 7px;
+}
+
+.cp-potato-go-spark {
+  opacity: 0.55;
+}
+
+@keyframes cp-potato-go-bounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-5px) scale(1.03);
+  }
+  55% {
+    transform: translateY(-2px) scale(1.01);
+  }
+}
+
+@keyframes cp-potato-go-play-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(2px, 0) scale(1.12);
+  }
+}
+
+@keyframes cp-potato-go-spark {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cp-potato-go-body {
+    animation: cp-potato-go-bounce 1.6s ease-in-out infinite;
+  }
+
+  .cp-potato-go-play {
+    animation: cp-potato-go-play-pulse 1.2s ease-in-out infinite;
+  }
+
+  .cp-potato-go-spark-1 {
+    animation: cp-potato-go-spark 1.4s ease-in-out infinite;
+  }
+
+  .cp-potato-go-spark-2 {
+    animation: cp-potato-go-spark 1.4s ease-in-out 0.35s infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-potato-go-body,
+  .cp-potato-go-play,
+  .cp-potato-go-spark-1,
+  .cp-potato-go-spark-2 {
+    animation: none !important;
+  }
+
+  .cp-potato-go-play {
+    opacity: 0.85;
+  }
+
+  .cp-potato-go-spark {
+    opacity: 0.7;
+  }
+}

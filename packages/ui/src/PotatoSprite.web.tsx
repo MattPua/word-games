@@ -1,30 +1,26 @@
-import { useCallback, useRef, useState, type CSSProperties } from "react";
-import { LOGO_SPRITE_FRAMES, LOGO_SPRITE_SHEET, type PotatoSpriteFrame } from "./spriteAtlas";
+/**
+ * Atlas poses as cropped WebPs + optional SVG life — no full-sheet fetch.
+ */
+import { useCallback, useEffect, useRef, useState } from "react";
+import { PotatoSnoreSvg } from "./PotatoSnoreSvg";
+import { LOGO_FRAME_URLS, type PotatoSpriteFrame } from "./spriteAtlas";
+import { PotatoMark } from "./PotatoMark.web";
 
 export type PotatoSpriteProps = {
   size?: number;
   className?: string;
   /**
-   * Force a specific atlas frame (e.g. EmptyState `bored`). Static — no idle
-   * bob or hover/tap reaction; callers own any float/pop wrapper. Results uses
-   * standalone `LogoCelebrate` / `Logo`, not this sheet. Omit for the playful
-   * default: idle bob + occasional cheer nudge + hover/tap wiggle (404).
+   * Force a specific cropped pose (e.g. EmptyState `bored`). Static — no idle
+   * bob or hover/tap reaction. Results uses standalone `LogoCelebrate` / `Logo`.
+   * Omit for interactive idle↔cheer poke (404).
    */
   frame?: PotatoSpriteFrame;
   /**
-   * Lobby brand: CSS-stepped atlas sleep/doze (idle ↔ bored) — discrete poses
-   * like portfolio cartoon-cat, not a GIF/video or floating still. Ignored when
-   * `frame` is pinned.
+   * Lobby brand snore — delegates to `PotatoSnoreSvg` (bored crop + SVG Zzz).
+   * Ignored when `frame` is pinned.
    */
   lobbyYawn?: boolean;
 };
-
-/** Percent along the sheet's x-axis for a frame's left edge — drives `background-position-x`. */
-function frameOffsetPercent(frame: PotatoSpriteFrame): number {
-  const rect = LOGO_SPRITE_FRAMES[frame];
-  const maxX = LOGO_SPRITE_SHEET.width - rect.w;
-  return maxX > 0 ? (rect.x / maxX) * 100 : 0;
-}
 
 export function PotatoSprite({
   size = 112,
@@ -33,7 +29,9 @@ export function PotatoSprite({
   lobbyYawn = false,
 }: PotatoSpriteProps) {
   const [poked, setPoked] = useState(false);
+  const [nudgeCheer, setNudgeCheer] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const nudgeRef = useRef<ReturnType<typeof setTimeout>>();
 
   const poke = useCallback(() => {
     setPoked(true);
@@ -41,26 +39,74 @@ export function PotatoSprite({
     timeoutRef.current = setTimeout(() => setPoked(false), 550);
   }, []);
 
-  const { url, cols, rows } = LOGO_SPRITE_SHEET;
-  const isStatic = frame != null;
-  const isLobby = !isStatic && lobbyYawn;
-  const isInteractive = !isStatic && !lobbyYawn;
+  useEffect(() => {
+    if (frame != null || lobbyYawn) return;
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
 
-  const style: CSSProperties = {
-    width: size,
-    height: size,
-    backgroundImage: `url(${url})`,
-    backgroundSize: `${cols * 100}% ${rows * 100}%`,
-    ...(isStatic ? { backgroundPositionX: `${frameOffsetPercent(frame)}%` } : {}),
-  };
+    const loop = () => {
+      nudgeRef.current = setTimeout(() => {
+        setNudgeCheer(true);
+        nudgeRef.current = setTimeout(() => {
+          setNudgeCheer(false);
+          loop();
+        }, 700);
+      }, 6200);
+    };
+    loop();
+    return () => {
+      clearTimeout(nudgeRef.current);
+      clearTimeout(timeoutRef.current);
+    };
+  }, [frame, lobbyYawn]);
+
+  if (frame == null && lobbyYawn) {
+    return <PotatoSnoreSvg size={size} className={className} />;
+  }
+
+  if (frame != null) {
+    return (
+      <PotatoMark
+        src={LOGO_FRAME_URLS[frame]}
+        alt="Couch Potato"
+        size={size}
+        className={className}
+      />
+    );
+  }
+
+  const showCheer = poked || nudgeCheer;
 
   return (
     <div
       role="img"
       aria-label="Couch Potato"
-      className={`cp-potato-sprite ${isInteractive ? "cp-potato-sprite-interactive" : ""} ${isLobby ? "cp-potato-sprite-lobby" : ""} ${poked ? "is-poked" : ""} ${className}`.trim()}
-      style={style}
-      onPointerDown={isInteractive ? poke : undefined}
-    />
+      className={`cp-potato-mark cp-potato-sprite-interactive ${poked ? "is-poked" : ""} ${showCheer ? "is-cheer" : ""} ${className}`.trim()}
+      style={{ width: size, height: size }}
+      onPointerDown={poke}
+    >
+      <img
+        src={LOGO_FRAME_URLS.idle}
+        alt=""
+        width={size}
+        height={size}
+        decoding="async"
+        draggable={false}
+        className="cp-potato-mark-body cp-potato-poke-idle"
+        style={{ width: size, height: size }}
+      />
+      <img
+        src={LOGO_FRAME_URLS.cheer}
+        alt=""
+        width={size}
+        height={size}
+        decoding="async"
+        draggable={false}
+        className="cp-potato-mark-body cp-potato-poke-cheer"
+        style={{ width: size, height: size }}
+      />
+    </div>
   );
 }

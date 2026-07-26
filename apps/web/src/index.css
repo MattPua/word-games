@@ -1,3 +1,4 @@
+@import "@fontsource/lexend/latin-400.css";
 @import "@fontsource/lexend/latin-500.css";
 @import "@fontsource/lexend/latin-600.css";
 @import "@fontsource/lexend/latin-700.css";
@@ -79,12 +80,14 @@
    * theme.css). Tailwind `font-display` / `font-body` / `font-sans` resolve to
    * those vars — retarget the stack in ONE place, not per component.
    *
-   * react-native-web `Text` ships a hardcoded System font on `.css-text-*`.
-   * Force inherit (!important) so chrome classes + headings cascade; utilities
-   * layer `.font-display` / `.font-body` still win on the Text itself.
+   * react-native-web `Text` ships hardcoded System font + weight 400 on
+   * `.css-text-*`. Force inherit so parent chrome (`.cp-hud-bubble`,
+   * `.cp-run-badge`, `.cp-word-pill`, …) + Tailwind `font-*` utilities win.
    */
   [class*="css-text-"] {
     font-family: inherit !important;
+    font-weight: inherit !important;
+    letter-spacing: inherit !important;
   }
 
   [class*="css-text-"].font-display,
@@ -100,6 +103,20 @@
   [class*="css-text-"].font-sans,
   .font-sans[class*="css-text-"] {
     font-family: var(--font-sans) !important;
+  }
+
+  /* Weight utilities on the Text itself must beat the inherit rule above. */
+  [class*="css-text-"].font-medium,
+  .font-medium[class*="css-text-"] {
+    font-weight: 500 !important;
+  }
+  [class*="css-text-"].font-semibold,
+  .font-semibold[class*="css-text-"] {
+    font-weight: 600 !important;
+  }
+  [class*="css-text-"].font-bold,
+  .font-bold[class*="css-text-"] {
+    font-weight: 700 !important;
   }
 
   h1,
@@ -1860,6 +1877,11 @@
   .cp-play-cta:active {
     transform: none !important;
   }
+}
+
+/* How-to ghost swipe — board still visible, input locked via LetterGrid interactive=false */
+.cp-howto-board.cp-howto-demoing {
+  opacity: 0.92;
 }
 
 /* Hairline under sticky Play — spans play bar (Shell px-4 already insets from edges) */

@@ -1,29 +1,24 @@
-import type { ImgHTMLAttributes } from "react";
+/**
+ * Chill brand mark (web) — raster `/logo.webp` in the shared SVG-mark shell.
+ */
+import type { CSSProperties } from "react";
+import { LOGO_MARK_URLS } from "./spriteAtlas";
+import { PotatoMark } from "./PotatoMark.web";
 
-export type LogoProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "width" | "height"> & {
+export type LogoProps = {
   size?: number;
+  className?: string;
+  style?: CSSProperties;
 };
 
-/**
- * Pixel potato-on-couch mark (web). Plain `<img>` so lobby chrome stays off
- * react-native-web — see AGENTS.md Brand.
- */
-export function Logo({ size = 96, style, className = "", ...rest }: LogoProps) {
+export function Logo({ size = 96, style, className = "" }: LogoProps) {
   return (
-    <img
-      src="/logo.webp"
+    <PotatoMark
+      src={LOGO_MARK_URLS.chill}
       alt="Couch Potato"
-      width={size}
-      height={size}
+      size={size}
       className={className}
-      style={{
-        width: size,
-        height: size,
-        objectFit: "contain",
-        imageRendering: "pixelated",
-        ...style,
-      }}
-      {...rest}
+      style={style}
     />
   );
 }

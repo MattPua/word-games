@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { setEnabled } from "cuelume";
 import {
   ALargeSmall,
+  CircleHelp,
   CirclePlay,
   Eye,
   EyeOff,
@@ -41,7 +42,7 @@ import {
 } from "../storage";
 import { applyFontPreference, applyTheme, resolveTheme } from "../theme";
 
-type Dest = "/" | "/options" | "/profiles" | "/achievements" | "/results";
+type Dest = "/" | "/options" | "/profiles" | "/achievements" | "/results" | "/how-to";
 
 type Jump = {
   to: Dest;
@@ -63,6 +64,12 @@ type PrefAction = {
 const JUMPS: Jump[] = [
   { to: "/", label: "Lobby", keywords: "home play start", Icon: Sofa },
   { to: "/", label: "Play", keywords: "lobby home start run", Icon: CirclePlay },
+  {
+    to: "/how-to",
+    label: "How to play",
+    keywords: "tutorial tips coach swipe help",
+    Icon: CircleHelp,
+  },
   { to: "/options", label: "Options", keywords: "settings prefs look dark pixel", Icon: Settings },
   { to: "/profiles", label: "Couch crew", keywords: "profiles potato board", Icon: Users },
   { to: "/achievements", label: "Couch medals", keywords: "achievements trophies", Icon: Medal },

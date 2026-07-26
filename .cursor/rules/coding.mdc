@@ -9,7 +9,7 @@ alwaysApply: true
 - **UI package ownership (hard):** reusable presentational components → `packages/ui`. `apps/web/src/components` is **not** a second UI kit — only shadcn under `components/ui/` + app/route composition. See `AGENTS.md` Stack + `.cursor/rules/ui.mdc`.
 - No over-abstraction, no one-export files, no layers “for later.”
 - **Bun** workspaces with a root **`catalog`** for shared dependency versions (`"pkg": "catalog:"` in workspace package.json — don’t repeat the same version pins).
-- **Vite (web):** lucide barrel imports are rewritten to per-icon paths at build/dev (`apps/web/vite.lucide-optimize.ts`) — keep `from "lucide-react"` in source; see `AGENTS.md` Vite / lucide.
+- **Vite (web):** lucide barrel imports are rewritten to per-icon paths at build/dev (`apps/web/vite.lucide-optimize.ts`) — keep `from "lucide-react"` in source for icons; never leave `createLucideIcon` / `Icon` on the package root (pulls ~1750 icons in DEV). See `AGENTS.md` Vite / lucide.
 - **Format / lint:** `oxfmt` + `oxlint` (root scripts `fmt` / `fmt:check` / `lint` / `check`). Don’t add Prettier or ESLint unless something already requires them.
 - **Vitest** for engine/dictionary.
 - Engine owns adjacency, scoring, targets, gen thresholds, accept/reject. UI displays and wires input.

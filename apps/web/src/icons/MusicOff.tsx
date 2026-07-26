@@ -1,4 +1,4 @@
-import { createLucideIcon } from "lucide-react";
+import createLucideIcon from "lucide-react/createLucideIcon";
 
 /** Lucide-style music-off (not in lucide-react@1.26 yet). Pairs with `Music` / `Music2`. */
 export const MusicOff = createLucideIcon("music-off", [

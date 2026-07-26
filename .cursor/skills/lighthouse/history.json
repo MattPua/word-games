@@ -1,0 +1,52 @@
+[
+  {
+    "at": "2026-07-26T17:00:00-04:00",
+    "url": "/",
+    "formFactor": "mobile",
+    "build": "preview:4173",
+    "scores": {
+      "performance": 62,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "transferKiB": 1300,
+    "fcp": null,
+    "lcp": null,
+    "note": "Baseline before lobby weight fixes — idle Play prefetch pulled ENABLE (~538 KiB gzip); full logo-sprite on snore"
+  },
+  {
+    "at": "2026-07-26T17:20:00-04:00",
+    "url": "/",
+    "formFactor": "mobile",
+    "build": "preview:4173",
+    "scores": {
+      "performance": 84,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "transferKiB": 986,
+    "fcp": "3.0 s",
+    "lcp": "3.6 s",
+    "note": "WordBan dynamic dict + logo-snore crop; idle prefetch still loaded ENABLE"
+  },
+  {
+    "at": "2026-07-26T17:28:00-04:00",
+    "url": "/",
+    "formFactor": "mobile",
+    "build": "preview:4173",
+    "scores": {
+      "performance": 85,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "transferKiB": 435,
+    "fcp": "3.0 s",
+    "lcp": "3.6 s",
+    "tbt": "0 ms",
+    "cls": 0.001,
+    "note": "No idle Play prefetch; ENABLE dynamic on Play only; lobby under 500 KiB transfer budget"
+  }
+]

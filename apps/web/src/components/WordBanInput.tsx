@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Ban, X } from "lucide-react";
-import { getDictionary, normalizeWord } from "@couch-potato/dictionary";
+/** Light path — do not import `@couch-potato/dictionary` (pulls ENABLE JSON into lobby). */
+import { normalizeWord } from "@couch-potato/dictionary/filter";
 import { cn } from "@/lib/utils";
 import { CUSTOM_BLOCK_CAP } from "../storage";
 
@@ -24,12 +25,14 @@ function hintCopy(hint: BanHint): string | null {
 /**
  * Tag / pillbox for device house bans. Enter commits a playable lexicon word;
  * Backspace on empty draft pops the last tag. Click × to remove any tag.
+ * Lexicon loads on first commit only (keeps ENABLE off the lobby cold chunk).
  */
 export function WordBanInput({ words, onChange, className }: WordBanInputProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState("");
   const [hint, setHint] = useState<BanHint>(null);
+  const busyRef = useRef(false);
 
   useEffect(() => {
     if (!hint) return;
@@ -37,7 +40,7 @@ export function WordBanInput({ words, onChange, className }: WordBanInputProps) 
     return () => window.clearTimeout(t);
   }, [hint]);
 
-  const tryAdd = (raw: string) => {
+  const tryAdd = async (raw: string) => {
     const w = normalizeWord(raw);
     if (!w) return;
     if (w.length < 3) {
@@ -57,13 +60,20 @@ export function WordBanInput({ words, onChange, className }: WordBanInputProps) 
       setHint("full");
       return;
     }
-    if (!getDictionary().has(w)) {
-      setHint("missing");
-      return;
+    if (busyRef.current) return;
+    busyRef.current = true;
+    try {
+      const { getDictionary } = await import("@couch-potato/dictionary");
+      if (!getDictionary().has(w)) {
+        setHint("missing");
+        return;
+      }
+      onChange([...words, w]);
+      setDraft("");
+      setHint(null);
+    } finally {
+      busyRef.current = false;
     }
-    onChange([...words, w]);
-    setDraft("");
-    setHint(null);
   };
 
   const removeAt = (index: number) => {
@@ -73,7 +83,7 @@ export function WordBanInput({ words, onChange, className }: WordBanInputProps) 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
-      tryAdd(draft);
+      void tryAdd(draft);
       return;
     }
     if (e.key === "Backspace" && draft.length === 0 && words.length > 0) {
@@ -125,7 +135,7 @@ export function WordBanInput({ words, onChange, className }: WordBanInputProps) 
           onChange={(e) => setDraft(e.target.value.replace(/[^a-zA-Z]/g, ""))}
           onKeyDown={onKeyDown}
           onBlur={() => {
-            if (draft.trim()) tryAdd(draft);
+            if (draft.trim()) void tryAdd(draft);
           }}
           placeholder={words.length === 0 ? "Type a word, hit Enter" : "Add another…"}
           aria-label="Ban a word from new runs"

@@ -43,7 +43,7 @@ Aim for category scores **≥ 95**, stretch **100**. Soft resource budgets for t
 | Total transfer | ≤ 500 KB |
 | Script | ≤ 250 KB (gzip; lobby shell — Play/dict stay lazy). Lucide: per-icon via `vite.lucide-optimize` — don’t re-add a lucide barrel `optimizeDeps.include`. |
 | Stylesheet | ≤ 50 KB |
-| Image | ≤ 300 KB (lobby may pull `logo-sprite` ~runtime; don’t precache medals/BGM; prefer **WebP** over PNG — `AGENTS.md` Image formats) |
+| Image | ≤ 300 KB (prefer cropped cell WebPs — never ship full `logo-sprite` / `medals-sprite` sheets to `public/`; prefer **WebP** — `AGENTS.md` Image formats) |
 | Third-party count | ≤ 5 |
 
 **Offline / 3G:** production SW precache stays lean (shell CSS + latin fonts + tiny logos — not Play JS, medals, or BGM). Runtime `CacheFirst` for `/assets/*.js`, images, mp3 after first use. Don’t “fix” Lighthouse by precaching the whole app into install. Keep `menu-bgm.mp3` ~128 kb/s stereo without cover art (see `AGENTS.md` Sounds / cuelume).
@@ -125,16 +125,47 @@ Fix order:
 - Bun workspaces + Vite; no Next.js
 - **Lobby jam MP3:** must not fetch until music is actually enabled + scene wants play (`menuMusic.ts`) — constructing `Audio` with `preload=auto` on boot tanks LCP
 - **Cold JS ceiling:** NativeWind / `react-native-css-interop` still pulls react-native-web into the lobby chunk even with DOM Shell/Logo. Further ~100pt perf needs a web styling strategy change, not more lazy routes
-- **Play lexicon:** ship `enable.json` with the Play chunk (CacheFirst after first use); keep lobby cold path free of the dict import
+- **Play lexicon:** ship ENABLE with a **dynamic** Play import (CacheFirst after first use); keep lobby cold path free of the dict. **Never idle-prefetch** `/play` on the lobby — that pulls ENABLE into the LH cold network and looks like multi‑MB “home” weight. Warm on Play hover/focus/click only
+- **Lobby snore mark:** `/logo-snore.webp` (bored-cell crop) — not the full `logo-sprite` sheet on `/`
+
+## Score history (required)
+
+Every full lobby (or route) CLI audit **appends** one row to [`.cursor/skills/lighthouse/history.json`](history.json) so we can see whether scores / transfer are going **up or down** over time.
+
+1. Read the last entry for the same `url` + `formFactor` (if any).
+2. After the run, append a new object (ISO-8601 `at`, local offset ok). Do **not** edit or delete prior rows.
+3. In the user report, show **delta vs previous** for P / A / BP / SEO and `transferKiB` (e.g. `P 85 (+23 vs 2026-07-26)`).
+
+Schema (one object per audit):
+
+```json
+{
+  "at": "2026-07-26T17:28:00-04:00",
+  "url": "/",
+  "formFactor": "mobile",
+  "build": "preview:4173",
+  "scores": { "performance": 85, "accessibility": 100, "best-practices": 100, "seo": 100 },
+  "transferKiB": 435,
+  "fcp": "3.0 s",
+  "lcp": "3.6 s",
+  "tbt": "0 ms",
+  "cls": 0.001,
+  "note": "short why this run / what changed"
+}
+```
+
+Optional fields (`fcp`, `lcp`, `tbt`, `cls`, `note`) when known. Skip appending for throwaway mid-fix iterates unless the user asked to log them — **do** append the baseline before a fix batch and the final after.
 
 ## Report back
 
 Always include:
 
 - URL + form-factor + build vs preview
-- Category scores (P / A / BP / SEO)
+- Category scores (P / A / BP / SEO) **and delta vs last history row** for that URL/form-factor
+- `transferKiB` (+ timing if handy) with delta
 - Top 3–5 failing audits with ids
 - What you changed (if optimizing) + re-audit delta
+- Confirmation that `history.json` was appended
 
 ## Sync docs
 

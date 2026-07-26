@@ -12,46 +12,52 @@ grid-sheet prompting discipline, atlas-over-loose-PNGs, and pre-accept QC gates.
 
 ## Current assets (source of truth, don't re-describe elsewhere)
 
-| File                                                                      | Size                                    | Use                                                                                                                    |
-| ------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `packages/ui/src/assets/logo.png` (+ `.webp` ship)                               | 256×256                                 | Chill mascot — brand mark; web `Logo` uses `/logo.webp`; PWA icon keeps `/logo.png`                                    |
-| `packages/ui/src/assets/logo-celebrate.png` (+ `.webp`)                          | 256×256                                 | Results celebrate hero — arms up + letter-tile confetti (`LogoCelebrate`); win / high score only                       |
-| `packages/ui/src/assets/logo-options.png` (+ `.webp`)                            | 256×256                                 | Options header — potato on couch holding a gear (`LogoOptions`)                                                        |
-| `packages/ui/src/assets/logo-sprite.png` (+ `.webp`) + `logo-sprite.json` + `spriteAtlas.ts` | 1518×512, 3 cols × 1 row, 506×512 cells | idle/cheer/bored atlas — `PotatoSprite` for EmptyState `bored`, `lobbyYawn` (CSS-stepped idle↔bored sleep), interactive 404 poke (cheer nudge). Results does **not** use this sheet — see `logo-celebrate` / chill `logo` |
-| `packages/ui/src/assets/medals-sprite.png` (+ `.webp`) + `medals-sprite.json` (+ atlas map in `spriteAtlas.ts`) | 1608×420, 4 cols × 1 row, 402×420 cells | Couch medals categories — `MedalsCategorySprite` (`bigPicture` / `personalBests` / `lengthHauls` / `survival`) on `/achievements` |
+| File                                                                                         | Size                        | Use                                                                                                                                 |
+| -------------------------------------------------------------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui/src/assets/logo.png` (+ `.webp` ship)                                           | 256×256                     | Chill mark — web `Logo` → `/logo.webp`; PWA keeps `/logo.png`                                                                       |
+| `packages/ui/src/assets/logo-celebrate.png` (+ `.webp`)                                      | 256×256                     | Results celebrate — `LogoCelebrate` + SVG sparkle overlay                                                                           |
+| `packages/ui/src/assets/logo-options.png` (+ `.webp`)                                        | 256×256                     | Options header — `LogoOptions` + SVG gear twirl                                                                                     |
+| `packages/ui/src/assets/logo-sprite.png` (+ `.webp`) + `logo-sprite.json` + `spriteAtlas.ts` | 1518×512, 3×1 cells 506×512 | **Master atlas only** (idle / cheer / bored). Not fetched at runtime.                                                               |
+| Cropped cells (from optimize)                                                                | 506×512 each                | `/logo-idle.webp`, `/logo-cheer.webp`, `/logo-snore.webp` (bored) — `PotatoSprite` / `PotatoSnoreSvg`                               |
+| `packages/ui/src/assets/medals-sprite.png` (+ `.webp`) + json + atlas                        | 1608×420, 4×1 cells 402×420 | **Master only**. Runtime: `/medals-big-picture.webp`, `…-personal-bests`, `…-length-hauls`, `…-survival` via `MedalsCategorySprite` |
 
-All web-served copies live in `apps/web/public/` as **`.webp`** (same basename) — run `bun run sprites:optimize` after every PixelLab regen. Keep PNG masters in `packages/ui/src/assets/` for re-edit; don’t leave large sprite PNGs in `public/`.
-**Prefer WebP over PNG** for anything shipped to web (`AGENTS.md` Image formats): sharp **lossless + exact** WebP (pixel-identical; PNG recompress via sharp mutates pixels — don’t).
-`spriteAtlas.ts` is the TS source of truth for frame rects; `assets/logo-sprite.json` / `assets/medals-sprite.json` are plain-data mirrors for
-non-TS tooling. Keep both in sync — never let the JSON drift from the TS map.
+All **runtime** web copies live in `apps/web/public/` as **`.webp` cell crops or standalone marks** — run `bun run sprites:optimize` after every PixelLab regen. Full sheets stay in `packages/ui/src/assets/` (crop source) and are **removed from `public/`**. Prefer WebP over PNG (`AGENTS.md` Image formats): sharp **lossless + exact**.
+`spriteAtlas.ts` is the TS source of truth for master rects + `LOGO_FRAME_URLS` / `MEDALS_FRAME_URLS`; JSON mirrors stay in sync.
+
+## SVG-mark direction (locked)
+
+Web mascots are **`PotatoMark`**: raster PixelLab body + optional SVG motion layer. Same pattern as snore:
+
+| Layer  | What                                                   | Why                                                      |
+| ------ | ------------------------------------------------------ | -------------------------------------------------------- |
+| Body   | Lossless WebP (`<img>`)                                | Pixel-identical to PixelLab; load only the pose you need |
+| Motion | SVG overlays + CSS (Zzz, sparkles, gear, breath, poke) | Life without GIF/video or shipping full atlases          |
+| Shell  | `PotatoMark.web.tsx`                                   | Shared size / pixelated / overlay stacking               |
+
+**Do not** replace the body with ellipse/path “SVG potato” redraws — they drift from brand.
+
+| Component                  | Body                            | SVG / motion                  |
+| -------------------------- | ------------------------------- | ----------------------------- |
+| `Logo`                     | `/logo.webp`                    | —                             |
+| `LogoCelebrate`            | `/logo-celebrate.webp`          | pixel sparkles                |
+| `LogoOptions`              | `/logo-options.webp`            | corner gear spin              |
+| `PotatoSnoreSvg`           | `/logo-snore.webp`                | breath + Zzz (lobby / how-to steps) |
+| `PotatoGoSvg`              | `/logo-cheer.webp`                | bounce + play chevron (how-to done → Play) |
+| `PotatoSprite` pinned      | `/logo-{idle,cheer,snore}.webp` | static                        |
+| `PotatoSprite` interactive | idle + cheer stacked            | bob + poke / periodic cheer   |
+| `MedalsCategorySprite`     | `/medals-*.webp`                | —                             |
+
+Native fallbacks stay static `Logo` / `LogoCelebrate` (no CSS sprite-step / SVG overlay port).
 
 ## When to add a frame vs a new standalone mark
 
-- **One-off pose, no animation** (chill lobby, celebrate results, options gear): standalone PNG like `logo.png` /
-  `logo-celebrate.png` / `logo-options.png`, wired through a dedicated `Logo`-style component. **Results** always
-  uses these (`LogoCelebrate` on win/high score, chill `Logo` on quit/timeout) — never atlas frames.
-- **Two or more poses that should share one image / CSS-step or cycle** (idle↔cheer nudge on 404, lobby sleep idle↔bored): one sprite sheet + atlas map, not N loose PNGs. Prefer the sheet
-  once you're past a single pose — atlas metadata (rects, cell size) is cheap; N hand-positioned `<img>` tags
-  that must all agree on scale/anchor are not.
-- **Lobby / mascot “life” = CSS-stepped atlas frames** (same idea as portfolio `cartoon-cat.tsx`: discrete
-  poses via CSS `steps(…)`, face/pose variants — walk, sleepy, stretch). Drive `background-position` on
-  `logo-sprite` (or compose SVG pixels if we ever go that route). **Never** GIF/video loops, and **never**
-  “animate” a still mark by floating/bobbing/lerping it (`cp-logo-float` is fine for celebrate pop wrappers,
-  not as a substitute for real pose frames). `background-position` animations must use `steps(1)` / hard
-  holds so the sheet doesn’t smear between cells.
-- **Experiment (SVG snore):** `PotatoSnoreSvg` — same CSS atlas crop as `PotatoSprite` for the
-  **bored** cell (pixel-identical PixelLab art) + soft breath scale + SVG pixel-block Zzz. Not a
-  hand redraw. Lobby A/B vs `PotatoSprite lobbyYawn` (`cp-exp-svg-snore`). Native falls back to bored
-  atlas frame. Keep PixelLab PNG/WebP masters.
-- **Category / feature-specific pose sets** that shouldn't shift interactive `logo-sprite` cheer offsets
-  (e.g. Couch medals section headers): a **separate** sheet (`medals-sprite.png`) is OK — keep identity lock
-  to `logo.png`, equal cells, transparent bg, own atlas keys in `spriteAtlas.ts`.
-- Likely next frames on `logo-sprite`, in priority order: **loading/spin** (for `LoadingPotato`), a
-  **couch-break/paused** pose. Quit/timeout results stay on chill `logo.png` (standalone) unless a distinct
-  subdued mark earns its own PNG. Add to the existing `logo-sprite.png` atlas (new column) rather than starting
-  another general-mascot sheet, unless the new pose needs a meaningfully different canvas size. When adding a
-  column past cheer, update `--cp-potato-cheer-x` in `theme.css` (interactive idle↔cheer nudge) so it still
-  lands on cheer, not the new last frame.
+- **One-off pose, no animation** (chill, celebrate, options gear): standalone PNG like `logo.png` /
+  `logo-celebrate.png` / `logo-options.png`, wired through `Logo*` + `PotatoMark` (+ SVG overlay if it needs life).
+- **Two or more related poses** (idle / cheer / bored): keep one PixelLab **master sheet** for identity lock,
+  but **ship cropped cells** to `public/` via `sprites:optimize` — runtime never `background-image`s the full atlas.
+- **Lobby / how-to life:** steps = `PotatoSnoreSvg`; how-to **done** = `PotatoGoSvg` (cheer + play chevron → Play a run). **Never** GIF/video.
+- **Category sets** (medals): separate master sheet OK; crop to per-frame WebPs. Keep identity lock to `logo.png`.
+- Likely next master columns: **loading/spin**, **couch-break**. After any `logo-sprite` regen, re-run `sprites:optimize` so all cell crops refresh.
 
 ## PixelLab prompt pattern
 
@@ -63,51 +69,29 @@ non-combat use case (skip their directional/attack/projectile modes entirely, we
    named pose element (arms, sparkles, eyes) may change between frames.
 2. **Reference the accepted frame, don't re-describe it from scratch.** If `logo.png` is already accepted,
    view it first, then prompt "same character and palette as the image just shown, change only \<the pose>".
-   Redescribing from zero is how sheets drift in palette/scale between frames.
-3. **State the exact grid.** "Exactly N equal cells in a R×C grid" — same discipline as agent-sprite-forge's
-   sheet-shape rule. For a 2-frame idle/cheer sheet that's `2x1`; don't ask for more frames than you'll wire.
-4. **Containment, every time:** subject fully inside each cell, consistent margin on all sides, no part
-   (arms, sparkles, cushion) crossing a cell edge, same silhouette scale across cells.
-5. **Transparent background, not chroma-key.** PixelLab exports alpha directly — say "transparent background"
-   not "solid magenta background" (that's the agent-sprite-forge convention for tools without native alpha
-   export; we don't need the chroma-key cleanup step it implies).
-6. **No text, no UI, no borders between cells** — same as their global rule, still applies to us.
+3. **State the exact grid.** "Exactly N equal cells in a R×C grid".
+4. **Containment, every time:** subject fully inside each cell, consistent margin, no edge crossing, same scale.
+5. **Transparent background, not chroma-key.**
+6. **No text, no UI, no borders between cells.**
 
 ## Delivery checklist (before accepting a generated sheet)
 
-- **Verify real pixel dimensions** (`sips -g pixelWidth -g pixelHeight file.png` or PIL) — don't trust a
-  round number you typed in the prompt. AI grid generation is rarely pixel-exact; measure, then write the
-  atlas rects from the measurement, not the request.
-- **Alpha is transparent, not black.** PixelLab sometimes lands a black knockout under alpha — check
-  `hasAlpha: yes` isn't hiding an opaque black matte (see `Logo`/`LogoCelebrate` doc comments for the
-  known gotcha). `apple-touch-icon.png`/`og.png` are the deliberate exception (opaque cream matte, because
-  platforms paint transparent as black).
-- **Same scale/anchor across frames** — lay both frames side by side and check the character doesn't grow,
-  shrink, or shift vertically between poses; a swipeable idle/cheer loop reads as broken if the potato hops.
-- **No edge-cropping** — nothing (arm, sparkle, cushion edge) touching or cut off at a cell boundary.
-- **No light fringe / white halo on silhouette edges.** AI exports and light-bg knockouts often leave
-  washed edge pixels that glow on dark UI. After accept: on a dark matte, scan opaque pixels adjacent
-  to transparency; if they’re much lighter than a nearby dark outline/body neighbor, snap them to that
-  neighbor (or drop semi-transparent junk). **Don’t** flatten intentional cream belly highlights or
-  cheer sparkles (bright pixels with no dark outline neighbor). Re-copy cleaned PNGs to `apps/web/public/`.
-- **Ship WebP to web.** After QC on the PNG master, run `bun run sprites:optimize` (sharp lossless + `exact: true`, pixel-identity gate). It writes `packages/ui/src/*.webp`, syncs `apps/web/public/`, and removes large matching PNGs from `public/` (keeps `logo.png` for the PWA icon). Point components / `spriteAtlas` at `.webp`. Don’t leave a large PNG in `public/` when WebP works.
-- **Update the atlas alongside the art.** Never ship a resized/re-cropped sheet without re-measuring
-  `spriteAtlas.ts` + `logo-sprite.json` rects — a stale atlas silently mis-slices a live frame.
+- **Verify real pixel dimensions** — measure, then write atlas rects from the measurement.
+- **Alpha is transparent, not black.** (`apple-touch-icon`/`og` = opaque cream exception.)
+- **Same scale/anchor across frames.**
+- **No edge-cropping.**
+- **No light fringe / white halo on silhouette edges.**
+- **Ship WebP crops to web.** `bun run sprites:optimize` writes asset WebPs, crops cells into `public/`,
+  removes full sheets + large matching PNGs from `public/` (keeps `logo.png` for PWA). Point components at
+  `LOGO_FRAME_URLS` / `MEDALS_FRAME_URLS` / `LOGO_MARK_URLS` — never `/logo-sprite.webp` at runtime.
+- **Update the atlas alongside the art.** Stale rects mis-crop every cell.
 
 ## Wiring
 
-- Web: `image-rendering: pixelated` on every mascot `<img>`/CSS-sprite element (already the pattern in
-  `Logo.web.tsx`/`LogoCelebrate.web.tsx`) so pixel art doesn't get browser-smoothed on scale.
-  For a CSS-stepped sheet, drive `background-position`/`background-size` from the atlas cols/rows, not a
-  hardcoded percentage — one source of truth for frame geometry.
-- Cross-platform: RN native has no CSS sprite-stepping. Native fallback = show one static frame (usually
-  `Logo`), don't try to port the CSS animation.
-- Respect `prefers-reduced-motion`: any frame-cycling/bob/wiggle needs a `reduce` variant that either holds
-  one frame or drops to a plain color/opacity change — same rule as all other motion in `.cursor/rules/ui.mdc`.
+- Web: `image-rendering: pixelated` via `.cp-potato-mark-body`. Motion classes in `theme.css` (`.cp-potato-*`).
+- Cold routes (`/`, `/how-to`): `PotatoSnoreSvg` only — never interactive poke (loads idle+cheer).
+- Respect `prefers-reduced-motion` on breath / Zzz / sparkles / gear / bob.
 
 ## Out of scope (don't pull from agent-sprite-forge)
 
-Their directional walk sheets, combat/attack/projectile/impact modes, layered RPG maps, and Godot/Unity
-engine-atlas assembly — none apply to a single mascot with no movement or combat. If Couch Potato ever needs
-a second animated character or a tile/prop set, re-read their `references/modes.md` and `prompt-rules.md`
-before reinventing grid conventions.
+Their directional walk sheets, combat modes, layered RPG maps, and engine-atlas assembly — none apply here.

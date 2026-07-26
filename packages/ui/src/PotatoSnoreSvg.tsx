@@ -1,7 +1,6 @@
 /**
- * Experimental continuous snore — layered SVG (not the PixelLab atlas).
- * Does not replace `PotatoSprite` / logo assets. Web-only animation; native
- * falls back to a static sleepy pose via `PotatoSprite frame="bored"`.
+ * Lobby brand mascot (native): static bored atlas frame — continuous snore
+ * motion is web-only (`PotatoSnoreSvg.web.tsx`).
  */
 import { PotatoSprite } from "./PotatoSprite";
 

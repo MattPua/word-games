@@ -19,6 +19,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const nativewindRoot = path.dirname(require.resolve("nativewind/package.json"));
 const rnWebRoot = path.dirname(require.resolve("react-native-web/package.json"));
+const lucideEsmRoot = path.dirname(
+  require.resolve("lucide-react/dist/esm/createLucideIcon.mjs"),
+);
 const lucideIconsRoot = path.dirname(
   require.resolve("lucide-react/dist/esm/icons/sofa.mjs"),
 );
@@ -178,8 +181,13 @@ export default defineConfig(({ mode }) => ({
       "@couch-potato/ui": path.resolve(__dirname, "../../packages/ui/src"),
       "@couch-potato/game-engine": path.resolve(__dirname, "../../packages/game-engine/src"),
       "@couch-potato/dictionary": path.resolve(__dirname, "../../packages/dictionary/src"),
-      // lucide has no package exports for icons/* — alias for the optimizer (#1944)
+      // lucide has no package exports for icons/* / helpers — alias for the optimizer (#1944)
       "lucide-react/icons": lucideIconsRoot,
+      "lucide-react/createLucideIcon": path.join(
+        lucideEsmRoot,
+        "createLucideIcon.mjs",
+      ),
+      "lucide-react/Icon": path.join(lucideEsmRoot, "Icon.mjs"),
     },
     dedupe: ["react", "react-dom"],
     extensions: [".web.tsx", ".web.ts", ".tsx", ".ts", ".web.js", ".js", ".mjs"],
