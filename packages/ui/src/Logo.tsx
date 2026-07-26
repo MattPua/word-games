@@ -9,9 +9,11 @@ export type LogoProps = {
   size?: number;
   className?: string;
   style?: CSSProperties;
+  /** Lobby hero → `"high"` so LCP wins. */
+  fetchPriority?: "high" | "low" | "auto";
 };
 
-export function Logo({ size = 96, style, className = "" }: LogoProps) {
+export function Logo({ size = 96, style, className = "", fetchPriority }: LogoProps) {
   return (
     <PotatoMark
       src={LOGO_MARK_URLS.chill}
@@ -19,6 +21,7 @@ export function Logo({ size = 96, style, className = "" }: LogoProps) {
       size={size}
       className={className}
       style={style}
+      fetchPriority={fetchPriority}
     />
   );
 }

@@ -15,7 +15,7 @@ export function LoadingPotato({
       <Logo size={88} />
       <p className="mt-4 text-center font-display text-xl text-foreground">{message}</p>
       <p className="mt-1 text-center font-body text-sm text-muted-foreground">
-        Soft cushions. Soft letters. Almost there.
+        Soft letters. Almost there.
       </p>
     </div>
   );

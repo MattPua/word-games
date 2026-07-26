@@ -233,7 +233,9 @@ export function LetterGrid({
           aria-busy={boardTurning || undefined}
           className="cp-board-well relative w-full select-none"
           style={{
-            touchAction: "none",
+            /* Play swipe must not pan the page; Results replay (`interactive={false}`)
+               must allow pan-y so the board doesn’t eat scroll. */
+            touchAction: interactive ? "none" : "pan-y",
             WebkitUserSelect: "none",
             pointerEvents: interactive ? undefined : "none",
           }}

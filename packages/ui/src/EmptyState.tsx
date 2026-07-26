@@ -9,8 +9,13 @@ export type EmptyStateProps = {
   /**
    * Show the bored atlas mascot (not the chill brand `Logo`) — safe under
    * pages that already show `Logo` in the header (Couch crew / Potato Board).
+   * Prefer `mark` for one-off poses (e.g. Results zero-haul `LogoConsolation`).
    */
   showLogo?: boolean;
+  /** Bored mark size when `showLogo` (default 72). Ignored when `mark` is set. */
+  logoSize?: number;
+  /** Custom mark above the title (wins over `showLogo`). */
+  mark?: ReactNode;
   className?: string;
 };
 
@@ -20,12 +25,15 @@ export function EmptyState({
   body,
   children,
   showLogo = false,
+  logoSize = 72,
+  mark,
   className = "",
 }: EmptyStateProps) {
+  const mascot = mark ?? (showLogo ? <PotatoSprite frame="bored" size={logoSize} /> : null);
   return (
     <div className={`flex flex-col items-center px-4 py-6 ${className}`}>
-      {showLogo ? <PotatoSprite frame="bored" size={72} /> : null}
-      <p className={`text-center font-display text-xl text-foreground ${showLogo ? "mt-3" : ""}`}>
+      {mascot}
+      <p className={`text-center font-display text-xl text-foreground ${mascot ? "mt-3" : ""}`}>
         {title}
       </p>
       {body ? <p className="mt-1 text-center font-body text-muted-foreground">{body}</p> : null}

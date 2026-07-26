@@ -74,4 +74,13 @@ export const LOGO_MARK_URLS = {
   chill: "/logo.webp",
   celebrate: "/logo-celebrate.webp",
   options: "/logo-options.webp",
+  /** Empty haul / better luck next time — sheepish shrug. */
+  consolation: "/logo-consolation.webp",
+  /**
+   * About hello wave — purpose-built PixelLab mark (`logo-wave.png`).
+   * Until that PNG ships, `PotatoWaveSvg` falls back to cheer crop.
+   */
+  wave: "/logo-wave.webp",
+  /** Optional face+sprout crop — chrome uses full chill `Logo`, not this. */
+  mark: "/logo-mark.webp",
 } as const;

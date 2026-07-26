@@ -13,7 +13,7 @@ export type PotatoMarkProps = {
   /** Decorative (section icons) — hide from AT. */
   decorative?: boolean;
   /**
-   * LCP hero marks (lobby / how-to snore) → `"high"` (eager).
+   * LCP hero marks (lobby chill `Logo`) → `"high"` (eager).
    * Everything else defaults to lazy + low priority.
    */
   fetchPriority?: "high" | "low" | "auto";

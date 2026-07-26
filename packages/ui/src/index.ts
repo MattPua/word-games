@@ -2,13 +2,16 @@ import { Shell } from "./Shell";
 import { LetterGrid, applyPathCell, type Cell } from "./LetterGrid";
 import { ScoreBubble } from "./ScoreBubble";
 import { ProgressBar } from "./ProgressBar";
+import { BrandMark } from "./BrandMark";
 import { Logo } from "./Logo";
 import { LogoCelebrate } from "./LogoCelebrate";
+import { LogoConsolation } from "./LogoConsolation";
 import { LogoOptions } from "./LogoOptions";
 import { MedalsCategorySprite } from "./MedalsCategorySprite";
 import { PotatoSprite } from "./PotatoSprite";
 import { PotatoSnoreSvg } from "./PotatoSnoreSvg";
 import { PotatoGoSvg } from "./PotatoGoSvg";
+import { PotatoWaveSvg } from "./PotatoWaveSvg";
 import { LoadingPotato } from "./LoadingPotato";
 import { EmptyState } from "./EmptyState";
 import { ConfettiBurst } from "./ConfettiBurst";
@@ -25,13 +28,16 @@ export {
   LetterGrid,
   ScoreBubble,
   ProgressBar,
+  BrandMark,
   Logo,
   LogoCelebrate,
+  LogoConsolation,
   LogoOptions,
   MedalsCategorySprite,
   PotatoSprite,
   PotatoSnoreSvg,
   PotatoGoSvg,
+  PotatoWaveSvg,
   LoadingPotato,
   EmptyState,
   ConfettiBurst,

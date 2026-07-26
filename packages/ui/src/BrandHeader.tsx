@@ -3,11 +3,14 @@ import { Logo } from "./Logo";
 import { cn } from "./cn";
 
 export type BrandHeaderProps = {
-  /** Mascot mark — default chill `Logo`. Page-specific poses welcome (Options gear, medals, etc.). */
+  /**
+   * Brand mark — default full chill `Logo` (not a face crop).
+   * Lobby passes a larger `Logo`; chrome pages use `ChromeTopBar` instead of this.
+   */
   mark?: ReactNode;
-  /** Page label under the product name (Options, Couch medals…). Omit on lobby. */
+  /** Page label under the product name. Omit on lobby. */
   title?: string;
-  /** Optional blurb — lobby tagline, medals count, etc. Not required. */
+  /** Optional blurb — lobby tagline, etc. */
   description?: string;
   /**
    * Lobby only: product name is the page `<h1>`.
@@ -19,8 +22,10 @@ export type BrandHeaderProps = {
 };
 
 /**
- * Chrome brand lockup — always **Couch Potato** + mascot.
- * Descriptions stay optional; page titles sit under the wordmark.
+ * Lobby / how-to-done hero lockup — centered mark + Couch Potato wordmark.
+ * Lobby keeps this as the brand hero; site bar on `/` is nav-only (`hideBrand`)
+ * so desktop doesn't stack two lockups. Chrome routes use `ChromeTopBar` +
+ * `PageHeading` instead of this.
  */
 export function BrandHeader({
   mark,
@@ -34,12 +39,12 @@ export function BrandHeader({
 
   return (
     <header className={cn("cp-lobby-brand", className)}>
-      <div className={cn("shrink-0", markClassName)}>{markNode}</div>
+      <div className={cn("cp-lobby-brand-mark shrink-0", markClassName)}>{markNode}</div>
       <div className="cp-lobby-brand-copy">
         {brandHeading ? (
-          <h1 className="cp-display">Couch Potato</h1>
+          <h1 className="cp-display cp-lobby-brand-name">Couch Potato</h1>
         ) : (
-          <p className="cp-display text-2xl text-foreground">Couch Potato</p>
+          <p className="cp-display cp-lobby-brand-name text-2xl text-foreground">Couch Potato</p>
         )}
         {title ? (
           brandHeading ? (

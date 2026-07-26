@@ -24,7 +24,10 @@ const SHIP_WEBP = [
   "medals-sprite",
   "logo",
   "logo-celebrate",
+  "logo-consolation",
   "logo-options",
+  "logo-wave",
+  "logo-mark",
 ] as const;
 
 /** Convert to assets WebP but do **not** ship the full sheet to `public/`. */
@@ -39,7 +42,10 @@ const REMOVE_PUBLIC_PNG = new Set([
   "logo-sprite",
   "medals-sprite",
   "logo-celebrate",
+  "logo-consolation",
   "logo-options",
+  "logo-wave",
+  "logo-mark",
 ]);
 
 function kb(n: number) {
@@ -51,6 +57,13 @@ async function convertOne(base: (typeof SHIP_WEBP)[number]) {
   const webpPath = join(uiAssets, `${base}.webp`);
   const publicWebp = join(webPublic, `${base}.webp`);
   const publicPng = join(webPublic, `${base}.png`);
+
+  try {
+    await stat(pngPath);
+  } catch {
+    console.log(`${base}: skip (no ${base}.png in assets yet)`);
+    return;
+  }
 
   const before = (await stat(pngPath)).size;
   await sharp(pngPath).webp({ lossless: true, exact: true, effort: 6 }).toFile(webpPath);

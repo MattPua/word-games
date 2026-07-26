@@ -92,7 +92,8 @@
   --primary: #a1af8e;
   --primary-foreground: #1c1f1d;
   --secondary: #d8b05b;
-  --secondary-foreground: #1c1f1d;
+  /* Cream on potato gold — black ink on solid secondary reads muddy in dark */
+  --secondary-foreground: #f8f7f4;
   --muted: #343a34;
   --muted-foreground: #a8b0a4;
   /* Section/pref icons sit on darker charcoal panels — lift without washing helper copy */
@@ -135,16 +136,6 @@
   pointer-events: none;
 }
 
-@keyframes cp-soft-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
 /* Compact top; respect notch without a huge empty band */
 .cp-shell {
   padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
@@ -164,6 +155,8 @@
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--muted-foreground) 42%, transparent) transparent;
+  /* Touch pans this scroller; nested boards must not steal the gesture. */
+  touch-action: pan-y;
 }
 
 .cp-shell-scroll::-webkit-scrollbar {
@@ -177,10 +170,6 @@
 
 .cp-shell-scroll::-webkit-scrollbar-track {
   background: transparent;
-}
-
-.cp-logo-float {
-  animation: cp-soft-float 4.5s ease-in-out infinite;
 }
 
 @keyframes cp-fade-up {
@@ -387,7 +376,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cp-logo-float,
   .cp-fade-up,
   .cp-pop-in,
   .cp-tile-selected,
@@ -567,6 +555,74 @@
   }
 
   .cp-potato-go-spark {
+    opacity: 0.7;
+  }
+}
+
+/*
+ * About (`PotatoWaveSvg`) — cheer crop + sparkles + soft rock.
+ * No glued-on SVG hand (reads as a smear on PixelLab arms).
+ */
+.cp-potato-wave-body {
+  transform-origin: center 80%;
+}
+
+.cp-potato-wave-spark {
+  opacity: 0.55;
+}
+
+@keyframes cp-potato-wave-sway {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  35% {
+    transform: translateY(-3px) rotate(-4deg);
+  }
+  70% {
+    transform: translateY(-1px) rotate(3deg);
+  }
+}
+
+@keyframes cp-potato-wave-spark {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cp-potato-wave-body {
+    animation: cp-potato-wave-sway 1.8s ease-in-out infinite;
+  }
+
+  .cp-potato-wave-spark-1 {
+    animation: cp-potato-wave-spark 1.5s ease-in-out infinite;
+  }
+
+  .cp-potato-wave-spark-2 {
+    animation: cp-potato-wave-spark 1.5s ease-in-out 0.4s infinite;
+  }
+
+  .cp-potato-wave-spark-3 {
+    animation: cp-potato-wave-spark 1.5s ease-in-out 0.8s infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-potato-wave-body,
+  .cp-potato-wave-spark-1,
+  .cp-potato-wave-spark-2,
+  .cp-potato-wave-spark-3 {
+    animation: none !important;
+  }
+
+  .cp-potato-wave-spark {
     opacity: 0.7;
   }
 }

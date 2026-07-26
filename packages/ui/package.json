@@ -14,6 +14,8 @@
     "./theme.css": "./src/theme.css",
     "./logo.png": "./src/assets/logo.png",
     "./logo.webp": "./src/assets/logo.webp",
+    "./logo-mark.png": "./src/assets/logo-mark.png",
+    "./logo-mark.webp": "./src/assets/logo-mark.webp",
     "./logo-celebrate.png": "./src/assets/logo-celebrate.png",
     "./logo-celebrate.webp": "./src/assets/logo-celebrate.webp",
     "./logo-options.png": "./src/assets/logo-options.png",
