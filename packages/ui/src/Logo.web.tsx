@@ -11,7 +11,7 @@ export type LogoProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" 
 export function Logo({ size = 96, style, className = "", ...rest }: LogoProps) {
   return (
     <img
-      src="/logo.png"
+      src="/logo.webp"
       alt="Couch Potato"
       width={size}
       height={size}

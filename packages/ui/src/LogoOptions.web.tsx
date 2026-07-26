@@ -9,12 +9,12 @@ export type LogoOptionsProps = Omit<
 
 /**
  * Options header mascot (web) — potato on couch holding a gear.
- * Plain `<img>` + pixelated scale; art in `/logo-options.png`.
+ * Plain `<img>` + pixelated scale; art in `/logo-options.webp`.
  */
 export function LogoOptions({ size = 96, style, className = "", ...rest }: LogoOptionsProps) {
   return (
     <img
-      src="/logo-options.png"
+      src="/logo-options.webp"
       alt="Couch Potato adjusting options"
       width={size}
       height={size}

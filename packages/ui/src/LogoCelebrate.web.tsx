@@ -1,25 +1,32 @@
-import { Image, type ImageProps } from "react-native";
+import type { ImgHTMLAttributes } from "react";
 
-export type LogoCelebrateProps = Omit<ImageProps, "source"> & {
+export type LogoCelebrateProps = Omit<
+  ImgHTMLAttributes<HTMLImageElement>,
+  "src" | "alt" | "width" | "height"
+> & {
   size?: number;
 };
 
-// react-native-web has no `imageRendering` in its style types, but it passes
-// unknown keys straight through to the underlying <img> as CSS.
-const pixelated = { imageRendering: "pixelated" } as unknown as ImageProps["style"];
-
 /**
- * Pixel potato mid-celebration (web build) — results-screen hero, keeps the
- * source art's hard pixel edges when scaled like `Logo.web`. Same source
- * contract as `LogoCelebrate.tsx` — see AGENTS.md Brand.
+ * Results celebrate mark (web) — arms-up potato + letter-tile confetti.
+ * Plain `<img>` + pixelated scale; art in `/logo-celebrate.webp` (from
+ * `packages/ui/src/logo-celebrate.png` via `optimize-sprites`). Same DOM contract as `Logo.web`.
  */
-export function LogoCelebrate({ size = 96, style, ...rest }: LogoCelebrateProps) {
+export function LogoCelebrate({ size = 96, style, className = "", ...rest }: LogoCelebrateProps) {
   return (
-    <Image
-      source={{ uri: "/logo-celebrate.png" }}
-      accessibilityLabel="Couch Potato celebrating"
-      style={[{ width: size, height: size }, pixelated, style]}
-      resizeMode="contain"
+    <img
+      src="/logo-celebrate.webp"
+      alt="Couch Potato celebrating"
+      width={size}
+      height={size}
+      className={className}
+      style={{
+        width: size,
+        height: size,
+        objectFit: "contain",
+        imageRendering: "pixelated",
+        ...style,
+      }}
       {...rest}
     />
   );

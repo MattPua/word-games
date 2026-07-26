@@ -5,16 +5,16 @@ export type PotatoSpriteProps = {
   size?: number;
   className?: string;
   /**
-   * Force a specific atlas frame (e.g. results hero cheer on a win/high
-   * score, EmptyState `bored`). Static — no idle bob or hover/tap reaction;
-   * callers own any float/pop wrapper (see `.cp-potato-sprite-interactive`
-   * in `theme.css`). Omit for the playful default: idle bob + occasional
-   * cheer nudge + hover/tap wiggle (404 mascot).
+   * Force a specific atlas frame (e.g. EmptyState `bored`). Static — no idle
+   * bob or hover/tap reaction; callers own any float/pop wrapper. Results uses
+   * standalone `LogoCelebrate` / `Logo`, not this sheet. Omit for the playful
+   * default: idle bob + occasional cheer nudge + hover/tap wiggle (404).
    */
   frame?: PotatoSpriteFrame;
   /**
-   * Lobby brand: sit still, yawn into the `bored` atlas frame every so often.
-   * Ignored when `frame` is pinned.
+   * Lobby brand: CSS-stepped atlas sleep/doze (idle ↔ bored) — discrete poses
+   * like portfolio cartoon-cat, not a GIF/video or floating still. Ignored when
+   * `frame` is pinned.
    */
   lobbyYawn?: boolean;
 };

@@ -6,13 +6,13 @@ export type LogoOptionsProps = Omit<ImageProps, "source"> & {
 
 /**
  * Options header mascot — potato on couch holding a gear (device prefs).
- * Web serves `apps/web/public/logo-options.png` (copy of
- * `packages/ui/src/logo-options.png`) — see AGENTS.md Brand / potato-sprites.
+ * Web serves `apps/web/public/logo-options.webp` (from
+ * `packages/ui/src/logo-options.png` via optimize-sprites) — see AGENTS.md Brand / potato-sprites.
  */
 export function LogoOptions({ size = 96, style, ...rest }: LogoOptionsProps) {
   return (
     <Image
-      source={{ uri: "/logo-options.png" }}
+      source={{ uri: "/logo-options.webp" }}
       accessibilityLabel="Couch Potato adjusting options"
       style={[{ width: size, height: size }, style]}
       resizeMode="contain"

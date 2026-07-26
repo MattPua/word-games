@@ -17,12 +17,14 @@
     "lint": "oxlint",
     "check": "oxlint && oxfmt --check",
     "dev": "mprocs",
-    "mprocs": "mprocs"
+    "mprocs": "mprocs",
+    "sprites:optimize": "bun packages/ui/scripts/optimize-sprites.ts"
   },
   "devDependencies": {
     "mprocs": "0.9.6",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
+    "sharp": "^0.35.3",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
