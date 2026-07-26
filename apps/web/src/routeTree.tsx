@@ -11,7 +11,9 @@ import { loadDevicePrefs } from "./storage";
 import { applyMenuMusicEnabled, menuMusicSceneForPath, setMenuMusicScene } from "./menuMusic";
 import { applyFontPreference, applyTheme } from "./theme";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ChromeTopBar } from "@/components/ChromeTopBar";
 import { COMMAND_PALETTE_OPEN, markCommandPaletteWantOpen } from "./commandPaletteBus";
+import { ABOUT_OPEN, markAboutWantOpen } from "./aboutBus";
 import { DEFAULT_TITLE, pageHead } from "./seo";
 import { prefetchPlayPage } from "./playPrefetch";
 import { validatePlaySearch } from "./playLaunchSearch";
@@ -36,6 +38,9 @@ const OptionsPage = lazy(() =>
 );
 const CommandPalette = lazy(() =>
   import("@/components/CommandPalette").then((m) => ({ default: m.CommandPalette })),
+);
+const AboutDialog = lazy(() =>
+  import("@/components/AboutDialog").then((m) => ({ default: m.AboutDialog })),
 );
 
 /** Minimal cold fallback — keeps LoadingPotato / PlaySkeleton off the root chunk. */
@@ -84,8 +89,35 @@ function DeferredCommandPalette() {
   );
 }
 
+/** Mount About on first open only — keeps dialog off lobby LCP. */
+function DeferredAboutDialog() {
+  const [mount, setMount] = useState(false);
+
+  useEffect(() => {
+    const onOpen = () => {
+      markAboutWantOpen();
+      setMount(true);
+    };
+    window.addEventListener(ABOUT_OPEN, onOpen);
+    return () => window.removeEventListener(ABOUT_OPEN, onOpen);
+  }, []);
+
+  if (!mount) return null;
+  return (
+    <Suspense fallback={null}>
+      <AboutDialog />
+    </Suspense>
+  );
+}
+
+/** Persistent site bar — play / how-to own their chrome; lobby + chrome pages share it. */
+function showChromeTopBar(pathname: string) {
+  return pathname !== "/play" && pathname !== "/how-to";
+}
+
 function RootLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const chromeBar = showChromeTopBar(pathname);
 
   useEffect(() => {
     const prefs = loadDevicePrefs();
@@ -113,10 +145,19 @@ function RootLayout() {
     <TooltipProvider delayDuration={400} skipDelayDuration={200}>
       <HeadContent />
       <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
-        <main className="flex min-h-0 flex-1 flex-col">
+        {/* Outside `.cp-page-body` so View Transitions don't settle the site bar. */}
+        {chromeBar ? (
+          <div className="cp-chrome-top-host">
+            <div className="cp-chrome-top-inner">
+              <ChromeTopBar hideBrand={pathname === "/"} />
+            </div>
+          </div>
+        ) : null}
+        <main className="cp-page-body flex min-h-0 flex-1 flex-col">
           <Outlet />
         </main>
         <DeferredCommandPalette />
+        <DeferredAboutDialog />
       </div>
     </TooltipProvider>
   );
@@ -160,7 +201,7 @@ const playRoute = createRoute({
     <LazyPage
       Page={PlayPage}
       fallback={
-        <Suspense fallback={coldFallback("Fluffing the letter cushions")}>
+        <Suspense fallback={coldFallback("Spinning up the board")}>
           <PlaySkeleton />
         </Suspense>
       }
@@ -203,7 +244,7 @@ const howToRoute = createRoute({
   // Eager — cold visits redirect here; lazy how-to added a 3G JS waterfall (hurts FCP/LCP).
   component: HowToPage,
   head: () => ({
-    ...pageHead("How to play"),
+    ...pageHead("How to play in 30 seconds"),
     links: [
       {
         rel: "preload",

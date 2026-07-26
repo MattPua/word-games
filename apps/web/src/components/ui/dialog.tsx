@@ -43,7 +43,8 @@ const DialogContent = React.forwardRef<
       className={cn(
         // Phone: near-full width (tiny inset + safe-area). md+: capped centered modal.
         // Underscores = commas inside Tailwind arbitrary values.
-        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-max(8px,env(safe-area-inset-left,_0px))-max(8px,env(safe-area-inset-right,_0px)))] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-ui border-2 border-border bg-card p-5 shadow-lg duration-200 md:w-[min(100%-24px,480px)]",
+        // `.cp-dialog` = size container so choice rows single-stack ≤26rem (not lobby-only).
+        "cp-dialog fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-max(8px,env(safe-area-inset-left,_0px))-max(8px,env(safe-area-inset-right,_0px)))] max-w-[100vw] min-w-0 translate-x-[-50%] translate-y-[-50%] gap-4 overflow-x-clip rounded-ui border-2 border-border bg-card p-4 shadow-lg duration-200 sm:p-5 md:w-[min(100%-24px,480px)]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
         className,
       )}
@@ -65,7 +66,14 @@ const DialogContent = React.forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
+  <div
+    className={cn(
+      /* pr clears absolute close (X) so title/desc never clip under it */
+      "flex flex-col space-y-1.5 pr-8 text-center sm:text-left",
+      className,
+    )}
+    {...props}
+  />
 );
 DialogHeader.displayName = "DialogHeader";
 

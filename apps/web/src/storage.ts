@@ -68,15 +68,15 @@ export type DevicePrefs = {
    */
   menuMusicEnabled: boolean;
   /**
-   * Soft lobby jam invite dismissed (or accepted). Default false → show once while jam is off.
-   * Options can still flip Lobby jam anytime; invite does not reappear after dismiss.
+   * Soft Couch jam invite dismissed (or accepted). Default false → show once while jam is off.
+   * Options can still flip Couch jam anytime; invite does not reappear after dismiss.
    */
   lobbyJamInviteDismissed: boolean;
-  /** Unfound valid words on the board (not target pts remaining). Default off = discovery. */
+  /** Unfound valid words on the board (not target points remaining). Default off = discovery. */
   showWordsLeft: boolean;
   /**
    * Player finished (or skipped) the interactive how-to. Default false → gate lobby once.
-   * Options “Replay how-to” clears this.
+   * Options “View Tutorial” clears this.
    */
   howToSeen: boolean;
   /** Default system; explicit light/dark once the player picks via the toggle. */
@@ -381,7 +381,7 @@ export function setMenuMusicEnabled(enabled: boolean) {
   saveStore(store);
 }
 
-/** Hide the lobby jam invite for good (after Cue the jam or Maybe later). */
+/** Hide the Couch jam invite for good (after Cue the jam or Maybe later). */
 export function dismissLobbyJamInvite() {
   const store = loadStore();
   store.prefs.lobbyJamInviteDismissed = true;

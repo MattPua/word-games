@@ -179,6 +179,7 @@ export default defineConfig(({ mode }) => ({
         globPatterns: [
           "**/*.{css,html,woff2,ico,svg}",
           "logo.png",
+          "logo-mark.webp",
           "favicon.png",
           "apple-touch-icon.png",
         ],

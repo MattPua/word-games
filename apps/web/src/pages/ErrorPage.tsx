@@ -1,7 +1,9 @@
 import { useNavigate, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
-import { BrandHeader, EmptyState, PotatoSprite, ScrollShell } from "@couch-potato/ui";
+import { EmptyState, LogoConsolation, ScrollShell } from "@couch-potato/ui";
+import { Sofa } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { PageHeading } from "@/components/ChromeTopBar";
 import { captureError } from "../analytics";
 
 /** Unexpected failure — potato spilled the snacks. */
@@ -18,13 +20,9 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
 
   return (
     <ScrollShell>
-      {/* Top-aligned — never vertically center short chrome (huge empty tops). */}
-      <BrandHeader
-        className="cp-fade-up"
-        mark={<PotatoSprite frame="idle" size={96} />}
-        title="500"
-      />
+      <PageHeading title="500" className="cp-fade-up" />
       <EmptyState
+        mark={<LogoConsolation size={112} />}
         title="Snack spill in aisle potato"
         body="Something unexpected flopped. Shake the crumbs off and try again."
         className="mt-2 cp-fade-up cp-stagger-2"
@@ -44,6 +42,7 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
         Try again
       </Button>
       <Button variant="secondary" className="cp-chrome-cta" onClick={() => navigate({ to: "/" })}>
+        <Sofa />
         Back to lobby
       </Button>
     </ScrollShell>

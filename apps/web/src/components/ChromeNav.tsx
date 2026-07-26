@@ -1,8 +1,9 @@
-import { Medal, Settings, Sofa, Users, type LucideIcon } from "lucide-react";
+import { HeartHandshake, Medal, Settings, Sofa, Users, type LucideIcon } from "lucide-react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { IconTooltip } from "@/components/ui/tooltip";
+import { openAbout } from "../aboutBus";
 import { isApplePlatform, modKLabel, openCommandPalette } from "../commandPaletteBus";
 
 const LINKS: {
@@ -28,7 +29,7 @@ export function ChromeNav() {
     <div
       className="flex shrink-0 flex-row items-center gap-1"
       role="navigation"
-      aria-label="Couch chrome"
+      aria-label="Main menu"
     >
       {!onLobby ? (
         <IconTooltip label="Back to lobby">
@@ -61,6 +62,17 @@ export function ChromeNav() {
           </IconTooltip>
         );
       })}
+      <IconTooltip label="About">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="About"
+          data-nav="about"
+          onClick={() => openAbout()}
+        >
+          <HeartHandshake className="cp-icon-anim-about" fillOpacity={0} />
+        </Button>
+      </IconTooltip>
       {/* Quiet md+ palette affordance — after icons so Lobby sofa stays leftmost. */}
       <IconTooltip label={`Jump menu · ${jumpHint}`}>
         <button

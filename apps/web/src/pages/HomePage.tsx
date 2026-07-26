@@ -1,4 +1,4 @@
-import { BrandHeader, PotatoSnoreSvg, Shell } from "@couch-potato/ui";
+import { BrandHeader, Logo, Shell } from "@couch-potato/ui";
 import {
   dismissLobbyJamInvite,
   getActiveProfile,
@@ -13,7 +13,6 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { setPlayVia, track } from "../analytics";
-import { ChromeNav } from "@/components/ChromeNav";
 import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
 import { LobbyJamInvite } from "@/components/LobbyJamInvite";
 import { applyMenuMusicEnabled } from "../menuMusic";
@@ -98,18 +97,13 @@ export function HomePage() {
           <BrandHeader
             className="mb-4"
             brandHeading
-            mark={<PotatoSnoreSvg size={72} />}
+            mark={<Logo size={72} fetchPriority="high" />}
             description="Swipe letters. Find words. Stay on the couch."
           />
 
-          <div className="mb-3 flex flex-row items-center justify-between gap-2">
-            <p className="min-w-0 flex-shrink truncate font-body text-sm font-semibold text-foreground">
-              Spud: {profile.name}
-            </p>
-            <ChromeNav />
-          </div>
-
-          {showJamInvite ? <LobbyJamInvite onCue={cueJam} onDismiss={skipJamInvite} /> : null}
+          <p className="mb-3 min-w-0 truncate font-body text-sm font-semibold text-foreground">
+            Spud: {profile.name}
+          </p>
 
           <HomeSetup
             mode={mode}
@@ -126,6 +120,11 @@ export function HomePage() {
             onDifficulty={setDifficulty}
             onDuration={setDuration}
             onBlockedWords={onBlockedWords}
+            jamInvite={
+              showJamInvite ? (
+                <LobbyJamInvite onCue={cueJam} onDismiss={skipJamInvite} />
+              ) : undefined
+            }
           />
           <div className="h-4" aria-hidden />
         </Shell>

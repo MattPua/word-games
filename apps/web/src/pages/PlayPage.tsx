@@ -16,6 +16,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { MusicOff } from "@/icons/MusicOff";
+import { cn } from "@/lib/utils";
 import {
   ConfettiBurst,
   LetterGrid,
@@ -88,6 +89,7 @@ import { applyMenuMusicEnabled } from "../menuMusic";
 import { applyTheme, resolveTheme } from "../theme";
 import { playAcceptedWordSound } from "../wordAcceptSound";
 import { formatRunChallengeBadge, formatRunMeta } from "../runMeta";
+import { ModeGlyph } from "../modeGlyph";
 import { playLaunchFromSearch } from "../playLaunchSearch";
 import { playRunEndSound, runEndPill, type RunEndReason } from "../runEndFlourish";
 
@@ -781,83 +783,87 @@ export function PlayPage() {
   };
 
   return (
-    <Shell className="relative overflow-hidden cp-fade-up">
+    <Shell className="relative overflow-hidden cp-shell-play cp-fade-up">
       <ConfettiBurst active={celebrate} durationMs={END_FLOURISH_MS} />
 
-      {/* One calm top row: primary status + optional words-left count + icon cluster */}
-      <div className="mb-3 flex flex-row items-center justify-between gap-3">
-        <div className="min-w-0 flex-1 flex flex-row items-center gap-3">
-          {/* `.cp-hud-bubble` already bakes in font-display/size/weight — the
-              Text just needs to inherit color (bubble sets it per heat tier). */}
-          {remaining != null ? (
-            <div className={hudBubbleClass} aria-label={`${remaining} points left to clear`}>
-              <span style={{ color: "inherit" }}>{remaining} pts left</span>
-            </div>
-          ) : secs != null && state.remainingMs != null ? (
-            <div className="relative shrink-0">
-              <TimerRing
-                remainingMs={state.remainingMs}
-                totalMs={timerTotalMs}
-                urgency={timerUrgency}
-                pulsing={hudPulse}
-              />
-              {survivalBump ? (
-                <span
-                  key={survivalBump.id}
-                  className="cp-survival-bump-anchor"
-                  aria-label={`Plus ${survivalBump.seconds} seconds`}
-                >
-                  <span className="cp-survival-bump cp-catch-in" aria-hidden>
-                    +{survivalBump.seconds}s
+      {/* HUD: never cram Goal remaining + Easy + pause on one narrow row (pill was wrapping into a
+          circle under Absolute Easy). Score | pause on top; mode badge centered below. */}
+      <div className="cp-play-hud mb-2 flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="shrink-0">
+            {/* `.cp-hud-bubble` already bakes in font-display/size/weight — the
+                text just needs to inherit color (bubble sets it per heat tier). */}
+            {remaining != null ? (
+              <div className={hudBubbleClass} aria-label={`${remaining} points left to clear`}>
+                <span style={{ color: "inherit" }}>{remaining} points left</span>
+              </div>
+            ) : secs != null && state.remainingMs != null ? (
+              <div className="relative shrink-0">
+                <TimerRing
+                  remainingMs={state.remainingMs}
+                  totalMs={timerTotalMs}
+                  urgency={timerUrgency}
+                  pulsing={hudPulse}
+                />
+                {survivalBump ? (
+                  <span
+                    key={survivalBump.id}
+                    className="cp-survival-bump-anchor"
+                    aria-label={`Plus ${survivalBump.seconds} seconds`}
+                  >
+                    <span className="cp-survival-bump cp-catch-in" aria-hidden>
+                      +{survivalBump.seconds}s
+                    </span>
                   </span>
-                </span>
-              ) : null}
-            </div>
-          ) : null}
-          {showWordsLeft ? (
-            <span
-              className="font-display text-sm font-semibold text-muted-foreground"
-              aria-label={`${wordsLeft} words left on the board`}
-            >
-              {wordsLeft} left
-            </span>
-          ) : null}
-          <div className="cp-run-badge" aria-label={`Challenge ${challengeBadge}`}>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+          <div className="shrink-0">
+            <IconTooltip label="Pause">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                disabled={celebrate}
+                aria-label="Pause"
+                aria-haspopup="dialog"
+                aria-expanded={paused}
+                onClick={openPause}
+                data-testid="pause-menu"
+              >
+                <Pause />
+              </Button>
+            </IconTooltip>
+          </div>
+        </div>
+        <div className="flex justify-center">
+          <div
+            className="cp-run-badge gap-1.5"
+            aria-label={`${state.config.mode === "target" ? "Goal" : state.config.mode === "timed" ? "Timed" : "Survival"} · ${challengeBadge}`}
+          >
+            <ModeGlyph mode={state.config.mode} className="size-3.5 shrink-0" />
             <span style={{ color: "inherit" }}>{challengeBadge}</span>
           </div>
         </div>
-        <div className="shrink-0 flex flex-row items-center gap-2">
-          <IconTooltip label="Pause">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              disabled={celebrate}
-              aria-label="Pause"
-              aria-haspopup="dialog"
-              aria-expanded={paused}
-              onClick={openPause}
-              data-testid="pause-menu"
-            >
-              <Pause />
-            </Button>
-          </IconTooltip>
-        </div>
       </div>
 
+      {showWordsLeft ? (
+        <p
+          className="mb-2 text-center font-display text-sm font-semibold text-muted-foreground"
+          aria-label={`${wordsLeft} words left on the board`}
+        >
+          {wordsLeft} {wordsLeft === 1 ? "word" : "words"} left
+        </p>
+      ) : null}
+
       {remaining != null && target > 0 && (
-        <ProgressBar value={remaining} max={target} className="mb-4" />
+        <ProgressBar value={remaining} max={target} className="mb-3" />
       )}
 
       <ScoreBubble
         word={endBeat ? runEndPill(endBeat, state.config.mode) : currentWord || flash}
-        hint={
-          remaining != null
-            ? `Clear the couch · ${state.config.minWordLength}+`
-            : state.config.mode === "survival"
-              ? `Keep the clock fed · ${state.config.minWordLength}+`
-              : `Nab all you can · ${state.config.minWordLength}+`
-        }
-        className="mb-4"
+        hint={`Start swiping · ${state.config.minWordLength}+`}
+        className="mb-3"
       />
 
       <LetterGrid
@@ -929,10 +935,28 @@ export function PlayPage() {
         }
       />
 
-      {/* One row: spin chips flank last-catch in a centered hug cluster (gap-2) — not
-          full-width flex-1, which parked spins at opposite board edges. Same height as
-          icon buttons; never grows board. Rotate*Square + “Spin” label. */}
-      <div className="mt-4 flex w-full shrink-0 items-center justify-center gap-2">
+      {/* Last catch sits above spins — never between them (8+ letter words crushed the
+          middle slot). Spins are a simple centered pair. */}
+      <div
+        className={cn(
+          "mt-3 flex w-full shrink-0 items-center justify-center",
+          lastFound ? "min-h-11" : "min-h-0",
+        )}
+      >
+        {lastFound ? (
+          <div key={lastFound.id} className="cp-last-found cp-catch-in max-w-full" role="status">
+            <span className="cp-last-found-label">Last catch</span>
+            <span className="cp-last-found-word">{lastFound.word}</span>
+            {lastFound.points > 0 ? (
+              <span className="cp-last-found-pts" aria-label={`${lastFound.points} points`}>
+                {lastFound.points}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="cp-play-board-actions mt-1.5 flex w-full shrink-0 items-center justify-center gap-2 sm:mt-2">
         <IconTooltip label="Spin board left">
           <Button
             variant="secondary"
@@ -947,20 +971,6 @@ export function PlayPage() {
             <span className="font-body text-[0.65rem] font-bold uppercase tracking-wide">Spin</span>
           </Button>
         </IconTooltip>
-
-        <div className="flex min-h-11 min-w-0 max-w-[14rem] items-center justify-center">
-          {lastFound ? (
-            <div key={lastFound.id} className="cp-last-found cp-catch-in" role="status">
-              <span className="cp-last-found-label">Last catch</span>
-              <span className="cp-last-found-word">{lastFound.word}</span>
-              {lastFound.points > 0 ? (
-                <span className="cp-last-found-pts" aria-label={`${lastFound.points} points`}>
-                  {lastFound.points}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
 
         <IconTooltip label="Spin board right">
           <Button
@@ -1064,7 +1074,7 @@ export function PlayPage() {
               ]}
             />
             <PrefChoiceGroup
-              label="Lobby jam"
+              label="Couch jam"
               value={menuMusic ? "on" : "off"}
               onChange={(v) => setMenuMusicOn(v === "on")}
               data-testid="pause-music"
@@ -1089,41 +1099,39 @@ export function PlayPage() {
               onChange={(v) => setDarkModeOn(v === "dark")}
               data-testid="pause-look"
               options={[
-                { value: "light", label: "Day", Icon: Sun },
-                { value: "dark", label: "Night", Icon: Moon },
+                { value: "light", label: "Light", Icon: Sun },
+                { value: "dark", label: "Dark", Icon: Moon },
               ]}
             />
             <div className="mt-1 flex flex-col gap-2 border-t-2 border-border pt-3 sm:flex-row sm:items-stretch">
-              <div className="flex min-w-0 flex-1 gap-2 sm:contents">
-                <Button
-                  variant="ghost"
-                  className="cp-end-run-btn min-w-0 flex-1 justify-center gap-2"
-                  data-testid="end-run"
-                  onClick={() => {
-                    if (isEarlyBail()) {
-                      bailToLobby();
-                      return;
-                    }
-                    closePause();
-                    setState(quitGame(state));
-                  }}
-                >
-                  <CircleStop className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
-                  End run
-                </Button>
-                <Button
-                  variant="outline"
-                  className="min-w-0 flex-1 justify-center gap-2"
-                  data-testid="restart-run"
-                  onClick={restartRun}
-                >
-                  <RotateCcw className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
-                  Restart
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                className="cp-end-run-btn order-2 min-w-0 w-full flex-1 justify-center gap-2 sm:order-1 sm:w-auto"
+                data-testid="end-run"
+                onClick={() => {
+                  if (isEarlyBail()) {
+                    bailToLobby();
+                    return;
+                  }
+                  closePause();
+                  setState(quitGame(state));
+                }}
+              >
+                <CircleStop className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
+                End run
+              </Button>
+              <Button
+                variant="outline"
+                className="order-3 min-w-0 w-full flex-1 justify-center gap-2 sm:order-2 sm:w-auto"
+                data-testid="restart-run"
+                onClick={restartRun}
+              >
+                <RotateCcw className="cp-lobby-glyph size-4 shrink-0" aria-hidden />
+                Restart
+              </Button>
               <Button
                 data-pause-resume
-                className="w-full justify-center gap-2 sm:w-auto sm:min-w-0 sm:flex-[1.15]"
+                className="order-1 w-full justify-center gap-2 sm:order-3 sm:w-auto sm:min-w-0 sm:flex-[1.15]"
                 onClick={closePause}
               >
                 <CirclePlay className="cp-lobby-glyph size-4 shrink-0" aria-hidden />

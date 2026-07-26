@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Check, ChevronRight, Medal, Pencil, Sofa, UserPlus, UserRound } from "lucide-react";
-import { BrandHeader, EmptyState, Logo, ScrollShell } from "@couch-potato/ui";
+import { EmptyState, ScrollShell } from "@couch-potato/ui";
 import { PotatoBoard } from "../components/PotatoBoard";
 import { allTrackProgress, withGamesPlayed } from "../achievements";
 import {
@@ -13,7 +13,7 @@ import {
 } from "../storage";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ChromeNav } from "@/components/ChromeNav";
+import { PageHeading } from "@/components/ChromeTopBar";
 import { Input } from "@/components/ui/input";
 
 export function ProfilesPage() {
@@ -29,12 +29,7 @@ export function ProfilesPage() {
 
   return (
     <ScrollShell shellClassName="cp-shell-crew cp-crew cp-fade-up">
-      <div className="mb-3 flex justify-end">
-        <ChromeNav />
-      </div>
-      <BrandHeader
-        className="mb-5"
-        mark={<Logo size={64} />}
+      <PageHeading
         title="Couch crew"
         description="Every spud, their scores, one shared couch."
       />
@@ -65,7 +60,7 @@ export function ProfilesPage() {
                     >
                       <UserRound className="size-5" strokeWidth={2.25} aria-hidden />
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="truncate font-display text-base font-bold text-foreground">
                         {p.name}
                       </span>

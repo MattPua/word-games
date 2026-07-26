@@ -2,12 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown, CirclePlay, Layers, Sofa, Sparkles } from "lucide-react";
 import {
-  BrandHeader,
   ConfettiBurst,
   EmptyState,
   LetterGrid,
-  Logo,
-  LogoCelebrate,
+  LogoConsolation,
   ScrollShell,
   WordGroups,
   type Cell,
@@ -16,17 +14,21 @@ import { findPathForWord, isAdjacentCells, type GridTopology } from "@couch-pota
 import { loadLastRun, saveLaunch, type PlayLaunch } from "../storage";
 import { setPlayVia, track } from "../analytics";
 import { Button } from "@/components/ui/button";
+import { PageHeading } from "@/components/ChromeTopBar";
 import { ResultsMedals } from "../components/ResultsMedals";
-import { formatRunMeta } from "../runMeta";
+import { formatDifficulty, formatModeLabel, formatRunMeta } from "../runMeta";
+import { ModeGlyph } from "../modeGlyph";
 import { playSearchFromLaunch } from "../playLaunchSearch";
+import { runEndPill } from "../runEndFlourish";
 
 const MISSED_COLLAPSE_THRESHOLD = 8;
 const CONFETTI_DELAY_MS = 150;
 const CONFETTI_DURATION_MS = 1400;
 
 /** Counts 0 -> target on mount; instant under `prefers-reduced-motion`. */
-function useCountUp(target: number, durationMs = 650) {
+function useCountUp(target: number, durationMs = 900) {
   const [value, setValue] = useState(0);
+  const [ticking, setTicking] = useState(false);
 
   useEffect(() => {
     const reduceMotion =
@@ -34,21 +36,27 @@ function useCountUp(target: number, durationMs = 650) {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion || target <= 0) {
       setValue(target);
+      setTicking(false);
       return;
     }
+    setTicking(true);
     let raf = 0;
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / durationMs);
       const eased = 1 - (1 - t) ** 3;
       setValue(Math.round(eased * target));
-      if (t < 1) raf = requestAnimationFrame(tick);
+      if (t < 1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        setTicking(false);
+      }
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [target, durationMs]);
 
-  return value;
+  return { value, ticking };
 }
 
 function titleCase(w: string) {
@@ -58,7 +66,7 @@ function titleCase(w: string) {
 export function ResultsPage() {
   const navigate = useNavigate();
   const run = loadLastRun();
-  const displayScore = useCountUp(run?.score ?? 0);
+  const { value: displayScore, ticking: scoreTicking } = useCountUp(run?.score ?? 0);
   const [celebrate, setCelebrate] = useState(false);
   const [missedOpen, setMissedOpen] = useState(
     (run?.missed.length ?? 0) <= MISSED_COLLAPSE_THRESHOLD,
@@ -71,7 +79,6 @@ export function ResultsPage() {
   // gets hero pop-in + haul count-up (softer, no confetti spam on intentional End run).
   const celebratory =
     run != null && (run.reason === "won" || run.isHighScore || run.reason === "timeout");
-  const showCelebrateMark = celebratory || (run != null && run.score > 0);
   const topology = (run?.topology ?? "square") as GridTopology;
   const letters = run?.letters;
   const hasBoard = Boolean(letters && letters.length > 0);
@@ -96,10 +103,10 @@ export function ResultsPage() {
   if (!run) {
     return (
       <ScrollShell shellClassName="cp-shell-results cp-results">
-        <BrandHeader className="mb-4" title="Results" />
+        <PageHeading title="Results" />
         <EmptyState
-          title="No crumbs on the couch yet"
-          body="Play a round first, then we'll show off your haul."
+          title="No haul yet"
+          body="Play a round first, then we'll show off your finds."
         />
         <Button className="mt-4 cp-chrome-cta" onClick={() => navigate({ to: "/" })}>
           Back to lobby
@@ -108,15 +115,12 @@ export function ResultsPage() {
     );
   }
 
-  const reasonLabel =
-    run.reason === "won"
-      ? "Couch clear!"
-      : run.reason === "timeout"
-        ? run.mode === "survival"
-          ? "Clock ran dry"
-          : "Time's up!"
-        : "Run ended";
-  const missedMore = run.missedMore ?? [];
+  // Same outcome voice as the Play end curtain — never a flat "Run ended".
+  const reasonLabel = runEndPill(run.reason, run.mode);
+  const scoreHot = run.isHighScore || run.reason === "won";
+  const missedMore = (run.missedMore ?? []).filter(
+    (w) => w.length >= Math.max(4, run.minWordLength ?? 3),
+  );
 
   const runMeta = formatRunMeta({
     mode: run.mode,
@@ -124,49 +128,70 @@ export function ResultsPage() {
     duration: run.duration,
     minWordLength: run.minWordLength,
   });
+  const modeLabel = formatModeLabel(run.mode);
+  const challengeLabel = formatDifficulty(run.difficulty ?? "easy");
+  const minLabel = `${run.minWordLength ?? 3}+`;
 
   return (
     <ScrollShell shellClassName="relative cp-shell-results cp-results">
       <ConfettiBurst active={celebrate} durationMs={CONFETTI_DURATION_MS} />
 
-      <div className="mb-4 items-center cp-fade-up">
-        {/* Results hero — dedicated marks (celebrate / chill), not the atlas sheet. */}
-        <BrandHeader
-          className="mb-1"
-          mark={
-            <div className="cp-pop-in">
-              <div className="cp-logo-float">
-                {showCelebrateMark ? <LogoCelebrate size={96} /> : <Logo size={96} />}
-              </div>
-            </div>
-          }
-          title={reasonLabel}
-        />
-        <div className="mb-2 items-center">
-          <div className="cp-run-badge cp-run-badge-quiet" aria-label={runMeta}>
-            <span style={{ color: "inherit" }}>{runMeta}</span>
-          </div>
-        </div>
-        <div className="cp-results-haul cp-pop-in">
-          <div
-            className={`cp-results-haul-tag ${
-              run.isHighScore || run.reason === "won" ? "cp-results-haul-tag-gold" : ""
-            }`}
-          >
-            <span
-              className={`font-display text-5xl font-bold tabular-nums text-foreground ${
-                run.isHighScore ? "cp-results-score-sparkle" : ""
-              }`}
+      <div className="mb-4 cp-fade-up">
+        <PageHeading className="!mb-2" title={reasonLabel} />
+        <div className="cp-results-hero-score">
+          <div className="cp-results-meta" role="group" aria-label={runMeta}>
+            <div
+              className={
+                run.mode === "timed"
+                  ? "cp-results-meta-chip cp-results-meta-mode cp-results-meta-mode-timed"
+                  : run.mode === "survival"
+                    ? "cp-results-meta-chip cp-results-meta-mode cp-results-meta-mode-survival"
+                    : "cp-results-meta-chip cp-results-meta-mode cp-results-meta-mode-target"
+              }
             >
-              {displayScore}
-            </span>
-            <span className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
-              pts
-            </span>
+              <span
+                className={
+                  run.mode === "survival"
+                    ? "text-secondary"
+                    : run.mode === "timed"
+                      ? "text-[var(--path)]"
+                      : "text-primary"
+                }
+                aria-hidden
+              >
+                <ModeGlyph mode={run.mode} className="size-4 shrink-0" />
+              </span>
+              <span>{modeLabel}</span>
+            </div>
+            <div className="cp-results-meta-chip">{challengeLabel}</div>
+            {run.mode === "timed" ? (
+              <div className="cp-results-meta-chip">{run.duration ?? 60}s</div>
+            ) : null}
+            <div className="cp-results-meta-chip">{minLabel}</div>
           </div>
-          {run.isHighScore && (
-            <span className="cp-results-best-label cp-fade-up cp-stagger-2">New couch best</span>
-          )}
+          <div className="cp-results-haul cp-results-haul-reveal">
+            <div
+              className={`cp-results-haul-tag ${scoreHot ? "cp-results-haul-tag-gold" : ""}`}
+            >
+              <span
+                className={[
+                  "cp-results-score-num font-display font-bold tabular-nums",
+                  scoreTicking ? "cp-results-score-ticking" : "",
+                  scoreHot ? "cp-results-score-sparkle" : "cp-results-score-glow",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                {displayScore}
+              </span>
+              <span className="cp-results-points-label font-display text-sm font-bold tracking-wide text-muted-foreground">
+                points
+              </span>
+            </div>
+            {run.isHighScore && (
+              <span className="cp-results-best-label cp-fade-up cp-stagger-2">New couch best</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -201,8 +226,9 @@ export function ResultsPage() {
             ) : (
               <EmptyState
                 title="Nada. Not even 'the'."
-                body="It happens. The cushions will forgive you."
-                className="py-1"
+                body="It happens. Next run."
+                mark={<LogoConsolation size={96} />}
+                className="py-2"
               />
             )}
           </div>
@@ -236,14 +262,16 @@ export function ResultsPage() {
                   />
                 </Button>
                 <span className="mt-1 font-body text-sm text-muted-foreground">
-                  Biggest catches still on the couch. Short crumbs stay off this list.
+                  Biggest leftovers still on the board. Short finds stay off this list.
                 </span>
                 <div
                   id="results-missed-panel"
                   className={`cp-results-collapse-panel ${missedOpen ? "cp-results-collapse-panel-open" : ""}`}
                 >
                   <div className="cp-results-collapse-panel-inner pt-3">
+                    {/* Remount on open so chip drop-in runs when revealed (not while collapsed). */}
                     <WordGroups
+                      key={missedOpen ? "missed-open" : "missed-shut"}
                       words={run.missed}
                       variant="missed"
                       selectedWord={hasBoard ? selectedWord : undefined}
@@ -264,7 +292,7 @@ export function ResultsPage() {
                 </h2>
                 <EmptyState
                   title="No juicy leftovers"
-                  body="The long catches are gone. Short crumbs may still be on the board."
+                  body="You got the long ones. Shorter finds may still be on the board."
                   className="py-1"
                 />
               </>
@@ -299,7 +327,7 @@ export function ResultsPage() {
                 />
               </Button>
               <span className="mt-1 font-body text-sm text-muted-foreground">
-                Shorter crumbs and other letter paths still hiding. Tap to peek.
+                Shorter mid-length finds still hiding (3-letter crumbs stay off). Tap to peek.
               </span>
               <div
                 id="results-more-panel"
@@ -307,6 +335,7 @@ export function ResultsPage() {
               >
                 <div className="cp-results-collapse-panel-inner pt-3">
                   <WordGroups
+                    key={moreOpen ? "more-open" : "more-shut"}
                     words={missedMore}
                     variant="missed"
                     selectedWord={hasBoard ? selectedWord : undefined}

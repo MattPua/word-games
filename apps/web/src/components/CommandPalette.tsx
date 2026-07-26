@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import {
   ALargeSmall,
   CircleHelp,
   CirclePlay,
   Eye,
   EyeOff,
+  HeartHandshake,
   History,
   Medal,
   Moon,
@@ -28,6 +27,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { MusicOff } from "@/icons/MusicOff";
+import { openAbout } from "../aboutBus";
 import { COMMAND_PALETTE_OPEN, consumeCommandPaletteWantOpen } from "../commandPaletteBus";
 import { applyMenuMusicEnabled } from "../menuMusic";
 import {
@@ -41,6 +41,8 @@ import {
 } from "../storage";
 import { applyFontPreference, applyTheme, resolveTheme } from "../theme";
 import { track, trackOptionsPrefChanged } from "../analytics";
+import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
 type Dest = "/" | "/options" | "/profiles" | "/achievements" | "/results" | "/how-to";
 
@@ -82,6 +84,24 @@ const JUMPS: Jump[] = [
   },
 ];
 
+type ModalJump = {
+  id: string;
+  label: string;
+  keywords: string;
+  Icon: LucideIcon;
+  run: () => void;
+};
+
+const MODAL_JUMPS: ModalJump[] = [
+  {
+    id: "about",
+    label: "About",
+    keywords: "credits made by matt github open source free twitter x yo_puaaa",
+    Icon: HeartHandshake,
+    run: () => openAbout(),
+  },
+];
+
 /** One flip per pref: verb label = what selecting does (not current state). */
 function prefActions(): PrefAction[] {
   const prefs = loadDevicePrefs();
@@ -94,7 +114,7 @@ function prefActions(): PrefAction[] {
   return [
     {
       id: "look",
-      label: lookDark ? "Switch Look to Day" : "Switch Look to Night",
+      label: lookDark ? "Switch to Light mode" : "Switch to Dark mode",
       keywords: "look theme dark light day night appearance mode",
       Icon: lookDark ? Sun : Moon,
       run: () => {
@@ -144,8 +164,8 @@ function prefActions(): PrefAction[] {
     },
     {
       id: "lobby-jam",
-      label: jamOn ? "Turn Lobby jam off" : "Turn Lobby jam on",
-      keywords: "lobby jam music bgm soundtrack menu loop bed mute unmute audio",
+      label: jamOn ? "Turn Couch jam off" : "Turn Couch jam on",
+      keywords: "couch jam lobby jam music bgm soundtrack background loop bed mute unmute audio",
       Icon: jamOn ? MusicOff : Music2,
       run: () => {
         const next = !jamOn;
@@ -198,12 +218,25 @@ export function CommandPalette() {
       <CommandInput placeholder="Jump or tweak Options…" />
       <CommandList>
         <CommandEmpty>Nothing matches that.</CommandEmpty>
-        <CommandGroup heading="Chrome">
+        <CommandGroup heading="Jump">
           {JUMPS.filter((j) => (j.when ? j.when() : true)).map((j) => (
             <CommandItem
               key={`${j.to}-${j.label}`}
               value={`${j.label} ${j.keywords ?? ""}`}
               onSelect={() => runJump(j.to)}
+            >
+              <j.Icon />
+              <span>{j.label}</span>
+            </CommandItem>
+          ))}
+          {MODAL_JUMPS.map((j) => (
+            <CommandItem
+              key={j.id}
+              value={`${j.label} ${j.keywords}`}
+              onSelect={() => {
+                setOpen(false);
+                j.run();
+              }}
             >
               <j.Icon />
               <span>{j.label}</span>

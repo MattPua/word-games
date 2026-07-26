@@ -83,7 +83,7 @@ export type TrackId =
   | "survivalTime"
   | "survivalWords";
 
-export type TrackUnit = "pts" | "words" | "sec" | "runs";
+export type TrackUnit = "points" | "words" | "sec" | "runs";
 
 export type TrackDef = {
   id: TrackId;
@@ -100,7 +100,7 @@ export const TRACKS: readonly TrackDef[] = [
     id: "points",
     label: "Points haul",
     hint: "Cumulative points earned across every run",
-    unit: "pts",
+    unit: "points",
     milestones: [50, 150, 400, 1000, 2500, 5000, 10000],
     value: (c) => c.totalPoints,
   },
@@ -124,7 +124,7 @@ export const TRACKS: readonly TrackDef[] = [
     id: "bestRunPoints",
     label: "Best haul",
     hint: "Highest points scored in a single run",
-    unit: "pts",
+    unit: "points",
     milestones: [10, 25, 50, 100, 200, 400],
     value: (c) => c.bestRunPoints,
   },

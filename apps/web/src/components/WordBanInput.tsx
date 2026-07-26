@@ -15,8 +15,8 @@ type BanHint = "short" | "junk" | "missing" | "dupe" | "full" | null;
 
 function hintCopy(hint: BanHint): string | null {
   if (hint === "short") return "Need 3+ letters";
-  if (hint === "junk") return "Letters only, couch style";
-  if (hint === "missing") return "Not in the couch lexicon";
+  if (hint === "junk") return "Letters only";
+  if (hint === "missing") return "Not a playable word";
   if (hint === "dupe") return "Already on the ban list";
   if (hint === "full") return `Cap is ${CUSTOM_BLOCK_CAP} bans`;
   return null;

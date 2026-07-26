@@ -51,14 +51,15 @@ test.describe("Options choice cards", () => {
     await expect(wordsTarget).toHaveClass(/cp-lobby-challenge-active/);
   });
 
-  test("desktop widens prefs so Lobby jam fits without scroll", async ({ page }) => {
+  test("desktop menu fills; Couch jam + Back to lobby stay in view", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(`${BASE}/options`);
     const cluster = page.getByTestId("options-prefs");
     await expect(cluster).toBeVisible();
     const box = await cluster.boundingBox();
     expect(box).toBeTruthy();
-    expect(box!.width).toBeGreaterThan(500);
+    // Wide options menu (≥36rem container) — not a skinny phone stick
+    expect(box!.width).toBeGreaterThan(480);
     await expect(page.getByTestId("options-music")).toBeInViewport();
     await expect(page.getByRole("button", { name: /Back to lobby/i })).toBeInViewport();
   });

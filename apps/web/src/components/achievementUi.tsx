@@ -46,7 +46,7 @@ function formatTrackNumber(p: TrackProgress, n: number): string {
   return p.track.unit === "sec" ? formatSurvivalSeconds(n) : `${n}`;
 }
 
-/** "12 / 25 words", "1m 30s / 2m", or "1000 pts · all unlocked". */
+/** "12 / 25 words", "1m 30s / 2m", or "1000 points · all unlocked". */
 export function formatTrackStat(p: TrackProgress): string {
   const cur = formatTrackNumber(p, p.value);
   if (p.maxed) {

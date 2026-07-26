@@ -11,12 +11,18 @@ export function formatDifficulty(d: "easy" | "medium" | "hard"): string {
   return d === "easy" ? "Easy" : d === "medium" ? "Medium" : "Hard";
 }
 
+export function formatModeLabel(mode: RunMetaInput["mode"]): string {
+  if (mode === "timed") return "Timed";
+  if (mode === "survival") return "Survival";
+  return "Goal";
+}
+
 /** Compact HUD chip: Easy / Medium / Hard for every mode (Timed duration lives on the ring). */
 export function formatRunChallengeBadge(run: RunMetaInput): string {
   return formatDifficulty(run.difficulty ?? "easy");
 }
 
-/** Results line under the haul: mode · challenge · (duration) · min length. */
+/** Single-line aria / history: mode · challenge · (duration) · min length. */
 export function formatRunMeta(run: RunMetaInput): string {
   const min = `${run.minWordLength ?? 3}+`;
   const diff = formatDifficulty(run.difficulty ?? "easy");

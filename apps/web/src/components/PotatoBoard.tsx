@@ -1,24 +1,46 @@
 import { Gamepad2, Gauge, History, Library, Star, Trophy, WholeWord } from "lucide-react";
 import { EmptyState } from "@couch-potato/ui";
+import { cn } from "@/lib/utils";
+import { ModeGlyph, type ModeGlyphId } from "../modeGlyph";
 import { avgWordLength, avgWpm, formatPaceStat, normalizePaceStats } from "../profileStats";
 import { formatWhen } from "../relativeTime";
+import { formatDifficulty, formatModeLabel } from "../runMeta";
 import { listHighScores, type GameHistoryEntry, type Profile } from "../storage";
 
 const SECTION_ICON = "cp-lobby-glyph size-4 shrink-0 text-icon-muted-foreground";
 
 function reasonLabel(r: GameHistoryEntry["reason"]) {
-  if (r === "won") return "cleared";
-  if (r === "timeout") return "timed out";
-  return "ended";
+  if (r === "won") return "Cleared";
+  if (r === "timeout") return "Timed out";
+  return "Ended";
 }
 
-function historyLabel(h: GameHistoryEntry) {
-  if (h.mode === "target")
-    return `${h.grid}×${h.grid} ${h.difficulty ?? "?"} · ${h.minWordLength}+`;
-  if (h.mode === "survival") {
-    return `${h.grid}×${h.grid} survival ${h.difficulty ?? "?"} · ${h.minWordLength}+`;
+function modeFromScoreKey(key: string): ModeGlyphId {
+  for (const part of key.split(":")) {
+    if (part === "target" || part === "timed" || part === "survival") return part;
   }
-  return `${h.grid}×${h.grid} ${h.difficulty ?? "?"} · ${h.duration ?? "?"}s · ${h.minWordLength}+`;
+  return "target";
+}
+
+function modeChipClass(mode: ModeGlyphId) {
+  if (mode === "timed") return "cp-results-meta-mode cp-results-meta-mode-timed";
+  if (mode === "survival") return "cp-results-meta-mode cp-results-meta-mode-survival";
+  return "cp-results-meta-mode cp-results-meta-mode-target";
+}
+
+function reasonChipClass(reason: GameHistoryEntry["reason"]) {
+  if (reason === "won") return "cp-board-run-reason-won";
+  if (reason === "timeout") return "cp-board-run-reason-timeout";
+  return "cp-board-run-reason-ended";
+}
+
+function historyDetail(h: GameHistoryEntry) {
+  const grid = `${h.grid}×${h.grid}`;
+  const diff = formatDifficulty(h.difficulty ?? "easy");
+  const min = `${h.minWordLength}+`;
+  const words = `${h.wordsFound} word${h.wordsFound === 1 ? "" : "s"}`;
+  if (h.mode === "timed") return `${grid} · ${diff} · ${h.duration ?? 60}s · ${min} · ${words}`;
+  return `${grid} · ${diff} · ${min} · ${words}`;
 }
 
 function StatCard({
@@ -34,15 +56,26 @@ function StatCard({
 }) {
   const wash = tone === "primary" ? "bg-primary/18 text-primary" : "bg-secondary/22 text-secondary";
   return (
-    <div className="cp-lobby-panel flex-1 flex flex-row items-center gap-2.5 !p-3">
-      <div className={`flex size-8 shrink-0 items-center justify-center rounded-full ${wash}`}>
-        <Icon className="size-4" strokeWidth={2.25} aria-hidden />
+    <div className="cp-lobby-panel flex min-w-0 flex-col gap-2 !p-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <div className={`flex size-8 shrink-0 items-center justify-center rounded-full ${wash}`}>
+          <Icon className="size-4" strokeWidth={2.25} aria-hidden />
+        </div>
+        <span className="min-w-0 font-body text-xs leading-snug text-muted-foreground [overflow-wrap:anywhere]">
+          {label}
+        </span>
       </div>
-      <div className="min-w-0">
-        <span className="font-body text-xs text-muted-foreground">{label}</span>
-        <span className="font-display text-xl text-foreground">{value}</span>
-      </div>
+      <span className="font-display text-2xl leading-none tabular-nums text-foreground">{value}</span>
     </div>
+  );
+}
+
+function ScorePlaque({ score, gold }: { score: number; gold?: boolean }) {
+  return (
+    <span className={cn("cp-board-run-score", gold && "cp-board-run-score-gold")}>
+      <span className="tabular-nums">{score}</span>
+      <span className="cp-board-run-score-unit">points</span>
+    </span>
   );
 }
 
@@ -68,7 +101,7 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
       <div className="mb-4 grid grid-cols-2 gap-3">
         <StatCard label="Runs" value={profile.gamesPlayed} icon={Gamepad2} tone="primary" />
         <StatCard label="Words" value={profile.wordsFound} icon={Library} tone="secondary" />
-        <StatCard label="Words / min" value={wpm} icon={Gauge} tone="primary" />
+        <StatCard label="Words/min" value={wpm} icon={Gauge} tone="primary" />
         <StatCard label="Avg length" value={wordLen} icon={WholeWord} tone="secondary" />
       </div>
 
@@ -93,21 +126,38 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
                 className="py-2"
               />
             ) : (
-              <div className="cp-crew-board-scroll">
-                {highs.map((h) => (
-                  <div
-                    key={h.key}
-                    className="mb-2 rounded-ui border-2 border-border bg-card px-3 py-2 last:mb-0"
-                  >
-                    <div className="flex flex-row items-center justify-between">
-                      <span className="flex-1 font-body text-sm text-foreground">{h.label}</span>
-                      <span className="font-display text-lg text-primary">{h.score}</span>
+              <div className="cp-crew-board-scroll flex flex-col gap-2.5">
+                {highs.map((h) => {
+                  const mode = modeFromScoreKey(h.key);
+                  return (
+                    <div key={h.key} className="cp-board-run cp-lobby-card p-3.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 flex-1 items-start gap-2.5">
+                          <span
+                            className={cn(
+                              "cp-results-meta-chip shrink-0 !min-h-9 !px-2",
+                              modeChipClass(mode),
+                            )}
+                            aria-label={formatModeLabel(mode)}
+                          >
+                            <ModeGlyph mode={mode} className="size-5" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-body text-sm leading-snug text-foreground [overflow-wrap:anywhere]">
+                              {h.label}
+                            </p>
+                            {h.at ? (
+                              <p className="mt-1 font-body text-xs text-muted-foreground">
+                                Best {formatWhen(h.at)}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                        <ScorePlaque score={h.score} gold />
+                      </div>
                     </div>
-                    <span className="font-body text-xs text-muted-foreground">
-                      Best {formatWhen(h.at)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -119,29 +169,63 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
             </h3>
             {recent.length === 0 ? (
               <EmptyState
-                title="No recent crumbs"
+                title="No recent runs"
                 body="Finished games leave a trail here (last 20)."
                 className="py-2"
               />
             ) : (
-              <div className="cp-crew-board-scroll">
+              <div className="cp-crew-board-scroll flex flex-col gap-2.5">
                 {recent.map((h) => (
                   <div
                     key={h.id}
-                    className="mb-2 rounded-ui border-2 border-border bg-card px-3 py-2 last:mb-0"
+                    className={cn(
+                      "cp-board-run cp-lobby-card p-3.5",
+                      h.isHighScore && "cp-board-run-best",
+                    )}
                   >
-                    <div className="flex flex-row items-center justify-between">
-                      <span className="font-body text-sm font-bold text-foreground">
-                        {h.score} pts
-                        {h.isHighScore ? " ★" : ""}
-                      </span>
-                      <span className="font-body text-xs text-muted-foreground">
-                        {reasonLabel(h.reason)} · {formatWhen(h.at)}
-                      </span>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 flex-1 items-start gap-2.5">
+                        <span
+                          className={cn(
+                            "cp-results-meta-chip shrink-0 !min-h-9 !px-2",
+                            modeChipClass(h.mode),
+                          )}
+                          aria-label={formatModeLabel(h.mode)}
+                        >
+                          <ModeGlyph mode={h.mode} className="size-5" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <ScorePlaque score={h.score} gold={h.isHighScore} />
+                            {h.isHighScore ? (
+                              <span className="inline-flex items-center gap-1 rounded-ui border-2 border-secondary bg-secondary/25 px-1.5 py-0.5 font-display text-[0.65rem] font-bold text-secondary-foreground">
+                                <Star
+                                  className="size-3 text-secondary"
+                                  strokeWidth={2.25}
+                                  fill="currentColor"
+                                  aria-hidden
+                                />
+                                Best
+                              </span>
+                            ) : null}
+                            <span
+                              className={cn(
+                                "cp-results-meta-chip !min-h-0 py-0.5 text-[0.65rem]",
+                                reasonChipClass(h.reason),
+                              )}
+                            >
+                              {reasonLabel(h.reason)}
+                            </span>
+                          </div>
+                          <p className="mt-1.5 font-body text-xs leading-snug text-muted-foreground [overflow-wrap:anywhere]">
+                            {historyDetail(h)}
+                          </p>
+                          <p className="mt-0.5 font-body text-xs text-muted-foreground">
+                            {formatWhen(h.at)}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <span className="font-body text-xs text-muted-foreground">
-                      {historyLabel(h)} · {h.wordsFound} words
-                    </span>
                   </div>
                 ))}
               </div>

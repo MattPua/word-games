@@ -41,6 +41,25 @@ function DeferredToaster() {
 
 const router = createRouter({
   routeTree,
+  /**
+   * Soft page in/out via View Transitions API (see `.cp-page-body` + `cp-settle*` in index.css).
+   * Site bar lives outside the VT group so chrome↔chrome nav keeps the header still.
+   */
+  defaultViewTransition: {
+    types: ({ fromLocation, toLocation, pathChanged }) => {
+      if (!pathChanged) return false;
+      if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return false;
+      }
+      if (!fromLocation) return ["cp-settle"];
+      const fromIndex = fromLocation.state.__TSR_index;
+      const toIndex = toLocation.state.__TSR_index;
+      if (typeof fromIndex === "number" && typeof toIndex === "number" && fromIndex > toIndex) {
+        return ["cp-settle-back"];
+      }
+      return ["cp-settle"];
+    },
+  },
   defaultNotFoundComponent: () => (
     <Suspense fallback={null}>
       <NotFoundPage />

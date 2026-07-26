@@ -35,7 +35,7 @@ export function formatRelativeTime(ms: number, now = Date.now()): string {
 
 /** ISO → relative (Potato Board bests / recent runs). */
 export function formatWhen(iso: string, now = Date.now()): string {
-  if (!iso) return "sometime on the couch";
+  if (!iso) return "a while back";
   try {
     const ms = new Date(iso).getTime();
     if (Number.isNaN(ms)) return iso;

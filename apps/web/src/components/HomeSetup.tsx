@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import {
   ALargeSmall,
   CirclePlay,
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { IconTooltip } from "@/components/ui/tooltip";
 import { WordBanInput } from "@/components/WordBanInput";
+import { ModeGlyph } from "../modeGlyph";
 
 type Mode = "target" | "timed" | "survival";
 type Topology = "square" | "hex";
@@ -48,6 +50,8 @@ export type HomeSetupProps = {
   onDifficulty: (v: Difficulty) => void;
   onDuration: (v: Duration) => void;
   onBlockedWords: (v: string[]) => void;
+  /** Quiet Couch jam (BGM) nudge — lives under Customize, never above primary setup. */
+  jamInvite?: ReactNode;
 };
 
 /** Growth rings vs 4×4 base: outer (newest) = potato gold, mid = soft sage accent. */
@@ -136,74 +140,44 @@ function HexMini({ n }: { n: number }) {
   );
 }
 
-function TargetGlyph() {
-  return (
-    <svg viewBox="0 0 40 40" className="h-9 w-9" aria-hidden>
-      <circle
-        cx="20"
-        cy="20"
-        r="15"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        opacity="0.35"
-      />
-      <circle
-        cx="20"
-        cy="20"
-        r="9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        opacity="0.55"
-      />
-      <circle cx="20" cy="20" r="3.5" fill="currentColor" />
-    </svg>
-  );
-}
-
-function TimedGlyph() {
-  return (
-    <svg viewBox="0 0 40 40" className="h-9 w-9" aria-hidden>
-      <circle cx="20" cy="22" r="13" fill="none" stroke="currentColor" strokeWidth="2.5" />
-      <path d="M16 7h8M20 7v3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      <path
-        d="M20 22v-7M20 22l6 4"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function SurvivalGlyph() {
-  return (
-    <svg viewBox="0 0 40 40" className="h-9 w-9" aria-hidden>
-      <circle cx="20" cy="20" r="13" fill="none" stroke="currentColor" strokeWidth="2.5" />
-      <path
-        d="M12 20h3.5l2-5.5 3 11 2.5-7.5h4.5"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-    </svg>
-  );
-}
-
 const DIFFICULTY: {
   value: Difficulty;
   label: string;
-  hint: string;
   Icon: LucideIcon;
 }[] = [
-  { value: "easy", label: "Easy", hint: "Soft couch", Icon: Sofa },
-  { value: "medium", label: "Medium", hint: "Warm seat", Icon: Sun },
-  { value: "hard", label: "Hard", hint: "Spud sweat", Icon: Droplets },
+  { value: "easy", label: "Easy", Icon: Sofa },
+  { value: "medium", label: "Medium", Icon: Sun },
+  { value: "hard", label: "Hard", Icon: Droplets },
 ];
+
+/** Mode-aware: Goal = target size, Timed = letter mix, Survival = clock stinginess. */
+function difficultyHint(mode: Mode, value: Difficulty): string {
+  if (mode === "target") {
+    return (
+      {
+        easy: "Smaller clear",
+        medium: "Bigger clear",
+        hard: "Biggest clear",
+      } as const
+    )[value];
+  }
+  if (mode === "timed") {
+    return (
+      {
+        easy: "Common letters",
+        medium: "Mixed letters",
+        hard: "Rarer letters",
+      } as const
+    )[value];
+  }
+  return (
+    {
+      easy: "Longer clock",
+      medium: "Steady clock",
+      hard: "Shorter clock",
+    } as const
+  )[value];
+}
 
 const DURATIONS: Duration[] = [30, 60, 90, 120];
 
@@ -241,6 +215,7 @@ export function HomeSetup({
   onDifficulty,
   onDuration,
   onBlockedWords,
+  jamInvite,
 }: HomeSetupProps) {
   return (
     <div className="cp-lobby-setup flex flex-col gap-5">
@@ -253,23 +228,20 @@ export function HomeSetup({
                 {
                   value: "target" as const,
                   title: "Goal",
-                  blurb: "Clear the couch",
-                  Glyph: TargetGlyph,
+                  blurb: "Bring points to zero",
                 },
                 {
                   value: "timed" as const,
                   title: "Timed",
-                  blurb: "Nab all you can",
-                  Glyph: TimedGlyph,
+                  blurb: "Find as many words in the time limit",
                 },
                 {
                   value: "survival" as const,
                   title: "Survival",
-                  blurb: "Keep the clock fed",
-                  Glyph: SurvivalGlyph,
+                  blurb: "Every word adds more time",
                 },
               ] as const
-            ).map(({ value, title, blurb, Glyph }) => {
+            ).map(({ value, title, blurb }) => {
               const active = mode === value;
               return (
                 <button
@@ -288,7 +260,7 @@ export function HomeSetup({
                       active && "text-secondary",
                     )}
                   >
-                    <Glyph />
+                    <ModeGlyph mode={value} />
                   </span>
                   <span className="font-display text-lg font-bold leading-none text-foreground">
                     {title}
@@ -411,8 +383,9 @@ export function HomeSetup({
               aria-label="Challenge"
               className="cp-lobby-choice-row cp-lobby-choice-row-3 gap-2"
             >
-              {DIFFICULTY.map(({ value, label, hint, Icon }) => {
+              {DIFFICULTY.map(({ value, label, Icon }) => {
                 const active = difficulty === value;
+                const hint = difficultyHint(mode, value);
                 return (
                   <button
                     key={value}
@@ -423,14 +396,12 @@ export function HomeSetup({
                     className={cn(
                       "cp-lobby-challenge flex min-w-0 flex-col items-center gap-1 px-1 py-2.5",
                       active && "cp-lobby-challenge-active cp-select-pop",
-                      active && value === "hard" && "cp-lobby-challenge-hard",
                     )}
                   >
                     <span
                       className={cn(
                         "cp-lobby-glyph text-muted-foreground",
-                        active &&
-                          (value === "hard" ? "text-secondary-foreground" : "text-secondary"),
+                        active && "text-secondary",
                       )}
                       aria-hidden
                     >
@@ -547,6 +518,8 @@ export function HomeSetup({
             </div>
             <WordBanInput words={blockedWords} onChange={onBlockedWords} />
           </section>
+
+          {jamInvite}
         </aside>
       </div>
     </div>

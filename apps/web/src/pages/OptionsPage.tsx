@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   ALargeSmall,
@@ -12,8 +12,9 @@ import {
   Type,
   Volume2,
   VolumeX,
+  type LucideIcon,
 } from "lucide-react";
-import { BrandHeader, LogoOptions, PrefChoiceGroup, ScrollShell } from "@couch-potato/ui";
+import { LogoOptions, PrefChoiceGroup, ScrollShell } from "@couch-potato/ui";
 import {
   loadDevicePrefs,
   setFontPreference,
@@ -27,10 +28,33 @@ import { applyMenuMusicEnabled } from "../menuMusic";
 import { applyFontPreference, applyTheme, resolveTheme } from "../theme";
 import { trackOptionsPrefChanged } from "../analytics";
 import { Button } from "@/components/ui/button";
-import { ChromeNav } from "@/components/ChromeNav";
 import { MusicOff } from "@/icons/MusicOff";
 
-/** Device prefs — choice cards; widens + multi-col on desktop like other chrome. */
+function OptionsPanel({
+  title,
+  Icon,
+  children,
+}: {
+  title: string;
+  Icon: LucideIcon;
+  children: ReactNode;
+}) {
+  return (
+    <section className="cp-options-panel cp-lobby-card p-3.5">
+      <h2 className="mb-3 flex items-center gap-2 font-display text-base font-bold text-foreground">
+        <Icon
+          className="cp-lobby-glyph size-4 shrink-0 text-icon-muted-foreground"
+          strokeWidth={2.25}
+          aria-hidden
+        />
+        {title}
+      </h2>
+      <div className="flex flex-col gap-3">{children}</div>
+    </section>
+  );
+}
+
+/** Device prefs — pause-menu panels + choice cards (not a settings form). */
 export function OptionsPage() {
   const navigate = useNavigate();
   const prefs = loadDevicePrefs();
@@ -86,133 +110,98 @@ export function OptionsPage() {
 
   return (
     <ScrollShell shellClassName="cp-shell-options cp-options cp-fade-up">
-      <div className="mb-3 flex justify-end">
-        <ChromeNav />
-      </div>
-      <BrandHeader className="mb-4 cp-fade-up" mark={<LogoOptions size={72} />} title="Options" />
+      <div className="cp-options-menu">
+        <header className="cp-options-hero cp-fade-up">
+          <LogoOptions size={72} className="cp-options-hero-mark shrink-0" />
+          <div className="cp-options-hero-copy min-w-0">
+            <h1 className="cp-page-title">Options</h1>
+            <p className="cp-page-lede">Tune how the couch looks, sounds, and plays.</p>
+          </div>
+        </header>
 
-      <div
-        className="cp-options-prefs mb-5 cp-fade-up cp-stagger-1"
-        aria-label="Options"
-        data-testid="options-prefs"
-      >
-        <PrefChoiceGroup
-          label="Look"
-          value={appearance}
-          onChange={setAppearance}
-          data-testid="options-look"
-          options={[
-            {
-              value: "light",
-              label: "Day",
-              Icon: Sun,
-            },
-            {
-              value: "dark",
-              label: "Night",
-              Icon: Moon,
-            },
-          ]}
-        />
-
-        <PrefChoiceGroup
-          label="Type"
-          value={fontPref}
-          onChange={setTypeFace}
-          data-testid="options-titles"
-          options={[
-            {
-              value: "clean",
-              label: "Clean",
-              Icon: Type,
-            },
-            {
-              value: "pixel",
-              label: "Pixel",
-              Icon: ALargeSmall,
-            },
-          ]}
-        />
-
-        <PrefChoiceGroup
-          label="Words left"
-          value={wordsLeft}
-          onChange={setWordsLeftChoice}
-          data-testid="options-words-left"
-          options={[
-            {
-              value: "hide",
-              label: "Hide",
-              hint: "Play blind",
-              Icon: EyeOff,
-            },
-            {
-              value: "show",
-              label: "Show",
-              hint: "Count still to find",
-              Icon: Eye,
-            },
-          ]}
-        />
-
-        <PrefChoiceGroup
-          label="Sound effects"
-          value={sfx}
-          onChange={setSfxChoice}
-          data-testid="options-sfx"
-          options={[
-            {
-              value: "off",
-              label: "Off",
-              Icon: VolumeX,
-            },
-            {
-              value: "on",
-              label: "On",
-              Icon: Volume2,
-            },
-          ]}
-        />
-
-        <PrefChoiceGroup
-          label="Lobby jam"
-          value={jam}
-          onChange={setJamChoice}
-          data-testid="options-music"
-          options={[
-            {
-              value: "off",
-              label: "Off",
-              Icon: MusicOff,
-            },
-            {
-              value: "on",
-              label: "On",
-              Icon: Music2,
-            },
-          ]}
-        />
-      </div>
-
-      <div className="mb-4 flex flex-col items-stretch gap-2 sm:items-center">
-        <Button
-          variant="secondary"
-          className="cp-chrome-cta gap-2"
-          data-testid="options-replay-howto"
-          onClick={() => {
-            setHowToSeen(false);
-            navigate({ to: "/how-to" });
-          }}
+        <div
+          className="cp-options-prefs mb-5 cp-fade-up cp-stagger-1"
+          aria-label="Options"
+          data-testid="options-prefs"
         >
-          <CircleHelp className="size-4 shrink-0" aria-hidden />
-          Replay how-to
-        </Button>
-      </div>
+          <OptionsPanel title="Vibe" Icon={Sun}>
+            <PrefChoiceGroup
+              label="Look"
+              value={appearance}
+              onChange={setAppearance}
+              data-testid="options-look"
+              options={[
+                { value: "light", label: "Light", Icon: Sun },
+                { value: "dark", label: "Dark", Icon: Moon },
+              ]}
+            />
+            <PrefChoiceGroup
+              label="Type"
+              value={fontPref}
+              onChange={setTypeFace}
+              data-testid="options-titles"
+              options={[
+                { value: "clean", label: "Clean", Icon: Type },
+                { value: "pixel", label: "Pixel", Icon: ALargeSmall },
+              ]}
+            />
+            <PrefChoiceGroup
+              label="Words left"
+              value={wordsLeft}
+              onChange={setWordsLeftChoice}
+              data-testid="options-words-left"
+              options={[
+                { value: "hide", label: "Hide", hint: "Play blind", Icon: EyeOff },
+                { value: "show", label: "Show", hint: "Count still to find", Icon: Eye },
+              ]}
+            />
+          </OptionsPanel>
 
-      <Button variant="outline" className="cp-chrome-cta" onClick={() => navigate({ to: "/" })}>
-        <Sofa />
-        Back to lobby
-      </Button>
+          <OptionsPanel title="Noise" Icon={Volume2}>
+            <div className="cp-options-panel-split">
+              <PrefChoiceGroup
+                label="Sound effects"
+                value={sfx}
+                onChange={setSfxChoice}
+                data-testid="options-sfx"
+                options={[
+                  { value: "off", label: "Off", Icon: VolumeX },
+                  { value: "on", label: "On", Icon: Volume2 },
+                ]}
+              />
+              <PrefChoiceGroup
+                label="Couch jam"
+                value={jam}
+                onChange={setJamChoice}
+                data-testid="options-music"
+                options={[
+                  { value: "off", label: "Off", Icon: MusicOff },
+                  { value: "on", label: "On", Icon: Music2 },
+                ]}
+              />
+            </div>
+          </OptionsPanel>
+        </div>
+
+        <div className="cp-options-actions cp-fade-up cp-stagger-2">
+          <Button
+            variant="secondary"
+            className="cp-chrome-cta gap-2"
+            data-testid="options-replay-howto"
+            onClick={() => {
+              setHowToSeen(false);
+              navigate({ to: "/how-to" });
+            }}
+          >
+            <CircleHelp className="size-4 shrink-0" aria-hidden />
+            View Tutorial
+          </Button>
+          <Button variant="outline" className="cp-chrome-cta" onClick={() => navigate({ to: "/" })}>
+            <Sofa />
+            Back to lobby
+          </Button>
+        </div>
+      </div>
     </ScrollShell>
   );
 }

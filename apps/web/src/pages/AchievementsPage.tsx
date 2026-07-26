@@ -1,7 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Sofa } from "lucide-react";
 import {
-  BrandHeader,
   MedalsCategorySprite,
   ScrollShell,
   type MedalsCategoryFrame,
@@ -10,7 +9,7 @@ import { allTrackProgress, withGamesPlayed, type TrackId } from "../achievements
 import { getActiveProfile } from "../storage";
 import { AchievementTrackRow } from "@/components/achievementUi";
 import { Button } from "@/components/ui/button";
-import { ChromeNav } from "@/components/ChromeNav";
+import { PageHeading } from "@/components/ChromeTopBar";
 
 const SECTIONS: {
   title: string;
@@ -53,12 +52,8 @@ export function AchievementsPage() {
 
   return (
     <ScrollShell shellClassName="cp-shell-medals cp-medals cp-fade-up">
-      <div className="mb-3 flex justify-end">
-        <ChromeNav />
-      </div>
-      <BrandHeader
-        className="mb-5 cp-fade-up"
-        mark={<MedalsCategorySprite frame="personalBests" size={72} />}
+      <PageHeading
+        className="cp-fade-up"
         title="Couch medals"
         description={
           medalsEarned > 0
@@ -69,14 +64,25 @@ export function AchievementsPage() {
 
       <div className="cp-medals-columns mb-5">
         {SECTIONS.map((section, i) => (
-          <div key={section.title} className={`cp-fade-up cp-stagger-${Math.min(i + 1, 3)}`}>
-            <div className="mb-1 flex items-center gap-2">
-              <MedalsCategorySprite frame={section.frame} size={40} />
-              <h2 className="text-base font-bold text-foreground">{section.title}</h2>
-            </div>
-            <span className="mb-3 font-body text-xs text-muted-foreground">{section.blurb}</span>
-            <div className="cp-lobby-card p-4">
-              <div className="gap-4">
+          <div
+            key={section.title}
+            className={`cp-medals-section cp-fade-up cp-stagger-${Math.min(i + 1, 3)}`}
+          >
+            <h2 className="mb-0.5 text-base font-bold text-foreground">{section.title}</h2>
+            <span className="mb-3 block font-body text-xs text-muted-foreground">
+              {section.blurb}
+            </span>
+            <div
+              className={`cp-lobby-card cp-medals-section-card p-4 ${
+                section.ids.length > 4 ? "cp-medals-section-card-scroll" : ""
+              }`}
+            >
+              <MedalsCategorySprite
+                frame={section.frame}
+                size={200}
+                className="cp-medals-section-mascot"
+              />
+              <div className="cp-medals-section-body">
                 {section.ids.map((id) => {
                   const progress = progressById.get(id);
                   if (!progress) return null;

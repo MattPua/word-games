@@ -8,6 +8,98 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Route page transitions — View Transitions API (TanStack `defaultViewTransition`).
+ * Soft “settle onto the couch”: fade + slight Y/scale. History back reverses the travel.
+ * Only `.cp-page-body` (Outlet) participates — persistent `.cp-chrome-top-host` stays put.
+ */
+.cp-page-body {
+  view-transition-name: cp-page;
+}
+
+@keyframes cp-page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.985);
+  }
+}
+
+@keyframes cp-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+}
+
+@keyframes cp-page-out-back {
+  to {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+
+@keyframes cp-page-in-back {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.98);
+  }
+}
+
+@supports (view-transition-name: none) {
+  ::view-transition-group(cp-page) {
+    animation-duration: 0.38s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  ::view-transition-old(cp-page) {
+    animation: cp-page-out 0.28s cubic-bezier(0.4, 0, 1, 1) both;
+  }
+
+  ::view-transition-new(cp-page) {
+    animation: cp-page-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  html:active-view-transition-type(cp-settle-back)::view-transition-old(cp-page) {
+    animation-name: cp-page-out-back;
+  }
+
+  html:active-view-transition-type(cp-settle-back)::view-transition-new(cp-page) {
+    animation-name: cp-page-in-back;
+  }
+
+  /* Root snapshot stays instant so the living-room wash doesn’t double-fade. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  /*
+   * VT owns the travel — keep `.cp-fade-up` as opacity-only stagger (Results, etc.)
+   * so we don’t stack a second translateY enter.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .cp-fade-up {
+      animation-name: cp-fade-in;
+    }
+  }
+}
+
+@keyframes cp-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-page-body {
+    view-transition-name: none;
+  }
+}
+
 /* Guarantee Tailwind font utilities resolve to theme CSS vars (never baked-in faces). */
 @layer utilities {
   .font-display {
@@ -38,6 +130,8 @@
   #root {
     height: 100%;
     margin: 0;
+    /* Floor: don't pretend to layout under ~iPhone SE portrait. Below = page scroll-x. */
+    min-width: 320px;
     /* Beat Tailwind preflight `ui-sans-serif` — brand stack via CSS vars only */
     font-family: var(--font-sans);
   }
@@ -144,11 +238,11 @@
     @apply mb-2 font-display text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground;
   }
 
-  /* Quiet run-meta chip — difficulty (Goal/Survival) or duration (Timed). */
+  /* Quiet run-meta chip — mode glyph + difficulty. */
   .cp-run-badge {
     @apply inline-flex shrink-0 items-center justify-center font-display text-xs font-bold uppercase tracking-[0.08em];
     min-height: 1.75rem;
-    padding: 0.2rem 0.65rem;
+    padding: 0.2rem 0.55rem 0.2rem 0.45rem;
     border-radius: var(--radius);
     border: 2px solid color-mix(in srgb, var(--secondary) 45%, var(--border));
     background: color-mix(in srgb, var(--secondary) 18%, var(--card));
@@ -164,12 +258,80 @@
     text-transform: none;
   }
 
-  /* Primary status pill — heat 0 muted → 1 soft sage → 2 path sage → 3 potato gold */
+  /* Results hero — meta chips left, haul score right (points are the star). */
+  .cp-results-hero-score {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem 1.25rem;
+  }
+
+  .cp-results-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    flex: 1 1 10rem;
+  }
+
+  .cp-results-meta-chip {
+    @apply inline-flex shrink-0 items-center justify-center gap-1.5 font-display text-xs font-bold;
+    min-height: 1.85rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius);
+    border: 2px solid var(--border);
+    background: var(--muted);
+    color: var(--foreground);
+    letter-spacing: 0.04em;
+  }
+
+  .cp-results-meta-mode {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+
+  .cp-results-meta-mode-target {
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 38%, var(--card));
+    color: var(--foreground);
+  }
+
+  .cp-results-meta-mode-target svg {
+    color: var(--primary);
+  }
+
+  .cp-results-meta-mode-timed {
+    border-color: var(--path);
+    background: color-mix(in srgb, var(--path) 32%, var(--card));
+    color: var(--foreground);
+  }
+
+  .cp-results-meta-mode-timed svg {
+    color: var(--path);
+  }
+
+  .cp-results-meta-mode-survival {
+    border-color: var(--secondary);
+    background: color-mix(in srgb, var(--secondary) 36%, var(--card));
+    color: var(--foreground);
+  }
+
+  .cp-results-meta-mode-survival svg {
+    color: var(--secondary);
+  }
+
+  /* Primary status pill — heat 0 muted → 1 soft sage → 2 path sage → 3 potato gold.
+     Always nowrap + shrink-0; Easy lives on its own HUD row so this never gets squeezed. */
   .cp-hud-bubble {
-    @apply inline-flex min-h-11 items-center justify-center rounded-full px-4 font-display text-lg font-bold leading-none tabular-nums shadow-sm backdrop-blur-sm;
+    @apply inline-flex min-h-11 shrink-0 items-center justify-center rounded-full px-4 font-display text-lg font-bold leading-none tabular-nums shadow-sm backdrop-blur-sm;
     border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
     background: var(--hud-bubble);
     color: var(--foreground);
+    white-space: nowrap;
     transition:
       background-color 380ms ease,
       border-color 380ms ease,
@@ -222,14 +384,16 @@
   /* Outer chrome only — box-shadow lives here so CSS rotate never twirls the cast shadow.
      `flex-shrink: 0` is load-bearing: the board's height comes from its own aspect-ratio
      content, not a flex-basis, so a default-shrink flex column would squash it (clipping
-     the bottom tile row against `overflow: hidden`) whenever a sibling grows. Board size
+     the bottom tile row against the frame) whenever a sibling grows. Board size
      must never yield to other play-screen chrome — see AGENTS.md / ui.mdc. */
   .cp-board-frame {
     flex-shrink: 0;
     /* Board keeps a slightly softer chunk than chrome `--radius` (pixel panels) */
     border-radius: 0.75rem;
     padding: 0.7rem;
-    overflow: hidden;
+    /* `clip` not `hidden` — hidden makes a scroll container and eats wheel/touch
+       scroll chaining on Results (page looks stuck; scrollbar lies). */
+    overflow: clip;
     background: linear-gradient(
       160deg,
       color-mix(in srgb, var(--board-rim) 55%, #fff) 0%,
@@ -425,7 +589,7 @@
 
   /*
    * Results screen — score reads as a haul tag under the potato sprite, not
-   * a plaque/coin container: number + "pts" label share one dark-ink family
+   * a plaque/coin container: number + "points" label share one dark-ink family
    * (`--foreground` / `--muted-foreground`) so light/dark mode never mixes a
    * light glyph against a dark one.
    */
@@ -433,7 +597,7 @@
     display: flex;
     flex-direction: row;
     align-items: baseline;
-    gap: 0.4rem;
+    gap: 0.45rem;
   }
 
   .cp-results-haul-tag-gold {
@@ -443,7 +607,86 @@
   .cp-results-haul {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  /* Score is the star — land big, count ticks, soft potato glow. */
+  @keyframes cp-results-haul-reveal {
+    0% {
+      opacity: 0;
+      transform: scale(0.72) translateY(10px);
+    }
+    55% {
+      opacity: 1;
+      transform: scale(1.1) translateY(-2px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .cp-results-haul-reveal {
+    animation: cp-results-haul-reveal 0.58s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+  }
+
+  .cp-results-score-num {
+    font-size: clamp(2.75rem, 8vw, 3.75rem);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--foreground);
+    transform-origin: right bottom;
+  }
+
+  .cp-results-haul-tag-gold .cp-results-score-num {
+    color: color-mix(in srgb, var(--secondary) 72%, var(--foreground));
+  }
+
+  @keyframes cp-results-score-tick {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  .cp-results-score-ticking {
+    animation: cp-results-score-tick 0.28s ease-in-out infinite;
+  }
+
+  @keyframes cp-results-score-glow {
+    0% {
+      filter: drop-shadow(0 0 0 transparent);
+    }
+    40% {
+      filter: drop-shadow(0 0 12px color-mix(in srgb, var(--secondary) 45%, transparent));
+    }
+    100% {
+      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--primary) 28%, transparent));
+    }
+  }
+
+  .cp-results-score-glow {
+    animation: cp-results-score-glow 0.9s ease-out 0.35s both;
+  }
+
+  @keyframes cp-results-points-in {
+    from {
+      opacity: 0;
+      transform: translateX(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .cp-results-points-label {
+    animation: cp-results-points-in 0.35s ease-out 0.45s both;
   }
 
   .cp-results-best-label {
@@ -554,12 +797,10 @@
     min-height: 0;
   }
 
-  /* Last accepted word — shares a centered hug row with spin chips (gap-2, not full-width
-     flex-1), so it must fit the middle slot rather than pushing board height
-     (see `.cp-board-frame` note). */
+  /* Last accepted word — own row above spins (not sandwiched between Spin chips). */
   .cp-last-found {
     display: inline-flex;
-    max-width: 100%;
+    max-width: min(100%, 22rem);
     align-items: center;
     gap: 0.5rem;
     border-radius: var(--radius);
@@ -577,6 +818,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--muted-foreground);
+    flex-shrink: 0;
   }
 
   .cp-last-found-word {
@@ -606,6 +848,7 @@
     font-size: 0.68rem;
     font-weight: 700;
     line-height: 1;
+    flex-shrink: 0;
   }
 
   /*
@@ -752,10 +995,49 @@
     box-shadow: none;
   }
 
-  /* Soft lobby jam invite — warm potato wash, not a blocking modal */
+  /* Quiet Couch jam (BGM) nudge under Customize — muted panel, not a potato hero banner */
   .cp-lobby-jam-invite {
-    border-color: color-mix(in srgb, var(--secondary) 42%, var(--border));
-    background: color-mix(in srgb, var(--secondary) 14%, var(--card));
+    border-radius: var(--radius);
+    border: 2px solid var(--border);
+    background: color-mix(in srgb, var(--muted) 55%, var(--card));
+    box-shadow: none;
+  }
+
+  /* Cue CTA — louder hover than default sm primary (lift + scale; reduce = color only) */
+  .cp-lobby-jam-cue {
+    transition:
+      transform 200ms ease-out,
+      box-shadow 200ms ease-out,
+      background-color 200ms ease-out;
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .cp-lobby-jam-cue:hover:not(:disabled):not(:active) {
+      transform: translateY(-3px) scale(1.05) !important;
+      box-shadow:
+        0 6px 0 0 color-mix(in srgb, var(--primary) 55%, #2c322e),
+        0 10px 14px -8px color-mix(in srgb, var(--primary) 30%, transparent);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cp-lobby-jam-cue:active:not(:disabled) {
+      transform: translateY(1px) scale(0.98) !important;
+      transition-duration: 80ms;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cp-lobby-jam-cue {
+      transition:
+        background-color 160ms ease,
+        box-shadow 160ms ease;
+    }
+
+    .cp-lobby-jam-cue:hover,
+    .cp-lobby-jam-cue:active {
+      transform: none !important;
+    }
   }
 
   .cp-lobby-panel {
@@ -774,10 +1056,12 @@
     border: 2px solid var(--border);
     background: var(--muted);
     color: var(--foreground);
+    outline: none;
     transition:
       transform 0.18s ease,
       background 0.18s ease,
-      border-color 0.18s ease;
+      border-color 0.18s ease,
+      box-shadow 0.18s ease;
   }
 
   .cp-lobby-tile:hover,
@@ -792,6 +1076,13 @@
     transform: scale(0.97);
   }
 
+  /* Kill UA blue focus; potato wash matches icon-btn / Play CTA — not a second “active” look */
+  .cp-lobby-tile:focus-visible,
+  .cp-lobby-chip:focus-visible,
+  .cp-lobby-challenge:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--secondary) 70%, var(--primary));
+  }
+
   .cp-lobby-tile-active,
   .cp-lobby-chip-active,
   .cp-lobby-challenge-active {
@@ -800,10 +1091,10 @@
     box-shadow: none;
   }
 
-  .cp-lobby-challenge-hard {
-    border-color: var(--secondary);
-    background: color-mix(in srgb, var(--secondary) 28%, var(--card));
-    box-shadow: none;
+  .cp-lobby-tile-active:focus-visible,
+  .cp-lobby-chip-active:focus-visible,
+  .cp-lobby-challenge-active:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--secondary) 70%, var(--primary));
   }
 
   /* Legacy pref-row surface (Customize your game / misc); Options + Couch break use choice cards */
@@ -889,6 +1180,105 @@
   .cp-lobby-chip-active .cp-lobby-glyph,
   .cp-lobby-card-active .cp-lobby-glyph {
     transform: scale(1.06);
+  }
+
+  /*
+   * Selected lobby mode glyph life — only while the card is active.
+   * Goal gauge drains a hair, Timed hands sweep (minute spins, hour crawls), Survival pulse blips.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes cp-mode-goal-drain {
+      0%,
+      100% {
+        stroke-dasharray: 48 79;
+      }
+      50% {
+        stroke-dasharray: 36 79;
+      }
+    }
+
+    @keyframes cp-mode-goal-zero {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(1.25px);
+      }
+    }
+
+    @keyframes cp-mode-clock-minute {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes cp-mode-clock-hour {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes cp-mode-ekg {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      25% {
+        transform: translateY(-1.5px);
+      }
+      40% {
+        transform: translateY(1px);
+      }
+      55% {
+        transform: translateY(-0.5px);
+      }
+    }
+
+    .cp-lobby-card-active .cp-mode-glyph-target .cp-mode-gauge-arc {
+      animation: cp-mode-goal-drain 2.4s ease-in-out infinite;
+    }
+
+    .cp-lobby-card-active .cp-mode-glyph-target .cp-mode-gauge-zero {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: cp-mode-goal-zero 2.4s ease-in-out infinite;
+    }
+
+    .cp-lobby-card-active .cp-mode-glyph-timed .cp-mode-hand {
+      transform-box: view-box;
+      transform-origin: 20px 22px;
+    }
+
+    .cp-lobby-card-active .cp-mode-glyph-timed .cp-mode-hand-minute {
+      animation: cp-mode-clock-minute 2.8s linear infinite;
+    }
+
+    .cp-lobby-card-active .cp-mode-glyph-timed .cp-mode-hand-hour {
+      /* ~12× slower than minute — reads as a real clock, not locked hands. */
+      animation: cp-mode-clock-hour 33.6s linear infinite;
+    }
+
+    .cp-lobby-card-active .cp-mode-glyph-survival .cp-mode-pulse {
+      transform-origin: center;
+      transform-box: fill-box;
+      animation: cp-mode-ekg 1.4s ease-in-out infinite;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cp-lobby-card-active .cp-mode-glyph-target .cp-mode-gauge-arc,
+    .cp-lobby-card-active .cp-mode-glyph-target .cp-mode-gauge-zero,
+    .cp-lobby-card-active .cp-mode-glyph-timed .cp-mode-hand,
+    .cp-lobby-card-active .cp-mode-glyph-survival .cp-mode-pulse {
+      animation: none;
+    }
   }
 
   /* Soft fill on selected lucide glyphs (stroke stays; currentColor) */
@@ -1060,6 +1450,39 @@
     animation: cp-catch-in 0.32s cubic-bezier(0.34, 1.35, 0.64, 1) both;
   }
 
+  /* Results WordGroups — length rows + chips drop in (stagger via --cp-chip-delay). */
+  @keyframes cp-chip-drop {
+    from {
+      opacity: 0;
+      transform: translateY(-12px) scale(0.88);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes cp-word-group-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .cp-chip-drop-in {
+    animation: cp-chip-drop 0.42s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+    animation-delay: calc(var(--cp-chip-delay, 0) * 1ms);
+  }
+
+  .cp-word-group-label-in {
+    animation: cp-word-group-in 0.28s ease-out both;
+    animation-delay: calc(var(--cp-chip-delay, 0) * 1ms);
+  }
+
   @keyframes cp-score-sparkle {
     0%,
     100% {
@@ -1078,6 +1501,13 @@
     .cp-results-score-sparkle {
       animation: none;
       filter: drop-shadow(0 0 4px color-mix(in srgb, var(--secondary) 40%, transparent));
+    }
+
+    .cp-results-haul-reveal,
+    .cp-results-score-ticking,
+    .cp-results-score-glow,
+    .cp-results-points-label {
+      animation: none;
     }
   }
 
@@ -1184,6 +1614,19 @@
     }
   }
 
+  @keyframes cp-icon-about-tip {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.14);
+    }
+    70% {
+      transform: scale(0.96);
+    }
+  }
+
   /* Hover: fine-pointer only. Press squash always (touch + mouse). */
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .cp-icon-btn:hover:not(:disabled):not(:active) {
@@ -1229,6 +1672,10 @@
 
     .cp-icon-btn:hover:not(:disabled):not([aria-current="page"]) .cp-icon-anim-sofa {
       animation: cp-icon-sofa-bounce 0.55s ease-in-out;
+    }
+
+    .cp-icon-btn:hover:not(:disabled) .cp-icon-anim-about {
+      animation: cp-icon-about-tip 0.55s ease-in-out;
     }
 
     .cp-icon-btn[data-variant="secondary"]:hover:not(:disabled):not(:active) {
@@ -1281,6 +1728,8 @@
     .cp-option-swap,
     .cp-select-pop,
     .cp-catch-in,
+    .cp-chip-drop-in,
+    .cp-word-group-label-in,
     .cp-icon-btn[aria-pressed="true"],
     .cp-icon-btn[aria-current="page"],
     .cp-icon-anim-note,
@@ -1288,7 +1737,8 @@
     .cp-icon-anim-medal,
     .cp-icon-anim-crew,
     .cp-icon-anim-gear,
-    .cp-icon-anim-sofa {
+    .cp-icon-anim-sofa,
+    .cp-icon-anim-about {
       animation: none;
     }
 
@@ -1398,9 +1848,9 @@
 }
 
 /*
- * Lobby choice rows (mode / board / How hard? / Min length / Options prefs).
+ * Lobby choice rows (mode / board / How hard? / Min length / Options prefs / Couch break).
  * Explicit `minmax(0, 1fr)` so grid items can shrink below label min-content
- * instead of overflowing `.cp-lobby`’s overflow-x: clip.
+ * instead of overflowing a clipped ancestor.
  */
 .cp-lobby-choice-row {
   display: grid;
@@ -1426,10 +1876,15 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-/* Phone-narrow (≤26rem content ≈ max-w-md shell): choice rows single-stack;
- * duration 4-up → 2×2 so 120s never clips. */
-@container lobby (max-width: 26rem) {
-  .cp-lobby-choice-row-2,
+/* Dialogs (Couch break, leave confirm) — size container for choice-row stacking. */
+.cp-dialog {
+  container-type: inline-size;
+}
+
+/* Narrow size containers: 3-up choice rows single-stack (mode / How hard? /
+ * Min length — long labels). 2-up (Off/On, Light/Dark, Square/Honeycomb) stays
+ * side-by-side — they fit at 320–375 and single-stack is silly. Duration 4-up → 2×2. */
+@container (max-width: 26rem) {
   .cp-lobby-choice-row-3 {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1437,7 +1892,9 @@
   .cp-lobby-choice-row-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
+@container lobby (max-width: 26rem) {
   .cp-lobby-panel {
     padding: 0.7rem;
   }
@@ -1448,6 +1905,121 @@
     align-items: center;
     text-align: center;
   }
+}
+
+/*
+ * Persistent site bar host (root layout) — outside the VT page body.
+ * Full-bleed border; inner width matches widened chrome shells.
+ */
+.cp-chrome-top-host {
+  flex-shrink: 0;
+  border-bottom: 2px solid var(--border);
+  background: color-mix(in srgb, var(--background) 92%, transparent);
+}
+
+.cp-chrome-top-inner {
+  margin-inline: auto;
+  max-width: 42rem;
+  padding: 0.65rem 1rem;
+}
+
+@media (min-width: 768px) {
+  .cp-chrome-top-inner {
+    max-width: 42rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cp-chrome-top-inner {
+    max-width: 56rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .cp-chrome-top-inner {
+    max-width: 64rem;
+  }
+}
+
+/* Site chrome bar — horizontal brand lockup | nav (not centered BrandHeader). */
+.cp-chrome-top {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+/* Lobby: hero owns brand — bar is jump icons only (right). */
+.cp-chrome-top-nav-only {
+  justify-content: flex-end;
+}
+
+/* Local bar inside a page (how-to steps — root host is off on that route). */
+.cp-chrome-top-inline {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.cp-chrome-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.15rem 0.25rem 0.15rem 0;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cp-chrome-brand:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--secondary) 70%, var(--primary));
+}
+
+.cp-chrome-brand-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: var(--font-display-tracking, -0.01em);
+  line-height: 1.15;
+  color: var(--foreground);
+}
+
+.cp-page-heading {
+  margin-bottom: 1.25rem;
+}
+
+.cp-page-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: var(--font-display-tracking, -0.01em);
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.cp-page-lede {
+  margin: 0.35rem 0 0;
+  max-width: 36rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
 }
 
 /* Brand: logo + wordmark hero; full tagline under title (never beside). */
@@ -1466,7 +2038,7 @@
 }
 
 .cp-lobby-brand-copy .cp-display {
-  margin-top: 0.5rem;
+  margin-top: 0.35rem;
 }
 
 @container lobby (min-width: 36rem) {
@@ -1593,6 +2165,61 @@
   background: transparent;
 }
 
+/* Potato Board run / best rows — haul plaque + reason heat (not flat list tiles) */
+.cp-board-run-score {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28rem;
+  flex-shrink: 0;
+  padding: 0.2rem 0.55rem 0.15rem;
+  border-radius: var(--radius);
+  border: 2px solid color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--primary) 18%, var(--card));
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.cp-board-run-score-unit {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+
+.cp-board-run-score-gold {
+  border-color: color-mix(in srgb, var(--secondary) 55%, var(--border));
+  background: color-mix(in srgb, var(--secondary) 32%, var(--card));
+}
+
+.cp-board-run-score-gold .cp-board-run-score-unit {
+  color: color-mix(in srgb, var(--secondary-foreground) 70%, var(--muted-foreground));
+}
+
+.cp-board-run-best {
+  border-color: color-mix(in srgb, var(--secondary) 50%, var(--border));
+  background: color-mix(in srgb, var(--secondary) 12%, var(--card));
+}
+
+.cp-board-run-reason-won {
+  border-color: color-mix(in srgb, var(--path) 45%, var(--border));
+  background: color-mix(in srgb, var(--path) 22%, var(--card));
+}
+
+.cp-board-run-reason-timeout {
+  border-color: color-mix(in srgb, var(--destructive) 40%, var(--border));
+  background: color-mix(in srgb, var(--destructive) 14%, var(--card));
+}
+
+.cp-board-run-reason-ended {
+  border-color: var(--border);
+  background: var(--muted);
+}
+
 /*
  * Results (`/results`) — medals full-width, then haul/missed | board replay
  * at the 44rem container tier. CTAs = one hugging row (Play again | Back to lobby).
@@ -1661,19 +2288,30 @@
   }
 }
 
-/* Play again + Back to lobby — side-by-side hug cluster; wrap only if too tight. */
+/* Play again + Back to lobby — equal pair (same width/height), centered hug. */
 .cp-results-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
+  width: 100%;
+  max-width: 28rem;
+  margin-inline: auto;
+  align-items: stretch;
 }
 
 .cp-results-actions > .cp-chrome-cta {
-  width: auto;
+  width: 100%;
   max-width: none;
   margin-inline: 0;
+  height: 100%;
+  min-height: 2.75rem;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* Outline twin gets the same chunky bottom lip so height matches Play again. */
+.cp-results-actions > .cp-chrome-cta.border-2 {
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--border) 90%, #2c322e);
 }
 
 /* Chrome page CTAs — hug content, never stretch across wide shells (see ui.mdc). */
@@ -1711,10 +2349,74 @@
   }
 }
 
+/* Category potato as a soft watermark in the track card (not a tiny header pip). */
+.cp-medals-section-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.cp-medals-section-mascot {
+  position: absolute;
+  right: -0.75rem;
+  bottom: -1rem;
+  z-index: 0;
+  opacity: 0.34;
+  pointer-events: none;
+  user-select: none;
+}
+
+html.dark .cp-medals-section-mascot {
+  /* Dark cards + dark potato art — brighten so the watermark still pops. */
+  opacity: 0.5;
+  filter: brightness(1.55) contrast(1.05) saturate(1.1);
+  mix-blend-mode: normal;
+}
+
+.cp-medals-section-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Long track lists (Length hauls) — cap height, scroll inside the card. */
+.cp-medals-section-card-scroll {
+  display: flex;
+  flex-direction: column;
+  max-height: min(22rem, 55dvh);
+  padding-bottom: 0.85rem;
+}
+
+.cp-medals-section-card-scroll .cp-medals-section-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding-right: 0.15rem;
+  padding-bottom: 2.75rem; /* clear the corner potato while scrolling */
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--muted-foreground) 42%, transparent) transparent;
+}
+
+@container medals (min-width: 44rem) {
+  .cp-medals-section-card-scroll {
+    max-height: min(26rem, 58dvh);
+  }
+
+  .cp-medals-section-mascot {
+    right: -0.5rem;
+    bottom: -0.65rem;
+    transform: scale(1.15);
+    transform-origin: bottom right;
+  }
+}
+
 /*
- * Options (`/options`) — same wide shell tier as crew/results. Pref choice
- * groups: phone stack; ≥36rem 2-col; ≥44rem 3-col so the page fits a desktop
- * viewport without scrolling. Cards hug content (`align-items: start`).
+ * Options (`/options`) — pause-menu column (not a sprawling settings form).
+ * Centered menu + panel cards; wide = 2-up panels so desktop still fills.
  */
 .cp-options {
   container-type: inline-size;
@@ -1722,24 +2424,67 @@
   overflow-x: clip;
 }
 
+.cp-options-menu {
+  width: 100%;
+  max-width: 36rem;
+  margin-inline: auto;
+}
+
+.cp-options-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.65rem;
+  margin-bottom: 1.15rem;
+}
+
+.cp-options-hero-copy .cp-page-lede {
+  margin-inline: auto;
+}
+
 .cp-options-prefs {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.85rem;
+}
+
+.cp-options-panel h2 {
+  margin: 0;
+}
+
+.cp-options-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
 }
 
 @container options (min-width: 36rem) {
-  .cp-options-prefs {
+  .cp-options-menu {
+    max-width: 40rem;
+  }
+
+  .cp-options-hero {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 1rem;
+  }
+
+  .cp-options-hero-copy .cp-page-lede {
+    margin-inline: 0;
+  }
+
+  .cp-options-panel-split {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 1rem 1.25rem;
-    align-items: start;
+    gap: 0.85rem 1rem;
   }
-}
 
-@container options (min-width: 44rem) {
-  .cp-options-prefs {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .cp-options-actions {
+    align-items: center;
   }
 }
 
@@ -1751,6 +2496,33 @@
   padding-top: 0.75rem;
   /* 1rem base + safe-area; extra px for toy button drop shadows */
   padding-bottom: max(1.25rem, calc(1rem + env(safe-area-inset-bottom, 0px)));
+}
+
+/*
+ * Play column — spins need clear air above the fold + home-indicator.
+ * Short viewports: shrink board width (aspect keeps tiles square) so Last catch
+ * + Spin pair + safe-area fit — not clipped by Shell `overflow-hidden`.
+ */
+.cp-shell.cp-shell-play {
+  /* Beat Shell `pb-6`; keep spins clear of the home indicator */
+  padding-bottom: max(2rem, calc(1.25rem + env(safe-area-inset-bottom, 0px))) !important;
+}
+
+@media (max-height: 760px) {
+  .cp-shell-play .cp-board-frame {
+    width: min(100%, calc(100dvh - 19.5rem));
+    align-self: center;
+  }
+}
+
+@media (max-height: 640px) {
+  .cp-shell-play .cp-board-frame {
+    width: min(100%, calc(100dvh - 18rem));
+  }
+
+  .cp-shell-play .cp-play-hud {
+    margin-bottom: 0.35rem;
+  }
 }
 
 /*
@@ -1853,6 +2625,101 @@
   .cp-play-cta:hover,
   .cp-play-cta:active {
     transform: none !important;
+  }
+}
+
+/* How-to coach progress — chunky fill + pips (fills as steps advance) */
+.cp-howto-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  max-width: 14rem;
+  margin-inline: auto;
+}
+
+.cp-howto-progress-track {
+  position: relative;
+  width: 100%;
+  height: 0.7rem;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+  background: color-mix(in srgb, var(--muted) 70%, var(--background));
+}
+
+.cp-howto-progress-fill {
+  height: 100%;
+  border-radius: calc(var(--radius) - 1px);
+  background: linear-gradient(
+    90deg,
+    var(--primary) 0%,
+    color-mix(in srgb, var(--secondary) 85%, var(--primary)) 100%
+  );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 28%, transparent);
+  transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cp-howto-progress-pips {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  padding-inline: 0.1rem;
+}
+
+.cp-howto-progress-pip {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 9999px;
+  border: 2px solid var(--border);
+  background: color-mix(in srgb, var(--muted) 50%, var(--background));
+  transition:
+    background-color 280ms ease,
+    border-color 280ms ease,
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 280ms ease;
+}
+
+.cp-howto-progress-pip.is-done {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.cp-howto-progress-pip.is-active {
+  border-color: var(--secondary);
+  background: var(--secondary);
+  transform: scale(1.35);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--secondary) 28%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cp-howto-progress-pip.is-active {
+    animation: cp-howto-pip-pulse 1.1s ease-in-out infinite;
+  }
+}
+
+@keyframes cp-howto-pip-pulse {
+  0%,
+  100% {
+    transform: scale(1.35);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--secondary) 28%, transparent);
+  }
+  50% {
+    transform: scale(1.5);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--secondary) 16%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-howto-progress-fill {
+    transition: none;
+  }
+  .cp-howto-progress-pip {
+    transition: background-color 0s, border-color 0s;
+  }
+  .cp-howto-progress-pip.is-active {
+    animation: none;
   }
 }
 

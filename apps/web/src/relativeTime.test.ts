@@ -27,7 +27,7 @@ describe("formatWhen", () => {
   });
 
   it("falls back for empty / junk", () => {
-    expect(formatWhen("")).toBe("sometime on the couch");
+    expect(formatWhen("")).toBe("a while back");
     expect(formatWhen("not-a-date")).toBe("not-a-date");
   });
 });
