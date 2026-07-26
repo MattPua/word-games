@@ -1,5 +1,6 @@
 import enableArtifact from "./generated/enable.json";
 import popularArtifact from "./generated/popular.json";
+import { applyBlocklist, mergeBlocklists } from "./filter";
 
 export type Dictionary = {
   /**
@@ -38,6 +39,19 @@ export function createDictionary(
 export function getDictionary(): Dictionary {
   if (!cached) cached = createDictionary();
   return cached;
+}
+
+/**
+ * Fresh Dictionary with extra tokens removed from enable + popular.
+ * Use for per-run house bans — never mutate the `getDictionary()` singleton.
+ */
+export function dictionaryWithoutWords(
+  base: Dictionary,
+  extraBlocked: Iterable<string>,
+): Dictionary {
+  const block = mergeBlocklists(extraBlocked);
+  if (block.size === 0) return base;
+  return createDictionary(applyBlocklist(base.enable, block), applyBlocklist(base.popular, block));
 }
 
 /** Prefetch helper — same artifact `getDictionary` uses; warms the play chunk. */
