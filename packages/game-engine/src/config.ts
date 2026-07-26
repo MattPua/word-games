@@ -113,13 +113,15 @@ export type WordCountThresholds = {
 export const BOARD_THRESHOLDS: Record<GridTopology, Record<GridSize, WordCountThresholds>> = {
   square: {
     4: { ge3: 40, ge4: 15, ge5: 4, ge6: 1, ge7: 0, ge8: 0, ge10: 0, total: 50 },
-    5: { ge3: 80, ge4: 40, ge5: 18, ge6: 8, ge7: 2, ge8: 1, ge10: 0, total: 100 },
+    // Soft ge10 — 25 tiles can host a 10+ path; may loosen on late retries.
+    5: { ge3: 80, ge4: 40, ge5: 18, ge6: 8, ge7: 2, ge8: 1, ge10: 1, total: 100 },
     6: { ge3: 140, ge4: 72, ge5: 38, ge6: 18, ge7: 4, ge8: 2, ge10: 1, total: 180 },
   },
   hex: {
     4: { ge3: 25, ge4: 9, ge5: 2, ge6: 1, ge7: 0, ge8: 0, ge10: 0, total: 30 },
     5: { ge3: 50, ge4: 24, ge5: 10, ge6: 4, ge7: 1, ge8: 0, ge10: 0, total: 60 },
-    6: { ge3: 90, ge4: 48, ge5: 22, ge6: 9, ge7: 2, ge8: 1, ge10: 0, total: 110 },
+    // Soft ge10 on big honeycomb (leaner paths than square — may loosen).
+    6: { ge3: 90, ge4: 48, ge5: 22, ge6: 9, ge7: 2, ge8: 1, ge10: 1, total: 110 },
   },
 };
 

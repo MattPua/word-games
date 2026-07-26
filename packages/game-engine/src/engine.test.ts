@@ -796,21 +796,28 @@ describe("generateBoard", () => {
   );
 
   it(
-    "lands 8+ and often 10+ letter words on big square grids when possible",
+    "lands 8+ and often 10+ letter words on longer boards when possible",
     () => {
       const dict = createDictionary();
-      let saw8 = 0;
-      let saw10 = 0;
-      for (let seed = 1; seed <= 24; seed++) {
-        const board = generateBoard({ size: 6, dict, topology: "square", seed });
-        if (board.allWords.some((w) => w.length >= 8)) saw8++;
-        if (board.allWords.some((w) => w.length >= 10)) saw10++;
+      // Soft ge10 on square 5/6 + hex 6 — may loosen, but ranking should clear often.
+      for (const { size, topology, minSaw10 } of [
+        { size: 5 as const, topology: "square" as const, minSaw10: 8 },
+        { size: 6 as const, topology: "square" as const, minSaw10: 12 },
+        { size: 6 as const, topology: "hex" as const, minSaw10: 6 },
+      ]) {
+        let saw8 = 0;
+        let saw10 = 0;
+        const n = 24;
+        for (let seed = 1; seed <= n; seed++) {
+          const board = generateBoard({ size, dict, topology, seed });
+          if (board.allWords.some((w) => w.length >= 8)) saw8++;
+          if (board.allWords.some((w) => w.length >= 10)) saw10++;
+        }
+        expect(saw8, `${topology} ${size} 8+`).toBeGreaterThanOrEqual(10);
+        expect(saw10, `${topology} ${size} 10+`).toBeGreaterThanOrEqual(minSaw10);
       }
-      // Soft floors + ranking should clear 8+ often; 10+ at least sometimes.
-      expect(saw8).toBeGreaterThanOrEqual(10);
-      expect(saw10).toBeGreaterThanOrEqual(1);
     },
-    90_000,
+    120_000,
   );
 
   it("falls back without a ≥6 word when the lexicon cannot provide one", () => {
