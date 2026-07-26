@@ -10,10 +10,13 @@ export const DESCRIPTION =
 /** OG / Twitter blurb (shorter than meta description). */
 export const OG_DESCRIPTION = "Swipe adjacent letters. Short sessions. No hints. Just couch vibes.";
 
-export const CANONICAL_ORIGIN = "https://acouchpotato.com";
+export const CANONICAL_ORIGIN = "https://www.acouchpotato.com";
 export const CANONICAL_URL = `${CANONICAL_ORIGIN}/`;
 
-export const OG_IMAGE = "/og.png";
+/** Absolute URL — crawlers reject relative og:image paths. */
+export const OG_IMAGE = `${CANONICAL_ORIGIN}/og.png`;
+export const OG_IMAGE_WIDTH = 256;
+export const OG_IMAGE_HEIGHT = 256;
 
 export const JSON_LD_DESCRIPTION = "Casual swipe-to-spell word game on a letter grid.";
 
@@ -37,6 +40,7 @@ export function jsonLd() {
     description: JSON_LD_DESCRIPTION,
     applicationCategory: "GameApplication",
     genre: "Word game",
+    image: OG_IMAGE,
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   };
 }

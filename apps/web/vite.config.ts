@@ -10,6 +10,8 @@ import {
   DESCRIPTION,
   OG_DESCRIPTION,
   OG_IMAGE,
+  OG_IMAGE_HEIGHT,
+  OG_IMAGE_WIDTH,
   PRODUCT_NAME,
   jsonLd,
 } from "./src/seo";
@@ -37,6 +39,8 @@ function seoHtmlPlugin(): Plugin {
     __SEO_PRODUCT_NAME__: escapeAttr(PRODUCT_NAME),
     __SEO_OG_DESCRIPTION__: escapeAttr(OG_DESCRIPTION),
     __SEO_OG_IMAGE__: escapeAttr(OG_IMAGE),
+    __SEO_OG_IMAGE_WIDTH__: String(OG_IMAGE_WIDTH),
+    __SEO_OG_IMAGE_HEIGHT__: String(OG_IMAGE_HEIGHT),
     __SEO_JSON_LD__: JSON.stringify(jsonLd(), null, 2),
   };
 

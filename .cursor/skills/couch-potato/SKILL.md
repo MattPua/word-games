@@ -37,7 +37,7 @@ Write-back: [sync-agent-docs](../sync-agent-docs/SKILL.md) + always-on [agent-do
 | Loading / empty / skeletons | skill `loading-empty` · `ui.mdc` |
 | Monorepo, Bun catalog, commits, images | `.cursor/rules/coding.mdc` · `AGENTS.md` Code style |
 | Platform files (web default vs Expo) | `AGENTS.md` Stack · `coding.mdc` · [references/decisions.md](references/decisions.md) |
-| Routes, lazy pages, head/SEO, preload | skill `tanstack-router` (+ `reference.md`) · rule `tanstack-router.mdc` · canonical `https://acouchpotato.com` (`seo.ts`) |
+| Routes, lazy pages, head/SEO, preload | skill `tanstack-router` (+ `reference.md`) · rule `tanstack-router.mdc` · canonical `https://www.acouchpotato.com` (`seo.ts`) |
 | Mascot / sprites / WebP crops | skill `potato-sprites` · `AGENTS.md` Brand |
 | SFX / Lobby jam | skill `cuelume` · `AGENTS.md` Sounds |
 | PostHog / game-loop analytics | skill `posthog-analytics` · `apps/web/src/analytics.ts` |

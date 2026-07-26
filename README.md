@@ -10,7 +10,7 @@
 
 Casual word game for short sessions: swipe paths on a square or honeycomb board, clear a goal, nab a timed haul, or keep a survival timer fed. No hints, no accounts, no cloud — just local profiles and a potato on a sage couch.
 
-**Live:** [acouchpotato.com](https://acouchpotato.com)
+**Live:** [acouchpotato.com](https://www.acouchpotato.com)
 
 ## Play
 

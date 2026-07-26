@@ -95,6 +95,10 @@ const STEPS: HowToStep[] = [
 ];
 
 const DEMO_MS = 320;
+/** Pause so coach copy can be read before the ghost swipe starts. */
+const DEMO_INTRO_MS = 1400;
+/** Hold the finished ghost path before clearing for the player's turn. */
+const DEMO_HOLD_MS = 1100;
 /** Hold the nabbed word on board + pill before next step (was 650 — too snappy). */
 const SUCCESS_HOLD_MS = 1500;
 const MISS_HOLD_MS = 900;
@@ -147,20 +151,34 @@ export function HowToPage() {
     setFlash("");
     setCatching(false);
     setDemoing(true);
-    let i = 0;
-    const id = window.setInterval(() => {
+
+    let intervalId: number | null = null;
+    let holdId: number | null = null;
+    const introId = window.setTimeout(() => {
       if (gen !== demoGen.current) return;
-      i += 1;
-      if (i > step.path.length) {
-        window.clearInterval(id);
-        setPath([]);
-        setDemoing(false);
-        return;
-      }
-      setPath(step.path.slice(0, i));
-    }, DEMO_MS);
+      let i = 0;
+      intervalId = window.setInterval(() => {
+        if (gen !== demoGen.current) return;
+        i += 1;
+        if (i > step.path.length) {
+          if (intervalId != null) window.clearInterval(intervalId);
+          intervalId = null;
+          // Keep the full path lit so the demo word can sink in.
+          holdId = window.setTimeout(() => {
+            if (gen !== demoGen.current) return;
+            setPath([]);
+            setDemoing(false);
+          }, DEMO_HOLD_MS);
+          return;
+        }
+        setPath(step.path.slice(0, i));
+      }, DEMO_MS);
+    }, DEMO_INTRO_MS);
+
     return () => {
-      window.clearInterval(id);
+      window.clearTimeout(introId);
+      if (intervalId != null) window.clearInterval(intervalId);
+      if (holdId != null) window.clearTimeout(holdId);
     };
   }, [stepIndex, step.path, done]);
 
