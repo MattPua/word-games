@@ -182,6 +182,19 @@ describe("highScoreKey", () => {
       highScoreKey("p1", 4, targetCfg, "square"),
     );
   });
+
+  it("keys timed by duration and difficulty", () => {
+    const cfg = {
+      mode: "timed" as const,
+      duration: 60 as const,
+      difficulty: "hard" as const,
+      minWordLength: 3 as const,
+    };
+    expect(highScoreKey("p1", 4, cfg, "square")).toBe("p1:4:square:timed:60:hard:min3");
+    expect(highScoreKey("p1", 4, { ...cfg, difficulty: "easy" }, "square")).not.toBe(
+      highScoreKey("p1", 4, cfg, "square"),
+    );
+  });
 });
 
 describe("survivalBonusSeconds", () => {
@@ -336,7 +349,12 @@ describe("long words (no max length)", () => {
     const dict = createDictionary(["kitchen", "kit"], ["kitchen", "kit"]);
     const board = buildBoard(kitchenLetters, dict, 3, "square");
     expect(board.allWords).toContain("kitchen");
-    const state = createGame(board, { mode: "timed", duration: 60, minWordLength: 3 });
+    const state = createGame(board, {
+      mode: "timed",
+      duration: 60,
+      difficulty: "medium",
+      minWordLength: 3,
+    });
     const sub = submitPath(state, kitchenPath, dict);
     expect(sub.result).toMatchObject({ ok: true, word: "kitchen", points: 5 });
     expect(sub.state.found).toEqual(["kitchen"]);
@@ -346,7 +364,12 @@ describe("long words (no max length)", () => {
     const dict = createDictionary(["chainsaw", "chain"], ["chainsaw", "chain"]);
     const board = buildBoard(chainsawLetters, dict, 3, "square");
     expect(board.allWords).toContain("chainsaw");
-    const state = createGame(board, { mode: "timed", duration: 60, minWordLength: 3 });
+    const state = createGame(board, {
+      mode: "timed",
+      duration: 60,
+      difficulty: "medium",
+      minWordLength: 3,
+    });
     const sub = submitPath(state, chainsawPath, dict);
     expect(sub.result).toMatchObject({ ok: true, word: "chainsaw", points: 6 });
     expect(sub.state.found).toEqual(["chainsaw"]);

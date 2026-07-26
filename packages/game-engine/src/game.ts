@@ -20,7 +20,7 @@ type ConfigBase = { minWordLength: MinWordLength };
 
 export type GameConfig =
   | (ConfigBase & { mode: "target"; difficulty: Difficulty })
-  | (ConfigBase & { mode: "timed"; duration: TimedDuration })
+  | (ConfigBase & { mode: "timed"; duration: TimedDuration; difficulty: Difficulty })
   | (ConfigBase & { mode: "survival"; difficulty: Difficulty });
 
 export type SubmitResult =
@@ -162,5 +162,5 @@ export function highScoreKey(
   if (config.mode === "survival") {
     return `${profileId}:${size}:${topology}:survival:${config.difficulty}:min${min}`;
   }
-  return `${profileId}:${size}:${topology}:timed:${config.duration}:min${min}`;
+  return `${profileId}:${size}:${topology}:timed:${config.duration}:${config.difficulty}:min${min}`;
 }

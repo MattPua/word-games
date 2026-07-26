@@ -121,7 +121,7 @@ export type GenerateOptions = {
   dict: Dictionary;
   topology?: GridTopology;
   minWordLength?: MinWordLength;
-  /** Letter variety mix (see `LETTER_VARIETY`). Timed has no difficulty — defaults to "medium". */
+  /** Letter variety mix (see `LETTER_VARIETY`). Defaults to "medium" when omitted. */
   difficulty?: Difficulty;
   seed?: number;
   rng?: Rng;
