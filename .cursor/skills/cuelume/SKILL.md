@@ -20,7 +20,7 @@ in `apps/web` only. **Not used on Expo** (Web Audio).
 - `bind()` once at app root (`useEffect`) for optional declarative chrome (`data-cuelume-*`).
 - Prefer imperative helpers for word accept/reject and game end (reliable with RN-web): `playAcceptedWordSound`, `playRejectedWordSound`, `playBoardClearedSound`.
 - Mute → `setEnabled(false)`; persist `soundEnabled` in app storage. Toggle on **Options** `/options` and **Couch break** (same flag) — not lobby Play bar or play HUD. When muted, all `play(...)` / `playAcceptedWordSound` / `playBoardClearedSound` calls no-op.
-- **Background music** is separate (`menuMusicEnabled`, default **off**, + `apps/web/src/menuMusic.ts` / `public/audio/menu-bgm.mp3`) — not cuelume. Don’t wire BGM through `setEnabled`. Plays on lobby / couch crew / medals / options / play when enabled (lower volume on `/play`); fades out on results. Toggle on **Options** `/options` (Lobby jam Off/On) and **Couch break** mid-run — not lobby Play bar or play HUD. Icons: `Music2` on / local `MusicOff` off (SFX choice cards use `Volume2` / `VolumeX`).
+- **Background music** is separate (`menuMusicEnabled`, default **off**, + `apps/web/src/menuMusic.ts` / `public/audio/menu-bgm.mp3`) — not cuelume. Don’t wire BGM through `setEnabled`. Plays on lobby / couch crew / medals / options / play when enabled (lower volume on `/play`); fades out on results. Toggle on **Options** `/options` (Lobby jam Off/On) and **Couch break** mid-run — not lobby Play bar or play HUD. Icons: `Music2` on / local `MusicOff` off (SFX choice cards use `Volume2` / `VolumeX`). Keep `menu-bgm.mp3` lean (~128 kb/s stereo, no embedded cover) for 3G / offline — see `AGENTS.md` Sounds.
 
 ## Outcomes
 

@@ -30,7 +30,12 @@ UI work is not done until exercised in a running app.
 
 Engine-only changes: Vitest is enough. UI: Vitest **and** this interactive check.
 
-Before shipping any **chrome page** (lobby, Couch crew, Results, Achievements, similar setup/settings/stats screens — not play), also check it at ~1280 width: it should widen and go multi-col (see `.cursor/rules/ui.mdc` "Desktop real estate"), not sit as a lonely narrow `max-w-md` stick with huge empty margins.
+Before shipping any **chrome page** (lobby, Couch crew, Results, Achievements / Couch medals, **Options**, similar — not play), also check at ~1280 width:
+
+1. **Desktop real estate** — widens + multi-col (see `.cursor/rules/ui.mdc`), not a lonely `max-w-md` stick with huge side margins.
+2. **No full-bleed CTAs** — Back to lobby / Play again / primary actions hug content (`.cp-chrome-cta`), not stretch across the wide shell.
+3. **No huge empty tops** — content starts under Shell safe-area padding; no accidental `min-h-full` + `justify-center` on short chrome.
+4. **Options** specifically: prefs grid fills the wide shell; Lobby jam + Back to lobby visible without scroll on a typical desktop height (~800px).
 
 ## Layout bugs (clipping, overflow, sticky footers, safe-area)
 
