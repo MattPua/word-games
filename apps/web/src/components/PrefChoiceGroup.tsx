@@ -24,6 +24,7 @@ export function PrefChoiceGroup<T extends string>({
   className?: string;
   "data-testid"?: string;
 }) {
+  const anyHint = options.some((o) => Boolean(o.hint));
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <p className="font-display text-sm font-bold text-foreground">{label}</p>
@@ -62,9 +63,15 @@ export function PrefChoiceGroup<T extends string>({
                 />
               </span>
               <span className="font-display text-sm font-bold">{optLabel}</span>
-              {hint ? (
-                <span className="font-body text-[0.65rem] leading-tight text-muted-foreground text-center">
-                  {hint}
+              {anyHint ? (
+                <span
+                  className={cn(
+                    "min-h-[1.7em] font-body text-[0.65rem] leading-tight text-center",
+                    hint ? "text-muted-foreground" : "invisible",
+                  )}
+                  aria-hidden={!hint}
+                >
+                  {hint || "\u00a0"}
                 </span>
               ) : null}
             </button>

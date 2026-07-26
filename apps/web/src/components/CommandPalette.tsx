@@ -118,7 +118,7 @@ function prefActions(): PrefAction[] {
     },
     {
       id: "sfx",
-      label: sfxOn ? "Turn SFX off" : "Turn SFX on",
+      label: sfxOn ? "Turn sound effects off" : "Turn sound effects on",
       keywords: "sfx sound mute unmute audio volume quiet",
       Icon: sfxOn ? VolumeX : Volume2,
       run: () => {

@@ -102,13 +102,11 @@ export function OptionsPage() {
             {
               value: "light",
               label: "Day",
-              hint: "Bright couch light",
               Icon: Sun,
             },
             {
               value: "dark",
               label: "Night",
-              hint: "Late-night sessions",
               Icon: Moon,
             },
           ]}
@@ -155,7 +153,7 @@ export function OptionsPage() {
         />
 
         <PrefChoiceGroup
-          label="SFX"
+          label="Sound effects"
           value={sfx}
           onChange={setSfxChoice}
           data-testid="options-sfx"
@@ -163,13 +161,11 @@ export function OptionsPage() {
             {
               value: "off",
               label: "Off",
-              hint: "Quiet couch",
               Icon: VolumeX,
             },
             {
               value: "on",
               label: "On",
-              hint: "Word pops + taps",
               Icon: Volume2,
             },
           ]}
@@ -184,13 +180,11 @@ export function OptionsPage() {
             {
               value: "off",
               label: "Off",
-              hint: "Silent lobby",
               Icon: MusicOff,
             },
             {
               value: "on",
               label: "On",
-              hint: "Menu loop bed",
               Icon: Music2,
             },
           ]}
