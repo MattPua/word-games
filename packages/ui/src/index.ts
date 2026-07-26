@@ -5,6 +5,8 @@ import { ScoreBubble } from "./ScoreBubble";
 import { ProgressBar } from "./ProgressBar";
 import { Logo } from "./Logo";
 import { LogoCelebrate } from "./LogoCelebrate";
+import { LogoOptions } from "./LogoOptions";
+import { MedalsCategorySprite } from "./MedalsCategorySprite";
 import { PotatoSprite } from "./PotatoSprite";
 import { LoadingPotato } from "./LoadingPotato";
 import { EmptyState } from "./EmptyState";
@@ -18,6 +20,8 @@ export {
   ProgressBar,
   Logo,
   LogoCelebrate,
+  LogoOptions,
+  MedalsCategorySprite,
   PotatoSprite,
   LoadingPotato,
   EmptyState,
@@ -25,4 +29,4 @@ export {
   applyPathCell,
 };
 export type { Cell };
-export type { PotatoSpriteFrame } from "./spriteAtlas";
+export type { MedalsCategoryFrame, PotatoSpriteFrame } from "./spriteAtlas";

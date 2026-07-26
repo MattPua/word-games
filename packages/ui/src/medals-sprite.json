@@ -1,0 +1,13 @@
+{
+  "image": "medals-sprite.png",
+  "cols": 4,
+  "rows": 1,
+  "frameWidth": 402,
+  "frameHeight": 420,
+  "frames": {
+    "bigPicture": { "x": 0, "y": 0, "w": 402, "h": 420 },
+    "personalBests": { "x": 402, "y": 0, "w": 402, "h": 420 },
+    "lengthHauls": { "x": 804, "y": 0, "w": 402, "h": 420 },
+    "survival": { "x": 1206, "y": 0, "w": 402, "h": 420 }
+  }
+}

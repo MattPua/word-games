@@ -6,6 +6,8 @@ export type PotatoSpriteProps = {
   size?: number;
   className?: string;
   frame?: PotatoSpriteFrame;
+  /** Web-only lobby yawn — ignored on native (static Logo). */
+  lobbyYawn?: boolean;
 };
 
 /** Native fallback — sprite-atlas CSS is web-only; render the matching static mascot. */

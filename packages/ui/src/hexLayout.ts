@@ -31,7 +31,10 @@ export function cellCenter(
 }
 
 /** Absolute row box % for odd-r hex (same space as cellCenter). */
-export function hexRowStyle(rowIndex: number, n: number): {
+export function hexRowStyle(
+  rowIndex: number,
+  n: number,
+): {
   top: string;
   left: string;
   width: string;

@@ -16,10 +16,12 @@ grid-sheet prompting discipline, atlas-over-loose-PNGs, and pre-accept QC gates.
 | ------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `packages/ui/src/logo.png`                                                | 256×256                                 | Chill mascot — brand mark, favicon, lobby `Logo`                                                                       |
 | `packages/ui/src/logo-celebrate.png`                                      | 256×256                                 | Mid-celebration — results hero `LogoCelebrate`                                                                         |
-| `packages/ui/src/logo-sprite.png` + `logo-sprite.json` + `spriteAtlas.ts` | 1012×512, 2 cols × 1 row, 506×512 cells | idle/cheer atlas — `PotatoSprite` pinned `frame` (results win/quit) or interactive hover-poke mascot (404/empty-state) |
+| `packages/ui/src/logo-options.png`                                        | 256×256                                 | Options header — potato on couch holding a gear (`LogoOptions`)                                                        |
+| `packages/ui/src/logo-sprite.png` + `logo-sprite.json` + `spriteAtlas.ts` | 1518×512, 3 cols × 1 row, 506×512 cells | idle/cheer/bored atlas — `PotatoSprite` pinned `frame` (results win/quit, EmptyState `bored`), `lobbyYawn`, or interactive hover-poke (404) |
+| `packages/ui/src/medals-sprite.png` + `medals-sprite.json` (+ atlas map in `spriteAtlas.ts`) | 1608×420, 4 cols × 1 row, 402×420 cells | Couch medals categories — `MedalsCategorySprite` (`bigPicture` / `personalBests` / `lengthHauls` / `survival`) on `/achievements` |
 
 All web-served copies live in `apps/web/public/` (same filenames) — copy after every regen, don't hand-diverge.
-`spriteAtlas.ts` is the TS source of truth for frame rects; `logo-sprite.json` is a plain-data mirror for
+`spriteAtlas.ts` is the TS source of truth for frame rects; `logo-sprite.json` / `medals-sprite.json` are plain-data mirrors for
 non-TS tooling. Keep both in sync — never let the JSON drift from the TS map.
 
 ## When to add a frame vs a new standalone mark
@@ -30,10 +32,15 @@ non-TS tooling. Keep both in sync — never let the JSON drift from the TS map.
   quit/timeout muted pose, a loading spin): one sprite sheet + atlas map, not N loose PNGs. Prefer the sheet
   once you're past a single pose — atlas metadata (rects, cell size) is cheap; N hand-positioned `<img>` tags
   that must all agree on scale/anchor are not.
-- Likely next frames, in priority order: results **quit/timeout** (subdued, no sparkles — pairs with the
-  existing cheer), **loading/spin** (for `LoadingPotato`), a **couch-break/paused** pose. Add to the existing
-  `logo-sprite.png` atlas (new column) rather than starting a third sheet, unless the new pose needs a
-  meaningfully different canvas size.
+- **Category / feature-specific pose sets** that shouldn't shift interactive `logo-sprite` cheer offsets
+  (e.g. Couch medals section headers): a **separate** sheet (`medals-sprite.png`) is OK — keep identity lock
+  to `logo.png`, equal cells, transparent bg, own atlas keys in `spriteAtlas.ts`.
+- Likely next frames on `logo-sprite`, in priority order: results **quit/timeout** may reuse or refine `bored` (subdued, no
+  sparkles — pairs with cheer), **loading/spin** (for `LoadingPotato`), a **couch-break/paused** pose. Add
+  to the existing `logo-sprite.png` atlas (new column) rather than starting another general-mascot sheet, unless the new
+  pose needs a meaningfully different canvas size. When adding a column past cheer, update
+  `--cp-potato-cheer-x` in `theme.css` (interactive idle↔cheer nudge) so it still lands on cheer, not the
+  new last frame.
 
 ## PixelLab prompt pattern
 
@@ -67,6 +74,11 @@ non-combat use case (skip their directional/attack/projectile modes entirely, we
 - **Same scale/anchor across frames** — lay both frames side by side and check the character doesn't grow,
   shrink, or shift vertically between poses; a swipeable idle/cheer loop reads as broken if the potato hops.
 - **No edge-cropping** — nothing (arm, sparkle, cushion edge) touching or cut off at a cell boundary.
+- **No light fringe / white halo on silhouette edges.** AI exports and light-bg knockouts often leave
+  washed edge pixels that glow on dark UI. After accept: on a dark matte, scan opaque pixels adjacent
+  to transparency; if they’re much lighter than a nearby dark outline/body neighbor, snap them to that
+  neighbor (or drop semi-transparent junk). **Don’t** flatten intentional cream belly highlights or
+  cheer sparkles (bright pixels with no dark outline neighbor). Re-copy cleaned PNGs to `apps/web/public/`.
 - **Update the atlas alongside the art.** Never ship a resized/re-cropped sheet without re-measuring
   `spriteAtlas.ts` + `logo-sprite.json` rects — a stale atlas silently mis-slices a live frame.
 

@@ -38,7 +38,20 @@
   --ring: #859075;
   --path: #5f9e6e;
   --potato: var(--secondary);
-  --radius: 1.15rem;
+  /*
+   * Font stacks — Tailwind `font-display` / `font-body` / `font-sans` resolve here.
+   * Flip display face with `html[data-font="pixel"|"clean"]` (default clean).
+   * Never hardcode Jersey 15/Lexend in components; retarget these vars only.
+   */
+  --font-pixel: "Jersey 15", system-ui, sans-serif;
+  --font-clean: Lexend, system-ui, sans-serif;
+  --font-display: var(--font-clean);
+  /* Lexend likes slight tighten; Jersey 15 needs open tracking (pixel retargets). */
+  --font-display-tracking: -0.01em;
+  --font-body: var(--font-clean);
+  --font-sans: var(--font-body);
+  /* Pixel-block chrome — tight radius, not soft window-pane cards */
+  --radius: 0.25rem;
   /* Selected tile — deeper sage wash + ring (must read clearly vs cream --tile) */
   --tile-select-top: color-mix(in srgb, var(--path) 42%, #fff);
   --tile-select-bottom: color-mix(in srgb, var(--path) 36%, var(--tile));
@@ -51,6 +64,18 @@
   --board-frame: #444a3c;
   --board-rim: #a1af8e;
   --hud-bubble: color-mix(in srgb, var(--card) 88%, transparent);
+}
+
+/* Display face pref — set `data-font` on <html> from applyFontPreference (default clean). */
+:root[data-font="clean"] {
+  --font-display: var(--font-clean);
+  --font-display-tracking: -0.01em;
+}
+
+:root[data-font="pixel"] {
+  --font-display: var(--font-pixel);
+  /* Open Jersey 15 — comfortable, not sparse (“Couch Potato” / “Your board”). */
+  --font-display-tracking: 0.06em;
 }
 
 .dark {
@@ -77,7 +102,7 @@
   --ring: #a1af8e;
   --path: #7cbf88;
   --potato: var(--secondary);
-  --radius: 1.15rem;
+  --radius: 0.25rem;
   --tile-select-top: color-mix(in srgb, var(--path) 38%, #fff);
   --tile-select-bottom: color-mix(in srgb, var(--path) 32%, var(--tile));
   --tile-select-ring: color-mix(in srgb, var(--path) 52%, transparent);
@@ -123,7 +148,13 @@
 
 /*
  * Web Shell scroll regions — cards must clear overlay scrollbar thumbs.
- * Lobby: inner `.cp-shell-scroll` (Home). Long pages: Shell + `cp-shell-scroll`.
+ * Lobby / ScrollShell: full-bleed `.cp-shell-scroll` with Shell nested inside.
+ * Long pages may put `cp-shell-scroll` on the Shell itself.
+ *
+ * Do **not** add extra `padding-inline-end` on the outer scroll wrapper —
+ * that shrinks the nested Shell vs the sticky Play Shell (same `mx-auto`
+ * max-width) and makes lobby choice rows look clipped on the right.
+ * `scrollbar-gutter: stable` + Shell `px-4` is enough clearance.
  */
 .cp-shell-scroll {
   scrollbar-gutter: stable;
@@ -142,14 +173,6 @@
 
 .cp-shell-scroll::-webkit-scrollbar-track {
   background: transparent;
-}
-
-.cp-shell-scroll:not(.cp-shell) {
-  padding-inline-end: 1rem;
-}
-
-.cp-shell.cp-shell-scroll {
-  padding-inline-end: calc(1rem + 1rem);
 }
 
 .cp-logo-float {
@@ -236,10 +259,14 @@
  *  - pinned `frame` (results win/quit): static, no animation here — the
  *    outer `.cp-logo-float` wrapper owns the bob so a pinned "idle" (quit)
  *    frame never gets the interactive mascot's periodic cheer nudge below.
- *  - `.cp-potato-sprite-interactive` (frame omitted — 404 / empty-state):
+ *  - `.cp-potato-sprite-lobby` (`lobbyYawn` — home brand): no float; every
+ *    ~9s briefly steps to the bored atlas frame with a soft lean-back stretch
+ *    (couch yawn). Respects `prefers-reduced-motion`.
+ *  - `.cp-potato-sprite-interactive` (frame omitted — 404):
  *    idle bob (mirrors `cp-soft-float`) + an occasional brief cheer-frame
  *    nudge keep it alive without being busy; hover (or a tap via
  *    `.is-poked` on touch) pokes it into a bigger wiggle + cheer frame.
+ *    Cheer sits at 50% along the 3-col sheet (idle 0% | cheer 50% | bored 100%).
  * See AGENTS.md Brand.
  */
 .cp-potato-sprite {
@@ -252,6 +279,12 @@
 .cp-potato-sprite-interactive {
   transform-origin: 50% 88%;
   cursor: pointer;
+}
+
+/* Cheer / bored offsets on the 3-col sheet — keep in sync with spriteAtlas.ts */
+:root {
+  --cp-potato-cheer-x: 50%;
+  --cp-potato-bored-x: 100%;
 }
 
 @keyframes cp-potato-sprite-idle {
@@ -272,7 +305,7 @@
   }
   89%,
   95% {
-    background-position-x: 100%;
+    background-position-x: var(--cp-potato-cheer-x);
   }
 }
 
@@ -292,6 +325,36 @@
   }
 }
 
+/* Lobby brand: no float — occasional bored-frame yawn + soft lean-back. */
+@keyframes cp-potato-lobby-yawn {
+  0%,
+  72%,
+  100% {
+    background-position-x: 0%;
+    transform: scale(1) rotate(0deg);
+  }
+  76% {
+    background-position-x: var(--cp-potato-bored-x);
+    transform: scale(1.03, 0.97) rotate(-2deg);
+  }
+  82% {
+    background-position-x: var(--cp-potato-bored-x);
+    transform: scale(1.05, 0.94) rotate(-3deg);
+  }
+  88% {
+    background-position-x: var(--cp-potato-bored-x);
+    transform: scale(1.02, 0.98) rotate(-1deg);
+  }
+  92% {
+    background-position-x: 0%;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.cp-potato-sprite-lobby {
+  transform-origin: 50% 80%;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .cp-potato-sprite-interactive {
     animation:
@@ -302,7 +365,11 @@
   .cp-potato-sprite-interactive:hover,
   .cp-potato-sprite-interactive.is-poked {
     animation: cp-potato-sprite-wiggle 0.55s ease-in-out;
-    background-position-x: 100%;
+    background-position-x: var(--cp-potato-cheer-x);
+  }
+
+  .cp-potato-sprite-lobby {
+    animation: cp-potato-lobby-yawn 9s ease-in-out infinite;
   }
 }
 
@@ -312,17 +379,19 @@
   .cp-pop-in,
   .cp-tile-selected,
   .cp-tile-drop,
-  .cp-potato-sprite-interactive {
+  .cp-potato-sprite-interactive,
+  .cp-potato-sprite-lobby {
     animation: none;
   }
 
   .cp-potato-sprite-interactive:hover,
   .cp-potato-sprite-interactive.is-poked {
-    background-position-x: 100%;
+    background-position-x: var(--cp-potato-cheer-x);
   }
 
   .cp-board-spin.is-turning,
-  .cp-board-spin.is-turning .cp-tile-letter {
+  .cp-board-spin.is-turning .cp-tile-letter,
+  .cp-board-spin.is-turning .cp-tile::before {
     transition: none;
   }
 }

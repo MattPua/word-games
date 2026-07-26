@@ -12,6 +12,8 @@
     "./logo-celebrate.png": "./src/logo-celebrate.png",
     "./logo-sprite.png": "./src/logo-sprite.png",
     "./logo-sprite.json": "./src/logo-sprite.json",
+    "./medals-sprite.png": "./src/medals-sprite.png",
+    "./medals-sprite.json": "./src/medals-sprite.json",
     "./tailwind-preset": "./tailwind-preset.js"
   },
   "scripts": {

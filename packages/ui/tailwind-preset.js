@@ -1,6 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   theme: {
+    // Replace Tailwind's default `ui-sans-serif` stack — not merely extend.
+    // Preflight paints `html { font-family: theme(fontFamily.sans) }`.
+    fontFamily: {
+      sans: ["var(--font-sans)"],
+      body: ["var(--font-body)"],
+      display: ["var(--font-display)"],
+    },
     extend: {
       colors: {
         background: "var(--background)",
@@ -43,10 +50,6 @@ export default {
         tile: "var(--tile)",
         "board-well": "var(--board-well)",
         "board-frame": "var(--board-frame)",
-      },
-      fontFamily: {
-        display: ["Pixelify Sans", "system-ui", "sans-serif"],
-        body: ["Lexend", "system-ui", "sans-serif"],
       },
       borderRadius: {
         ui: "var(--radius)",

@@ -3,39 +3,27 @@ import { Text, View } from "react-native";
 export type ScoreBubbleProps = {
   word: string;
   hint?: string;
-  /** Points for current word (length − 2); shown as badge when > 0. */
-  points?: number;
   className?: string;
 };
 
-/** Sage word pill + secondary (potato gold) score badge — tactile play chrome. */
-export function ScoreBubble({
-  word,
-  hint = "Swipe letters",
-  points = 0,
-  className = "",
-}: ScoreBubbleProps) {
+/** Sage word pill for the live swipe word — tactile play chrome (no pts badge). */
+export function ScoreBubble({ word, hint = "Swipe letters", className = "" }: ScoreBubbleProps) {
   const show = word.trim().length > 0;
   return (
     <View className={`relative items-center justify-center ${className}`}>
+      {/* `.cp-word-pill` / `.cp-word-pill-empty` carry the font (display word vs
+          body hint) — the Text only needs size/weight/color. */}
       <View className={`cp-word-pill w-full max-w-sm ${show ? "" : "cp-word-pill-empty"}`}>
         <Text
           className={`text-center leading-none tracking-normal ${
             show
-              ? "font-display text-3xl font-bold text-primary-foreground"
-              : "font-body text-base font-medium text-muted-foreground"
+              ? "text-3xl font-bold text-primary-foreground"
+              : "text-base font-medium text-muted-foreground"
           }`}
         >
           {show ? word : hint}
         </Text>
       </View>
-      {show && points > 0 ? (
-        <View className="cp-score-badge" accessibilityLabel={`${points} points`}>
-          <Text className="font-display text-sm font-bold leading-none text-secondary-foreground">
-            {points}
-          </Text>
-        </View>
-      ) : null}
     </View>
   );
 }

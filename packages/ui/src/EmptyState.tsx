@@ -1,12 +1,16 @@
 import { Text, View } from "react-native";
 import type { ReactNode } from "react";
-import { Logo } from "./Logo";
+import { PotatoSprite } from "./PotatoSprite";
 
 export type EmptyStateProps = {
   title: string;
   body?: string;
   /** Optional chrome (e.g. web shadcn Button) — keep actions out of this package. */
   children?: ReactNode;
+  /**
+   * Show the bored atlas mascot (not the chill brand `Logo`) — safe under
+   * pages that already show `Logo` in the header (Couch crew / Potato Board).
+   */
   showLogo?: boolean;
   className?: string;
 };
@@ -21,7 +25,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <View className={`items-center px-4 py-6 ${className}`}>
-      {showLogo ? <Logo size={72} /> : null}
+      {showLogo ? <PotatoSprite frame="bored" size={72} /> : null}
       <Text
         className={`text-center font-display text-xl text-foreground ${showLogo ? "mt-3" : ""}`}
       >
