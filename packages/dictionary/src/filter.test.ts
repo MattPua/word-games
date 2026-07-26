@@ -41,8 +41,10 @@ describe("dictionary filter", () => {
     expect(dict.has("potato") || dict.has("cat")).toBe(true);
   });
 
-  it("v1 accepts popular only — obscure enable1-only words rejected", () => {
-    const dict = createDictionary();
+  it("v1 accepts popular only — obscure enable1-only words rejected", async () => {
+    const { default: enable } = await import("./generated/enable.json");
+    const { default: popular } = await import("./generated/popular.json");
+    const dict = createDictionary(enable as string[], popular as string[]);
     // enable1 Scrabble oddities that are not in dolph popular.txt
     expect(dict.enable.has("aalii")).toBe(true);
     expect(dict.isPopular("aalii")).toBe(false);

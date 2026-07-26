@@ -29,6 +29,7 @@ export type Board = {
 };
 
 function countByLength(words: string[]): WordCountThresholds {
+  // Cumulative ≥N buckets for gen quality — not exclusive length bins / not a max.
   let ge3 = 0,
     ge4 = 0,
     ge5 = 0,
@@ -43,13 +44,20 @@ function countByLength(words: string[]): WordCountThresholds {
   return { ge3, ge4, ge5, ge6, total: words.length };
 }
 
+/** Scaled floor for a threshold. `ge6` never drops below 1 when the table asks for ≥1. */
+function scaledNeed(threshold: number, scale: number, keepAtLeastOne: boolean): number {
+  if (threshold <= 0) return 0;
+  const scaled = Math.floor(threshold * scale);
+  return keepAtLeastOne ? Math.max(1, scaled) : scaled;
+}
+
 function meetsThresholds(counts: WordCountThresholds, t: WordCountThresholds, scale = 1): boolean {
   return (
-    counts.ge3 >= Math.floor(t.ge3 * scale) &&
-    counts.ge4 >= Math.floor(t.ge4 * scale) &&
-    counts.ge5 >= Math.floor(t.ge5 * scale) &&
-    counts.ge6 >= Math.floor(t.ge6 * scale) &&
-    counts.total >= Math.floor(t.total * scale)
+    counts.ge3 >= scaledNeed(t.ge3, scale, false) &&
+    counts.ge4 >= scaledNeed(t.ge4, scale, false) &&
+    counts.ge5 >= scaledNeed(t.ge5, scale, false) &&
+    counts.ge6 >= scaledNeed(t.ge6, scale, true) &&
+    counts.total >= scaledNeed(t.total, scale, false)
   );
 }
 
@@ -133,7 +141,10 @@ export function generateBoard(opts: GenerateOptions): Board {
     const popular = popularRatio(board.allWords, opts.dict);
     const hardOk = board.targets.hard <= board.maxScore && board.maxScore > 0;
     const floorOk = board.maxScore >= HARD_TARGET_FLOOR || minWordLength > 3;
-    const quality = board.allWords.length * 0.5 + popular * 100 + (hardOk && floorOk ? 20 : 0);
+    // Prefer ≥1 word of length ≥6 (6–7 challenge) when picking best-effort fallback.
+    const longWordBonus = counts.ge6 > 0 ? 50 : 0;
+    const quality =
+      board.allWords.length * 0.5 + popular * 100 + (hardOk && floorOk ? 20 : 0) + longWordBonus;
 
     if (quality > bestScore) {
       bestScore = quality;

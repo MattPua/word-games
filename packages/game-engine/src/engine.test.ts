@@ -3,11 +3,13 @@ import { describe, expect, it } from "vitest";
 import {
   GEN_RETRY_CAP,
   SURVIVAL_START_SECONDS,
+  TARGET_RATIOS,
   computeTargets,
   letterMixWeights,
   scoreWord,
   survivalBonusSeconds,
 } from "./config";
+import { findAllWords } from "./findWords";
 import { buildBoard, generateBoard } from "./generate";
 import { createGame, highScoreKey, quitGame, submitPath, tickTimer } from "./game";
 import { isValidPath, wordFromPath } from "./path";
@@ -270,7 +272,95 @@ describe("scoring", () => {
   it("uses length - 2", () => {
     expect(scoreWord(3)).toBe(1);
     expect(scoreWord(5)).toBe(3);
+    expect(scoreWord(7)).toBe(5);
+    expect(scoreWord(8)).toBe(6);
     expect(scoreWord(2)).toBe(0);
+  });
+});
+
+describe("long words (no max length)", () => {
+  /** Kitchen snake: row0 KITC → down CHEN on col3. */
+  const kitchenLetters = [
+    ["K", "I", "T", "C"],
+    ["X", "X", "X", "H"],
+    ["X", "X", "X", "E"],
+    ["X", "X", "X", "N"],
+  ];
+  const kitchenPath = [
+    { row: 0, col: 0 },
+    { row: 0, col: 1 },
+    { row: 0, col: 2 },
+    { row: 0, col: 3 },
+    { row: 1, col: 3 },
+    { row: 2, col: 3 },
+    { row: 3, col: 3 },
+  ];
+
+  /** Chainsaw snake (8): C-H-A-I-N-S-A-W. */
+  const chainsawLetters = [
+    ["C", "H", "A", "I"],
+    ["X", "X", "X", "N"],
+    ["X", "X", "A", "S"],
+    ["X", "X", "W", "X"],
+  ];
+  const chainsawPath = [
+    { row: 0, col: 0 },
+    { row: 0, col: 1 },
+    { row: 0, col: 2 },
+    { row: 0, col: 3 },
+    { row: 1, col: 3 },
+    { row: 2, col: 3 },
+    { row: 2, col: 2 },
+    { row: 3, col: 2 },
+  ];
+
+  it("findAllWords includes 7+ letter popular words when the path exists", () => {
+    const dict = createDictionary(
+      ["kitchen", "kit", "itch", "chin", "hen"],
+      ["kitchen", "kit", "itch", "chin", "hen"],
+    );
+    const found = findAllWords(kitchenLetters, dict, "square");
+    expect(found).toContain("kitchen");
+    expect(found.some((w) => w.length >= 7)).toBe(true);
+  });
+
+  it("accepts a 7-letter word on a supporting board", () => {
+    const dict = createDictionary(["kitchen", "kit"], ["kitchen", "kit"]);
+    const board = buildBoard(kitchenLetters, dict, 3, "square");
+    expect(board.allWords).toContain("kitchen");
+    const state = createGame(board, { mode: "timed", duration: 60, minWordLength: 3 });
+    const sub = submitPath(state, kitchenPath, dict);
+    expect(sub.result).toMatchObject({ ok: true, word: "kitchen", points: 5 });
+    expect(sub.state.found).toEqual(["kitchen"]);
+  });
+
+  it("accepts an 8-letter word on a supporting board", () => {
+    const dict = createDictionary(["chainsaw", "chain"], ["chainsaw", "chain"]);
+    const board = buildBoard(chainsawLetters, dict, 3, "square");
+    expect(board.allWords).toContain("chainsaw");
+    const state = createGame(board, { mode: "timed", duration: 60, minWordLength: 3 });
+    const sub = submitPath(state, chainsawPath, dict);
+    expect(sub.result).toMatchObject({ ok: true, word: "chainsaw", points: 6 });
+    expect(sub.state.found).toEqual(["chainsaw"]);
+  });
+
+  it("seeded gen boards can include words longer than 6", () => {
+    const dict = createDictionary();
+    const board = generateBoard({
+      size: 5,
+      dict,
+      topology: "square",
+      seed: 7,
+    });
+    // When findAllWords sees 7+, buildBoard/allWords must keep them (no 6-cap).
+    const raw = findAllWords(board.letters, dict, "square");
+    const long = raw.filter((w) => w.length > 6);
+    for (const w of long) {
+      expect(board.allWords).toContain(w);
+    }
+    // Seed 2 yields 7+ on 5×5 with the real popular lexicon.
+    const withLong = generateBoard({ size: 5, dict, topology: "square", seed: 2 });
+    expect(withLong.allWords.some((w) => w.length >= 7)).toBe(true);
   });
 });
 
@@ -299,6 +389,23 @@ describe("computeTargets", () => {
     expect(t.medium).toBeLessThanOrEqual(10);
     expect(t.hard).toBeLessThanOrEqual(10);
     expect(t.hard).toBe(10); // floor 15 clamps to max
+  });
+
+  it("applies TARGET_RATIOS ladder (easy < medium < hard)", () => {
+    // maxScore high enough that HARD_TARGET_FLOOR does not distort hard
+    const maxScore = 100;
+    const t = computeTargets(maxScore);
+    expect(t.easy).toBe(Math.ceil(maxScore * TARGET_RATIOS.easy));
+    expect(t.medium).toBe(Math.ceil(maxScore * TARGET_RATIOS.medium));
+    expect(t.hard).toBe(Math.ceil(maxScore * TARGET_RATIOS.hard));
+    expect(t.easy).toBeLessThan(t.medium);
+    expect(t.medium).toBeLessThan(t.hard);
+    expect(t.hard).toBeLessThan(maxScore);
+    // Short-first word p50/p75/p80 → pts ≈ 0.30/0.60/0.65 (not raw max percentiles)
+    expect(TARGET_RATIOS.easy).toBe(0.3);
+    expect(TARGET_RATIOS.medium).toBe(0.6);
+    expect(TARGET_RATIOS.hard).toBe(0.65);
+    expect(TARGET_RATIOS.hard).toBeLessThan(0.75);
   });
 });
 
@@ -595,6 +702,40 @@ describe("generateBoard", () => {
       expect(board.letters).toHaveLength(4);
       expect(board.targets.hard).toBeLessThanOrEqual(board.maxScore);
     }
+  });
+
+  it(
+    "prefers ≥1 word of length ≥6 with the real lexicon when possible",
+    () => {
+      const dict = createDictionary();
+      // Spot-check square + hex on 4×4 / 5×5 — ge6 floor + fallback ranking.
+      for (const { size, topology, seed } of [
+        { size: 4 as const, topology: "square" as const, seed: 1 },
+        { size: 4 as const, topology: "hex" as const, seed: 2 },
+        { size: 5 as const, topology: "square" as const, seed: 3 },
+        { size: 5 as const, topology: "hex" as const, seed: 7 },
+        { size: 4 as const, topology: "square" as const, seed: 42 },
+      ]) {
+        const board = generateBoard({ size, dict, topology, seed });
+        expect(
+          board.allWords.some((w) => w.length >= 6),
+          `${topology} ${size}×${size} seed ${seed}`,
+        ).toBe(true);
+      }
+    },
+    30_000,
+  );
+
+  it("falls back without a ≥6 word when the lexicon cannot provide one", () => {
+    // miniDict max popular length is 4–5 — no path can yield a ≥6 word.
+    const board = generateBoard({
+      size: 4,
+      dict: miniDict,
+      seed: 99,
+      retryCap: 20,
+    });
+    expect(board.letters).toHaveLength(4);
+    expect(board.allWords.every((w) => w.length < 6)).toBe(true);
   });
 });
 

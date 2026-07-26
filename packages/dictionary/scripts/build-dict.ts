@@ -45,6 +45,9 @@ async function main() {
   };
 
   writeFileSync(join(outDir, "words.json"), JSON.stringify(artifact));
+  // Split artifacts so the web client can ship popular-only (v1 play) without the full enable list.
+  writeFileSync(join(outDir, "popular.json"), JSON.stringify(popularInEnable));
+  writeFileSync(join(outDir, "enable.json"), JSON.stringify(enable));
   writeFileSync(
     join(outDir, "meta.json"),
     JSON.stringify(

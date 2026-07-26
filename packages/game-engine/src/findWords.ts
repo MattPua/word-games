@@ -25,7 +25,10 @@ function buildTrie(words: Iterable<string>): TrieNode {
   return root;
 }
 
-/** Find all unique *playable* (popular) words on the board (topology neighbors, no reuse). */
+/**
+ * Find all unique *playable* (popular) words on the board (topology neighbors, no reuse).
+ * No max length — DFS walks until tiles run out or the trie has no child (up to size²).
+ */
 export function findAllWords(
   letters: string[][],
   dict: Dictionary,

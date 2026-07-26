@@ -14,10 +14,21 @@ export function scoreWord(length: number): number {
   return length - 2;
 }
 
+/**
+ * Goal targets as a fraction of board `maxScore` (points, not word count).
+ *
+ * Challenge ladder ≈ short-first word-coverage percentiles (Easy p50 / Med p75 /
+ * Hard p80): 3-letter words are 1pt, so pts% ≪ word% under casual short-first
+ * play. Monte Carlo over gen boards (~40× 4×4/5×5 square + 5×5 hex): clearing
+ * 50/75/80% of words short-first yields ~0.31/0.58/0.65 of maxScore — hence
+ * 0.30/0.60/0.65, not literal 0.50/0.75/0.80 of max (those force ~68/88/91%
+ * word finds and feel near board-clear). Med stays below Hard; Hard well under
+ * full clear.
+ */
 export const TARGET_RATIOS = {
-  easy: 0.35,
-  medium: 0.55,
-  hard: 0.75,
+  easy: 0.3,
+  medium: 0.6,
+  hard: 0.65,
 } as const;
 
 export type Difficulty = keyof typeof TARGET_RATIOS;
@@ -61,6 +72,10 @@ export function survivalBonusSeconds(points: number, difficulty: Difficulty): nu
 export const GRID_SIZES = [4, 5, 6] as const;
 export type GridSize = (typeof GRID_SIZES)[number];
 
+/**
+ * Gen quality floors: count of board words with length ≥ N.
+ * Not a max word length — 7+/8+/… still score and count toward `total`.
+ */
 export type WordCountThresholds = {
   ge3: number;
   ge4: number;
@@ -72,6 +87,9 @@ export type WordCountThresholds = {
 /**
  * Min-word thresholds by topology + grid size (default min length 3).
  * Hex is leaner — 6 neighbors vs 8 → fewer paths.
+ * `ge6` = want enough words of length ≥ 6 (not “cap at 6”).
+ * Every size asks for ≥1 word ≥6 (ideally a 6–7 for challenge); gen keeps that
+ * floor under retry scale and prefers it in best-effort fallback when possible.
  */
 export const BOARD_THRESHOLDS: Record<GridTopology, Record<GridSize, WordCountThresholds>> = {
   square: {
@@ -80,7 +98,7 @@ export const BOARD_THRESHOLDS: Record<GridTopology, Record<GridSize, WordCountTh
     6: { ge3: 140, ge4: 60, ge5: 25, ge6: 10, total: 180 },
   },
   hex: {
-    4: { ge3: 25, ge4: 9, ge5: 2, ge6: 0, total: 30 },
+    4: { ge3: 25, ge4: 9, ge5: 2, ge6: 1, total: 30 },
     5: { ge3: 50, ge4: 20, ge5: 6, ge6: 2, total: 60 },
     6: { ge3: 90, ge4: 38, ge5: 14, ge6: 5, total: 110 },
   },

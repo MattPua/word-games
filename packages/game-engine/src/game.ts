@@ -136,7 +136,10 @@ export function quitGame(state: GameState): GameState {
   return { ...state, ended: "quit" };
 }
 
-/** Missed longs: common words on the filtered board, longest first. */
+/**
+ * Results tease: longest popular leftovers only (not full Words-left count).
+ * Floor ≥ max(5, minWordLength); longest first; capped for UI.
+ */
 export function missedLongWords(state: GameState, dict: Dictionary, limit = 8): string[] {
   const found = new Set(state.found);
   const floor = Math.max(5, state.config.minWordLength);
