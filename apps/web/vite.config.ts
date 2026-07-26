@@ -3,8 +3,8 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import posthogRollup from "@posthog/rollup-plugin";
 import {
   CANONICAL_URL,
   DEFAULT_TITLE,
@@ -26,7 +26,78 @@ const lucideIconsRoot = path.dirname(require.resolve("lucide-react/dist/esm/icon
 /** Personal API key + project id → upload source maps (Error tracking). Skip when unset. */
 const posthogPersonalKey = process.env.POSTHOG_PERSONAL_API_KEY;
 const posthogProjectId = process.env.POSTHOG_PROJECT_ID;
-const uploadPosthogSourcemaps = Boolean(posthogPersonalKey && posthogProjectId);
+const posthogEnvReady = Boolean(posthogPersonalKey && posthogProjectId);
+const posthogHost = process.env.POSTHOG_HOST ?? "https://us.i.posthog.com";
+
+/**
+ * Bun nests `@posthog/cli` where path auto-detect often misses `posthog-cli`.
+ * Resolve the Node entry ourselves.
+ */
+function resolvePosthogCliBinary(): string | null {
+  try {
+    return require.resolve("@posthog/cli/run-posthog-cli.js");
+  } catch {
+    try {
+      const pkg = path.dirname(require.resolve("@posthog/cli/package.json"));
+      return path.join(pkg, "run-posthog-cli.js");
+    } catch {
+      return null;
+    }
+  }
+}
+
+const posthogCliBinary = posthogEnvReady ? resolvePosthogCliBinary() : null;
+const uploadPosthogSourcemaps = posthogEnvReady && Boolean(posthogCliBinary);
+if (posthogEnvReady && !posthogCliBinary) {
+  console.warn(
+    "[vite] POSTHOG_* set but @posthog/cli not found — building without source map upload",
+  );
+}
+
+/**
+ * Soft-fail sourcemap upload — never take down a production deploy for analytics.
+ * Uses `posthog-cli --no-fail` so API/key errors exit 0; still catch spawn failures.
+ */
+function posthogSourcemapsPlugin(): Plugin | null {
+  if (!uploadPosthogSourcemaps || !posthogCliBinary) return null;
+  const cli = posthogCliBinary;
+  const apiKey = posthogPersonalKey!;
+  const projectId = posthogProjectId!;
+  return {
+    name: "couch-potato-posthog-sourcemaps",
+    apply: "build",
+    async closeBundle() {
+      const dist = path.resolve(__dirname, "dist");
+      await new Promise<void>((resolve) => {
+        const child = spawn(
+          process.execPath,
+          [cli, "--no-fail", "sourcemap", "process", "--directory", dist, "--delete-after"],
+          {
+            stdio: "inherit",
+            env: {
+              ...process.env,
+              POSTHOG_CLI_API_KEY: apiKey,
+              POSTHOG_CLI_PROJECT_ID: projectId,
+              POSTHOG_CLI_HOST: posthogHost,
+            },
+          },
+        );
+        child.on("error", (err) => {
+          console.warn("[vite] PostHog sourcemap upload failed to start:", err);
+          resolve();
+        });
+        child.on("exit", (code) => {
+          if (code != null && code !== 0) {
+            console.warn(
+              `[vite] PostHog sourcemap upload exited ${code} (deploy continues)`,
+            );
+          }
+          resolve();
+        });
+      });
+    },
+  };
+}
 
 function escapeAttr(value: string): string {
   return value
@@ -68,19 +139,7 @@ export default defineConfig(({ mode }) => ({
     /** Per-icon lucide imports — avoid Vite crawling the whole barrel (#1944). */
     lucideReactImportOptimizer(),
     react(),
-    ...(uploadPosthogSourcemaps
-      ? [
-          posthogRollup({
-            personalApiKey: posthogPersonalKey!,
-            projectId: posthogProjectId!,
-            host: process.env.POSTHOG_HOST ?? "https://us.i.posthog.com",
-            sourcemaps: {
-              enabled: true,
-              deleteAfterUpload: true,
-            },
-          }),
-        ]
-      : []),
+    posthogSourcemapsPlugin(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "apple-touch-icon.png", "robots.txt", "logo.png"],

@@ -34,7 +34,7 @@
     "workbox-window": "^7.4.1"
   },
   "devDependencies": {
-    "@posthog/rollup-plugin": "^1.4.7",
+    "@posthog/cli": "^0.7.34",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^4.3.4",

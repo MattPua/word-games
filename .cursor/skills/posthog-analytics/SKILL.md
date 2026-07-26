@@ -114,7 +114,7 @@ VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
 - Client key in local `apps/web/.env.local` + Vercel — never commit. `.env.example` keeps `phc_placeholder`.
-- **Source maps:** production `vite build` uploads when `POSTHOG_PERSONAL_API_KEY` + `POSTHOG_PROJECT_ID` are set (Vercel build env). Personal key ≠ project `phc_` token.
+- **Source maps:** production `vite build` uploads when `POSTHOG_PERSONAL_API_KEY` + `POSTHOG_PROJECT_ID` are set (Vercel build env). Personal key ≠ project `phc_` token. Soft custom Vite plugin shells `@posthog/cli` with `--no-fail` after bundle (Bun path + never brick deploys on analytics/API errors). If CLI can’t resolve, build continues without upload.
 
 ## Error tracking
 
