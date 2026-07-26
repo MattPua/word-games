@@ -43,7 +43,7 @@ const DialogContent = React.forwardRef<
       className={cn(
         // Phone: near-full width (tiny inset + safe-area). md+: capped centered modal.
         // Underscores = commas inside Tailwind arbitrary values.
-        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-max(0.5rem,env(safe-area-inset-left,_0px))-max(0.5rem,env(safe-area-inset-right,_0px)))] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-ui border-2 border-border bg-card p-5 shadow-lg duration-200 md:w-[min(100%-1.5rem,22rem)]",
+        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-max(8px,env(safe-area-inset-left,_0px))-max(8px,env(safe-area-inset-right,_0px)))] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-ui border-2 border-border bg-card p-5 shadow-lg duration-200 md:w-[min(100%-24px,480px)]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
         className,
       )}

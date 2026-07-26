@@ -92,7 +92,7 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
             {highs.length === 0 ? (
               <EmptyState
                 title="No bests carved yet"
-                body="Clear a goal or beat the clock and we'll keep the high water mark."
+                body="Clear a goal or nab a timed haul and we'll keep the high water mark."
                 className="py-2"
               />
             ) : (
@@ -127,25 +127,27 @@ export function PotatoBoard({ profile }: { profile: Profile }) {
                 className="py-2"
               />
             ) : (
-              recent.map((h) => (
-                <View
-                  key={h.id}
-                  className="mb-2 rounded-ui border-2 border-border bg-card px-3 py-2"
-                >
-                  <View className="flex-row items-center justify-between">
-                    <Text className="font-body text-sm font-bold text-foreground">
-                      {h.score} pts
-                      {h.isHighScore ? " ★" : ""}
-                    </Text>
+              <div className="cp-crew-recent-scroll">
+                {recent.map((h) => (
+                  <View
+                    key={h.id}
+                    className="mb-2 rounded-ui border-2 border-border bg-card px-3 py-2 last:mb-0"
+                  >
+                    <View className="flex-row items-center justify-between">
+                      <Text className="font-body text-sm font-bold text-foreground">
+                        {h.score} pts
+                        {h.isHighScore ? " ★" : ""}
+                      </Text>
+                      <Text className="font-body text-xs text-muted-foreground">
+                        {reasonLabel(h.reason)} · {formatWhen(h.at)}
+                      </Text>
+                    </View>
                     <Text className="font-body text-xs text-muted-foreground">
-                      {reasonLabel(h.reason)} · {formatWhen(h.at)}
+                      {historyLabel(h)} · {h.wordsFound} words
                     </Text>
                   </View>
-                  <Text className="font-body text-xs text-muted-foreground">
-                    {historyLabel(h)} · {h.wordsFound} words
-                  </Text>
-                </View>
-              ))
+                ))}
+              </div>
             )}
           </View>
         </div>

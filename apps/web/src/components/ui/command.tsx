@@ -26,7 +26,7 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
     <Dialog {...props}>
       <DialogContent
         showClose={false}
-        className="w-[min(100%-1.5rem,28rem)] overflow-hidden p-0"
+        className="w-[min(100%-24px,448px)] overflow-hidden p-0"
         aria-describedby={undefined}
       >
         <DialogTitle className="sr-only">Jump somewhere</DialogTitle>
@@ -115,7 +115,8 @@ const CommandItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-default select-none items-center gap-2 rounded-ui px-2 py-2 font-body text-sm outline-none",
-      "data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground",
+      "[&_svg]:text-muted-foreground",
+      "data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground data-[selected=true]:[&_svg]:text-primary-foreground",
       "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
       "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className,

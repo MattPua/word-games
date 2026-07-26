@@ -11,13 +11,13 @@ const buttonVariants = cva(
       variant: {
         // "Chunky toy" tier (offset shadow, see ui.mdc) doubles as the CTA tier — pixel display font for the label.
         default:
-          "font-display bg-primary text-primary-foreground shadow-[0_3px_0_0_color-mix(in_srgb,var(--primary)_70%,#2c322e)] hover:brightness-105 hover:-translate-y-0.5 hover:shadow-[0_5px_0_0_color-mix(in_srgb,var(--primary)_70%,#2c322e)] active:brightness-100 active:bg-[color-mix(in_srgb,var(--primary)_78%,var(--secondary))] active:shadow-[inset_0_2px_0_color-mix(in_srgb,var(--primary)_42%,#2c322e),0_1px_0_0_color-mix(in_srgb,var(--primary)_70%,#2c322e)]",
+          "font-display bg-primary text-primary-foreground shadow-[0_3px_0_0_color-mix(in_srgb,var(--primary)_70%,#2c322e)] hover:bg-[color-mix(in_srgb,var(--primary)_48%,var(--accent))] hover:-translate-y-0.5 hover:shadow-[0_5px_0_0_color-mix(in_srgb,var(--primary)_60%,#2c322e)] active:bg-[color-mix(in_srgb,var(--primary)_78%,#444a3c)] active:shadow-[inset_0_2px_0_color-mix(in_srgb,var(--primary)_42%,#2c322e),0_1px_0_0_color-mix(in_srgb,var(--primary)_70%,#2c322e)]",
         destructive:
           "font-display bg-destructive text-destructive-foreground shadow-[0_3px_0_0_color-mix(in_srgb,var(--destructive)_75%,#2c322e)] hover:brightness-105 hover:-translate-y-0.5 active:shadow-none",
         outline:
           "font-body border-2 border-border bg-card text-foreground shadow-sm hover:border-primary/50 hover:bg-accent/30 hover:-translate-y-0.5",
         secondary:
-          "font-display bg-secondary text-secondary-foreground shadow-[0_3px_0_0_color-mix(in_srgb,var(--secondary)_65%,#2c322e)] hover:brightness-105 hover:-translate-y-0.5 active:shadow-[0_1px_0_0_color-mix(in_srgb,var(--secondary)_65%,#2c322e)]",
+          "font-display border-2 border-[color-mix(in_srgb,var(--secondary)_40%,var(--border))] bg-[color-mix(in_srgb,var(--secondary)_42%,var(--card))] text-secondary-foreground shadow-[0_3px_0_0_color-mix(in_srgb,var(--secondary)_38%,#8a7040)] hover:bg-[color-mix(in_srgb,var(--secondary)_58%,var(--card))] hover:-translate-y-0.5 hover:shadow-[0_5px_0_0_color-mix(in_srgb,var(--secondary)_42%,#8a7040)] active:bg-[color-mix(in_srgb,var(--secondary)_50%,var(--card))] active:shadow-[0_1px_0_0_color-mix(in_srgb,var(--secondary)_38%,#8a7040)] dark:border-transparent dark:bg-secondary dark:shadow-[0_3px_0_0_color-mix(in_srgb,var(--secondary)_65%,#2c322e)] dark:hover:bg-[color-mix(in_srgb,var(--secondary)_85%,var(--card))] dark:hover:shadow-[0_5px_0_0_color-mix(in_srgb,var(--secondary)_55%,#2c322e)] dark:active:shadow-[0_1px_0_0_color-mix(in_srgb,var(--secondary)_65%,#2c322e)]",
         ghost:
           "font-body text-foreground hover:bg-muted/80 hover:text-foreground active:scale-[0.98]",
         link: "font-body text-primary underline-offset-4 hover:underline",

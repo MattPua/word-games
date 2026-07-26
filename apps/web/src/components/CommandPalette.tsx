@@ -188,7 +188,7 @@ export function CommandPalette() {
               value={`${j.label} ${j.keywords ?? ""}`}
               onSelect={() => runJump(j.to)}
             >
-              <j.Icon className="text-muted-foreground" />
+              <j.Icon />
               <span>{j.label}</span>
             </CommandItem>
           ))}
@@ -200,7 +200,7 @@ export function CommandPalette() {
               value={`${p.label} ${p.keywords}`}
               onSelect={() => runPref(p)}
             >
-              <p.Icon className="text-muted-foreground" />
+              <p.Icon />
               <span>{p.label}</span>
             </CommandItem>
           ))}

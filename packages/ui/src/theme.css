@@ -259,9 +259,12 @@
  *  - pinned `frame` (results win/quit): static, no animation here — the
  *    outer `.cp-logo-float` wrapper owns the bob so a pinned "idle" (quit)
  *    frame never gets the interactive mascot's periodic cheer nudge below.
- *  - `.cp-potato-sprite-lobby` (`lobbyYawn` — home brand): no float; every
- *    ~9s briefly steps to the bored atlas frame with a soft lean-back stretch
- *    (couch yawn). Respects `prefers-reduced-motion`.
+ *  - `.cp-potato-sprite-lobby` (`lobbyYawn` — home brand): **CSS-stepped atlas
+ *    poses** only — idle most of the time, snap to `bored` to doze/sleep on the
+ *    couch (same idea as portfolio `cartoon-cat` walk/sleepy faces: discrete
+ *    poses via CSS, not a GIF/video, not floating/bobbing a still PNG).
+ *    `steps(1)` so `background-position` never lerps through mid-sheet mush.
+ *    Respects `prefers-reduced-motion`.
  *  - `.cp-potato-sprite-interactive` (frame omitted — 404):
  *    idle bob (mirrors `cp-soft-float`) + an occasional brief cheer-frame
  *    nudge keep it alive without being busy; hover (or a tap via
@@ -325,41 +328,30 @@
   }
 }
 
-/* Lobby brand: no float — occasional bored-frame yawn + soft lean-back. */
-@keyframes cp-potato-lobby-yawn {
+/*
+ * Lobby sleep/doze — hard atlas frame cuts only (idle ↔ bored).
+ * No scale/rotate “moving picture” of a still; no GIF/video.
+ */
+@keyframes cp-potato-lobby-sleep {
   0%,
-  72%,
-  100% {
+  62% {
     background-position-x: 0%;
-    transform: scale(1) rotate(0deg);
   }
-  76% {
-    background-position-x: var(--cp-potato-bored-x);
-    transform: scale(1.03, 0.97) rotate(-2deg);
-  }
-  82% {
-    background-position-x: var(--cp-potato-bored-x);
-    transform: scale(1.05, 0.94) rotate(-3deg);
-  }
+  63%,
   88% {
     background-position-x: var(--cp-potato-bored-x);
-    transform: scale(1.02, 0.98) rotate(-1deg);
   }
-  92% {
+  89%,
+  100% {
     background-position-x: 0%;
-    transform: scale(1) rotate(0deg);
   }
-}
-
-.cp-potato-sprite-lobby {
-  transform-origin: 50% 80%;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .cp-potato-sprite-interactive {
     animation:
       cp-potato-sprite-idle 4.5s ease-in-out infinite,
-      cp-potato-sprite-nudge 7s ease-in-out infinite;
+      cp-potato-sprite-nudge 7s steps(1, end) infinite;
   }
 
   .cp-potato-sprite-interactive:hover,
@@ -369,7 +361,7 @@
   }
 
   .cp-potato-sprite-lobby {
-    animation: cp-potato-lobby-yawn 9s ease-in-out infinite;
+    animation: cp-potato-lobby-sleep 11s steps(1, end) infinite;
   }
 }
 

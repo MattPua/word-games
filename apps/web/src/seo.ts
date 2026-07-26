@@ -5,7 +5,7 @@ export const PRODUCT_NAME = "Couch Potato";
 export const DEFAULT_TITLE = "Couch Potato: swipe letters, find words";
 
 export const DESCRIPTION =
-  "Couch Potato is a casual word game: swipe adjacent letters on a grid, clear a goal or race the clock.";
+  "Couch Potato is a casual word game: swipe adjacent letters on a grid, clear a goal, sprint a timed haul, or keep survival fed.";
 
 /** OG / Twitter blurb (shorter than meta description). */
 export const OG_DESCRIPTION = "Swipe adjacent letters. Short sessions. No hints. Just couch vibes.";

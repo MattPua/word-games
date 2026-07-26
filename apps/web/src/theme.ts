@@ -26,7 +26,7 @@ let jerseyLoaded = false;
 function ensureJerseyFont() {
   if (jerseyLoaded) return;
   jerseyLoaded = true;
-  void import("@fontsource/jersey-15/400.css");
+  void import("@fontsource/jersey-15/latin-400.css");
 }
 
 export function applyFontPreference(pref: FontPreference) {
