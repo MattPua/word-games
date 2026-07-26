@@ -50,7 +50,7 @@ export type HomeSetupProps = {
   onDifficulty: (v: Difficulty) => void;
   onDuration: (v: Duration) => void;
   onBlockedWords: (v: string[]) => void;
-  /** Quiet Couch jam (BGM) nudge — lives under Customize, never above primary setup. */
+  /** Quiet background-music nudge — lives under Customize, never above primary setup. */
   jamInvite?: ReactNode;
 };
 

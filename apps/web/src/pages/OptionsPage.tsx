@@ -170,7 +170,7 @@ export function OptionsPage() {
                 ]}
               />
               <PrefChoiceGroup
-                label="Couch jam"
+                label="Background music"
                 value={jam}
                 onChange={setJamChoice}
                 data-testid="options-music"

@@ -1074,7 +1074,7 @@ export function PlayPage() {
               ]}
             />
             <PrefChoiceGroup
-              label="Couch jam"
+              label="Background music"
               value={menuMusic ? "on" : "off"}
               onChange={(v) => setMenuMusicOn(v === "on")}
               data-testid="pause-music"

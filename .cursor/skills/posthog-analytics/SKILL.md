@@ -68,7 +68,7 @@ captureError(err, { surface: "router_error" });
 | `last_results_opened` | Lobby haul icon or palette **Last haul** | `from`: `"lobby"` \| `"palette"` |
 | `medal_stage_up` | Each new stage from `recordFinishedRun` | `track_id`, `stage`, `milestone` |
 | `personal_best` | New high score for that key | `mode`, `grid`, `score` |
-| `lobby_jam_invite` | Soft invite **Cue the jam** / **Maybe later** | `action`: `"cue"` \| `"dismiss"` |
+| `lobby_jam_invite` | Soft invite **Turn on** / **Later** | `action`: `"cue"` \| `"dismiss"` |
 | `options_pref_changed` | Options / Couch break / command palette pref flip | `pref`, `value` (`look`, `type`, `words_left`, `sfx`, `lobby_jam`) |
 
 ### Quit / leave

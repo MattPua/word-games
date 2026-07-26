@@ -995,7 +995,7 @@
     box-shadow: none;
   }
 
-  /* Quiet Couch jam (BGM) nudge under Customize — muted panel, not a potato hero banner */
+  /* Quiet background-music nudge under Customize — muted panel, not a potato hero banner */
   .cp-lobby-jam-invite {
     border-radius: var(--radius);
     border: 2px solid var(--border);
@@ -1363,6 +1363,12 @@
       filter 160ms ease;
   }
 
+  .cp-icon-btn[aria-pressed="true"],
+  .cp-icon-btn[aria-current="page"] {
+    position: relative;
+    z-index: 1;
+  }
+
   .cp-icon-btn[aria-pressed="true"] {
     box-shadow:
       0 0 0 2px var(--background),
@@ -1630,7 +1636,10 @@
   /* Hover: fine-pointer only. Press squash always (touch + mouse). */
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .cp-icon-btn:hover:not(:disabled):not(:active) {
-      transform: translateY(-4px) scale(1.12) !important;
+      /* Lift without eating the neighbor — scale was 1.12 + gap-1 = clip. */
+      position: relative;
+      z-index: 2;
+      transform: translateY(-2px) scale(1.06) !important;
       filter: brightness(1.06);
     }
 

@@ -68,8 +68,8 @@ export type DevicePrefs = {
    */
   menuMusicEnabled: boolean;
   /**
-   * Soft Couch jam invite dismissed (or accepted). Default false → show once while jam is off.
-   * Options can still flip Couch jam anytime; invite does not reappear after dismiss.
+   * Soft background-music invite dismissed (or accepted). Default false → show once while jam is off.
+   * Options can still flip background music anytime; invite does not reappear after dismiss.
    */
   lobbyJamInviteDismissed: boolean;
   /** Unfound valid words on the board (not target points remaining). Default off = discovery. */
@@ -381,7 +381,7 @@ export function setMenuMusicEnabled(enabled: boolean) {
   saveStore(store);
 }
 
-/** Hide the Couch jam invite for good (after Cue the jam or Maybe later). */
+/** Hide the background-music invite for good (after Turn on or Later). */
 export function dismissLobbyJamInvite() {
   const store = loadStore();
   store.prefs.lobbyJamInviteDismissed = true;

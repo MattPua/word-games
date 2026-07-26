@@ -22,7 +22,7 @@ Boards are 4×4 / 5×5 / 6×6 on **Square** (8-way) or **Honeycomb** (hex). Spin
 
 First visit gets a short interactive coach (`/how-to` — **How to play in 30 seconds**); Skip or finish once, reopen anytime from Options (**View Tutorial**).
 
-Extras on the web build: local **Couch crew** profiles, **Potato Board** personal stats, **Couch medals** achievements, device **Options** (Look, Type Clean/Pixel, Words left, SFX, Couch jam), optional lobby **Ban list**, and a ⌘K / Ctrl+K command palette. Lobby setup is shareable via `/play` query params (e.g. `/play?mode=goal&grid=5&board=hex&diff=hard&min=4`).
+Extras on the web build: local **Couch crew** profiles, **Potato Board** personal stats, **Couch medals** achievements, device **Options** (Look, Type Clean/Pixel, Words left, SFX, Background music), optional lobby **Ban list**, and a ⌘K / Ctrl+K command palette. Lobby setup is shareable via `/play` query params (e.g. `/play?mode=goal&grid=5&board=hex&diff=hard&min=4`).
 
 ## Stack
 
@@ -76,12 +76,12 @@ Game-loop events (how-to, `game_started` / `game_completed`, replay, medals, pre
 
 Couch Potato is built to stay playable on slow (3G-class) links and after the first visit:
 
-- **Lean cold path** — lobby does not download the Play dictionary, Couch jam MP3, heavy medal marks, or PostHog unless needed.
+- **Lean cold path** — lobby does not download the Play dictionary, Background music MP3, heavy medal marks, or PostHog unless needed.
 - **Latin-only fonts** by default (Pixel type / Jersey loads on demand; Type pref flips display + body together).
 - **Service worker (production)** — precaches a small shell (~fonts + CSS + tiny brand marks). Route JS, sprites, audio, and the Play dictionary use **CacheFirst** after first use so offline lobby/play works once you’ve opened those screens online.
 - Profiles, scores, and medals stay in **localStorage** (no account / no sync).
 
-First open still needs a network; after that, revisit offline for screens you’ve already loaded. Couch jam only fetches when music is turned on. Play warms the dictionary on hover/focus/click — never idle-prefetch from the lobby.
+First open still needs a network; after that, revisit offline for screens you’ve already loaded. Background music only fetches when music is turned on. Play warms the dictionary on hover/focus/click — never idle-prefetch from the lobby.
 
 ## Deploy
 

@@ -96,7 +96,7 @@ const MODAL_JUMPS: ModalJump[] = [
   {
     id: "about",
     label: "About",
-    keywords: "credits made by matt github open source free twitter x yo_puaaa",
+    keywords: "credits feedback bug idea contact made by matt github open source free twitter x yo_puaaa issue",
     Icon: HeartHandshake,
     run: () => openAbout(),
   },
@@ -164,8 +164,8 @@ function prefActions(): PrefAction[] {
     },
     {
       id: "lobby-jam",
-      label: jamOn ? "Turn Couch jam off" : "Turn Couch jam on",
-      keywords: "couch jam lobby jam music bgm soundtrack background loop bed mute unmute audio",
+      label: jamOn ? "Turn background music off" : "Turn background music on",
+      keywords: "background music couch jam lobby jam music bgm soundtrack loop bed mute unmute audio",
       Icon: jamOn ? MusicOff : Music2,
       run: () => {
         const next = !jamOn;

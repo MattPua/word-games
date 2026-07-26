@@ -27,7 +27,7 @@ export function ChromeNav() {
 
   return (
     <div
-      className="flex shrink-0 flex-row items-center gap-1"
+      className="flex shrink-0 flex-row items-center gap-2"
       role="navigation"
       aria-label="Main menu"
     >

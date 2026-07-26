@@ -51,7 +51,7 @@ test.describe("Options choice cards", () => {
     await expect(wordsTarget).toHaveClass(/cp-lobby-challenge-active/);
   });
 
-  test("desktop menu fills; Couch jam + Back to lobby stay in view", async ({ page }) => {
+  test("desktop menu fills; Background music + Back to lobby stay in view", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(`${BASE}/options`);
     const cluster = page.getByTestId("options-prefs");

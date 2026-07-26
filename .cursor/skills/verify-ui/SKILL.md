@@ -35,7 +35,7 @@ Before shipping any **chrome page** (lobby, Couch crew, Results, Achievements / 
 1. **Desktop real estate** — widens + multi-col (see `.cursor/rules/ui.mdc`), not a lonely `max-w-md` stick with huge side margins.
 2. **No full-bleed CTAs** — Back to lobby / Play again / primary actions hug content (`.cp-chrome-cta`), not stretch across the wide shell.
 3. **No huge empty tops** — content starts under Shell safe-area padding; no accidental `min-h-full` + `justify-center` on short chrome.
-4. **Options** specifically: prefs grid fills the wide shell; Couch jam + Back to lobby visible without scroll on a typical desktop height (~800px).
+4. **Options** specifically: prefs grid fills the wide shell; Background music + Back to lobby visible without scroll on a typical desktop height (~800px).
 
 ## Layout bugs (clipping, overflow, sticky footers, safe-area)
 
