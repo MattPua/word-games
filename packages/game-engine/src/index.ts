@@ -3,6 +3,7 @@ export {
   MIN_WORD_LENGTH_OPTIONS,
   scoreWord,
   TARGET_RATIOS,
+  TARGET_CAPS,
   TIMED_DURATIONS,
   SURVIVAL_START_SECONDS,
   SURVIVAL_SECONDS_PER_POINT,
@@ -35,7 +36,7 @@ export {
 export { rotateLettersCW, rotateBoard } from "./rotate";
 
 export { createSeededRng, pickWeighted, type Rng } from "./rng";
-export { findAllWords } from "./findWords";
+export { findAllWords, findPathForWord } from "./findWords";
 export { generateBoard, buildBoard, type Board, type GenerateOptions } from "./generate";
 export {
   createGame,

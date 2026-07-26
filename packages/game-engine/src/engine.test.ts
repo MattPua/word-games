@@ -4,12 +4,13 @@ import {
   GEN_RETRY_CAP,
   SURVIVAL_START_SECONDS,
   TARGET_RATIOS,
+  TARGET_CAPS,
   computeTargets,
   letterMixWeights,
   scoreWord,
   survivalBonusSeconds,
 } from "./config";
-import { findAllWords } from "./findWords";
+import { findAllWords, findPathForWord } from "./findWords";
 import { buildBoard, generateBoard } from "./generate";
 import { createGame, highScoreKey, quitGame, submitPath, tickTimer } from "./game";
 import { isValidPath, wordFromPath } from "./path";
@@ -324,6 +325,13 @@ describe("long words (no max length)", () => {
     expect(found.some((w) => w.length >= 7)).toBe(true);
   });
 
+  it("findPathForWord returns a valid path that spells the word", () => {
+    const path = findPathForWord(kitchenLetters, "KITCHEN", "square");
+    expect(path).toEqual(kitchenPath);
+    expect(wordFromPath(kitchenLetters, path!)).toBe("kitchen");
+    expect(findPathForWord(kitchenLetters, "nope", "square")).toBeNull();
+  });
+
   it("accepts a 7-letter word on a supporting board", () => {
     const dict = createDictionary(["kitchen", "kit"], ["kitchen", "kit"]);
     const board = buildBoard(kitchenLetters, dict, 3, "square");
@@ -358,7 +366,7 @@ describe("long words (no max length)", () => {
     for (const w of long) {
       expect(board.allWords).toContain(w);
     }
-    // Seed 2 yields 7+ on 5×5 with the real popular lexicon.
+    // Seed 2 yields 7+ on 5×5 with the real ENABLE lexicon.
     const withLong = generateBoard({ size: 5, dict, topology: "square", seed: 2 });
     expect(withLong.allWords.some((w) => w.length >= 7)).toBe(true);
   });
@@ -392,7 +400,8 @@ describe("computeTargets", () => {
   });
 
   it("applies TARGET_RATIOS ladder (easy < medium < hard)", () => {
-    // maxScore high enough that HARD_TARGET_FLOOR does not distort hard
+    // maxScore high enough that HARD_TARGET_FLOOR does not distort hard,
+    // but still under TARGET_CAPS so ratios show through.
     const maxScore = 100;
     const t = computeTargets(maxScore);
     expect(t.easy).toBe(Math.ceil(maxScore * TARGET_RATIOS.easy));
@@ -401,11 +410,23 @@ describe("computeTargets", () => {
     expect(t.easy).toBeLessThan(t.medium);
     expect(t.medium).toBeLessThan(t.hard);
     expect(t.hard).toBeLessThan(maxScore);
-    // Short-first word p50/p75/p80 → pts ≈ 0.30/0.60/0.65 (not raw max percentiles)
+    // Short-first word p50/~p58/p80 → pts ≈ 0.30/0.40/0.65 (not raw max percentiles)
     expect(TARGET_RATIOS.easy).toBe(0.3);
-    expect(TARGET_RATIOS.medium).toBe(0.6);
+    expect(TARGET_RATIOS.medium).toBe(0.4);
     expect(TARGET_RATIOS.hard).toBe(0.65);
     expect(TARGET_RATIOS.hard).toBeLessThan(0.75);
+  });
+
+  it("caps targets on crumb-dense boards so Goal pts stay casual", () => {
+    const maxScore = 300; // typical fat 5×5 / 6×6 from short crumbs
+    const t = computeTargets(maxScore);
+    expect(t.easy).toBe(TARGET_CAPS.easy);
+    expect(t.medium).toBe(TARGET_CAPS.medium);
+    expect(t.hard).toBe(TARGET_CAPS.hard);
+    expect(t.easy).toBeLessThan(t.medium);
+    expect(t.medium).toBeLessThan(t.hard);
+    // Uncapped ratio would be intimidating (e.g. med 120) — caps bite.
+    expect(Math.ceil(maxScore * TARGET_RATIOS.medium)).toBeGreaterThan(TARGET_CAPS.medium);
   });
 });
 
@@ -547,19 +568,20 @@ describe("game", () => {
 });
 
 describe("generateBoard", () => {
-  it("excludes obscure enable1-only words from allWords", () => {
-    // Board spells AALII (obscure) and CAT (popular) — only CAT counts.
+  it("includes ENABLE words in allWords (not popular-only)", () => {
+    // Board spells DETER (ENABLE, not popular) and CAT (popular).
     const letters = [
-      ["A", "A", "L", "I"],
-      ["I", "C", "A", "T"],
-      ["X", "X", "X", "X"],
+      ["D", "E", "T", "X"],
+      ["R", "E", "C", "A"],
+      ["X", "X", "X", "T"],
       ["X", "X", "X", "X"],
     ];
-    const dict = createDictionary(["aalii", "cat", "act", "ail"], ["cat", "act"]);
+    const dict = createDictionary(["deter", "cat", "act", "tea"], ["cat", "act", "tea"]);
     const board = buildBoard(letters, dict, 3);
-    expect(board.allWords).not.toContain("aalii");
-    expect(board.allWords.every((w) => dict.isPopular(w))).toBe(true);
-    expect(dict.has("aalii")).toBe(false);
+    expect(board.allWords).toContain("deter");
+    expect(board.allWords).toContain("cat");
+    expect(dict.has("deter")).toBe(true);
+    expect(dict.isPopular("deter")).toBe(false);
     expect(dict.has("cat")).toBe(true);
   });
 
@@ -724,6 +746,48 @@ describe("generateBoard", () => {
       }
     },
     30_000,
+  );
+
+  it(
+    "asks larger grids for more long words while keeping a short-word base",
+    () => {
+      const dict = createDictionary();
+      const cases = [
+        { size: 5 as const, topology: "square" as const, seed: 11, minGe6: 5, minGe5: 12 },
+        { size: 6 as const, topology: "square" as const, seed: 13, minGe6: 10, minGe5: 24 },
+        { size: 5 as const, topology: "hex" as const, seed: 17, minGe6: 2, minGe5: 6 },
+        { size: 6 as const, topology: "hex" as const, seed: 19, minGe6: 5, minGe5: 12 },
+      ];
+      for (const { size, topology, seed, minGe6, minGe5 } of cases) {
+        const board = generateBoard({ size, dict, topology, seed });
+        const ge5 = board.allWords.filter((w) => w.length >= 5).length;
+        const ge6 = board.allWords.filter((w) => w.length >= 6).length;
+        const ge3 = board.allWords.filter((w) => w.length >= 3).length;
+        expect(ge6, `${topology} ${size} ge6`).toBeGreaterThanOrEqual(minGe6);
+        expect(ge5, `${topology} ${size} ge5`).toBeGreaterThanOrEqual(minGe5);
+        // Short crumbs still present (not a long-only board).
+        expect(ge3, `${topology} ${size} ge3`).toBeGreaterThan(ge6);
+      }
+    },
+    60_000,
+  );
+
+  it(
+    "lands 8+ and often 10+ letter words on big square grids when possible",
+    () => {
+      const dict = createDictionary();
+      let saw8 = 0;
+      let saw10 = 0;
+      for (let seed = 1; seed <= 24; seed++) {
+        const board = generateBoard({ size: 6, dict, topology: "square", seed });
+        if (board.allWords.some((w) => w.length >= 8)) saw8++;
+        if (board.allWords.some((w) => w.length >= 10)) saw10++;
+      }
+      // Soft floors + ranking should clear 8+ often; 10+ at least sometimes.
+      expect(saw8).toBeGreaterThanOrEqual(10);
+      expect(saw10).toBeGreaterThanOrEqual(1);
+    },
+    90_000,
   );
 
   it("falls back without a ≥6 word when the lexicon cannot provide one", () => {

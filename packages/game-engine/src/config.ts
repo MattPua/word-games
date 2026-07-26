@@ -15,20 +15,32 @@ export function scoreWord(length: number): number {
 }
 
 /**
- * Goal targets as a fraction of board `maxScore` (points, not word count).
+ * Goal targets as a fraction of board `maxScore` (points, not word count),
+ * then **capped** so crumb-dense boards don’t demand triple-digit clears.
  *
- * Challenge ladder ≈ short-first word-coverage percentiles (Easy p50 / Med p75 /
+ * Challenge ladder ≈ short-first word-coverage percentiles (Easy p50 / Med ~p58 /
  * Hard p80): 3-letter words are 1pt, so pts% ≪ word% under casual short-first
  * play. Monte Carlo over gen boards (~40× 4×4/5×5 square + 5×5 hex): clearing
- * 50/75/80% of words short-first yields ~0.31/0.58/0.65 of maxScore — hence
- * 0.30/0.60/0.65, not literal 0.50/0.75/0.80 of max (those force ~68/88/91%
- * word finds and feel near board-clear). Med stays below Hard; Hard well under
- * full clear.
+ * 50/75/80% of words short-first yields ~0.31/0.58/0.65 of maxScore. We ship
+ * ratios **0.30 / 0.40 / 0.65**, then clamp with `TARGET_CAPS` — dense 5×5/6×6
+ * boards can have maxScore 200–300+ from short crumbs; without a cap, Med still
+ * shows ~100+ “pts left” even when only a fraction of words is needed. Caps keep
+ * Easy < Med < Hard. Scoring stays `length − 2`.
  */
 export const TARGET_RATIOS = {
   easy: 0.3,
-  medium: 0.6,
+  medium: 0.4,
   hard: 0.65,
+} as const;
+
+/**
+ * Absolute Goal target ceilings (points). Applied after ratio × maxScore.
+ * Tune here when dense boards feel intimidating despite a low ratio.
+ */
+export const TARGET_CAPS = {
+  easy: 48,
+  medium: 75,
+  hard: 105,
 } as const;
 
 export type Difficulty = keyof typeof TARGET_RATIOS;
@@ -74,42 +86,52 @@ export type GridSize = (typeof GRID_SIZES)[number];
 
 /**
  * Gen quality floors: count of board words with length ≥ N.
- * Not a max word length — 7+/8+/… still score and count toward `total`.
+ * Not a max word length — 7+/8+/10+/… still score and count toward `total`.
  */
 export type WordCountThresholds = {
   ge3: number;
   ge4: number;
   ge5: number;
   ge6: number;
+  /** Soft floors — may scale to 0 on late retries (unlike ge6’s ≥1 keep). */
+  ge7: number;
+  ge8: number;
+  /** Prefer a 10+ haul on big grids when the lexicon + paths allow. */
+  ge10: number;
   total: number;
 };
 
 /**
  * Min-word thresholds by topology + grid size (default min length 3).
  * Hex is leaner — 6 neighbors vs 8 → fewer paths.
- * `ge6` = want enough words of length ≥ 6 (not “cap at 6”).
- * Every size asks for ≥1 word ≥6 (ideally a 6–7 for challenge); gen keeps that
- * floor under retry scale and prefers it in best-effort fallback when possible.
+ * `ge5`/`ge6`/`ge7`/`ge8`/`ge10` = want enough mid/long words (not a ceiling).
+ * Larger grids ask for more long finds while `ge3`/`total` still require a
+ * short-word base. Every size keeps `ge6 ≥ 1`; retry scale never drops that
+ * floor below 1. `ge7+` / `ge10` are soft (may loosen to 0); fallback ranking
+ * still heavily prefers boards that land 8–10 letter words when possible.
  */
 export const BOARD_THRESHOLDS: Record<GridTopology, Record<GridSize, WordCountThresholds>> = {
   square: {
-    4: { ge3: 40, ge4: 15, ge5: 4, ge6: 1, total: 50 },
-    5: { ge3: 80, ge4: 35, ge5: 12, ge6: 4, total: 100 },
-    6: { ge3: 140, ge4: 60, ge5: 25, ge6: 10, total: 180 },
+    4: { ge3: 40, ge4: 15, ge5: 4, ge6: 1, ge7: 0, ge8: 0, ge10: 0, total: 50 },
+    5: { ge3: 80, ge4: 40, ge5: 18, ge6: 8, ge7: 2, ge8: 1, ge10: 0, total: 100 },
+    6: { ge3: 140, ge4: 72, ge5: 38, ge6: 18, ge7: 4, ge8: 2, ge10: 1, total: 180 },
   },
   hex: {
-    4: { ge3: 25, ge4: 9, ge5: 2, ge6: 1, total: 30 },
-    5: { ge3: 50, ge4: 20, ge5: 6, ge6: 2, total: 60 },
-    6: { ge3: 90, ge4: 38, ge5: 14, ge6: 5, total: 110 },
+    4: { ge3: 25, ge4: 9, ge5: 2, ge6: 1, ge7: 0, ge8: 0, ge10: 0, total: 30 },
+    5: { ge3: 50, ge4: 24, ge5: 10, ge6: 4, ge7: 1, ge8: 0, ge10: 0, total: 60 },
+    6: { ge3: 90, ge4: 48, ge5: 22, ge6: 9, ge7: 2, ge8: 1, ge10: 0, total: 110 },
   },
 };
 
 export const HARD_TARGET_FLOOR = 15;
-export const GEN_RETRY_CAP = 80;
+/** Extra attempts help rare 8+/10+ paths clear soft long-word floors on big grids. */
+export const GEN_RETRY_CAP = 100;
 
 /**
  * Targets from maxScore of words ≥ active min length.
  * Never exceeds maxScore (Hard floor clamps down when board is lean).
+ * Dense boards: ratio result is also capped by `TARGET_CAPS` so Goal “pts left”
+ * stays psychologically casual (not a direct stand-in for word count).
  */
 export function computeTargets(maxScore: number): {
   easy: number;
@@ -118,9 +140,14 @@ export function computeTargets(maxScore: number): {
 } {
   const clamp = (n: number) => Math.min(maxScore, Math.max(0, n));
   return {
-    easy: clamp(Math.ceil(maxScore * TARGET_RATIOS.easy)),
-    medium: clamp(Math.ceil(maxScore * TARGET_RATIOS.medium)),
-    hard: clamp(Math.max(HARD_TARGET_FLOOR, Math.ceil(maxScore * TARGET_RATIOS.hard))),
+    easy: clamp(Math.min(TARGET_CAPS.easy, Math.ceil(maxScore * TARGET_RATIOS.easy))),
+    medium: clamp(Math.min(TARGET_CAPS.medium, Math.ceil(maxScore * TARGET_RATIOS.medium))),
+    hard: clamp(
+      Math.min(
+        TARGET_CAPS.hard,
+        Math.max(HARD_TARGET_FLOOR, Math.ceil(maxScore * TARGET_RATIOS.hard)),
+      ),
+    ),
   };
 }
 
@@ -134,6 +161,9 @@ export function thresholdsForMinLength(
     ge4: minWordLength <= 4 ? base.ge4 : 0,
     ge5: minWordLength <= 5 ? base.ge5 : 0,
     ge6: base.ge6,
+    ge7: base.ge7,
+    ge8: base.ge8,
+    ge10: base.ge10,
     // Fewer short words allowed → leaner total expectation
     total: Math.max(
       1,

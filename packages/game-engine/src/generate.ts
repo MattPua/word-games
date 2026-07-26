@@ -33,15 +33,21 @@ function countByLength(words: string[]): WordCountThresholds {
   let ge3 = 0,
     ge4 = 0,
     ge5 = 0,
-    ge6 = 0;
+    ge6 = 0,
+    ge7 = 0,
+    ge8 = 0,
+    ge10 = 0;
   for (const w of words) {
     const n = w.length;
     if (n >= 3) ge3++;
     if (n >= 4) ge4++;
     if (n >= 5) ge5++;
     if (n >= 6) ge6++;
+    if (n >= 7) ge7++;
+    if (n >= 8) ge8++;
+    if (n >= 10) ge10++;
   }
-  return { ge3, ge4, ge5, ge6, total: words.length };
+  return { ge3, ge4, ge5, ge6, ge7, ge8, ge10, total: words.length };
 }
 
 /** Scaled floor for a threshold. `ge6` never drops below 1 when the table asks for ≥1. */
@@ -57,6 +63,10 @@ function meetsThresholds(counts: WordCountThresholds, t: WordCountThresholds, sc
     counts.ge4 >= scaledNeed(t.ge4, scale, false) &&
     counts.ge5 >= scaledNeed(t.ge5, scale, false) &&
     counts.ge6 >= scaledNeed(t.ge6, scale, true) &&
+    // Soft long floors — OK to loosen fully on late retries.
+    counts.ge7 >= scaledNeed(t.ge7, scale, false) &&
+    counts.ge8 >= scaledNeed(t.ge8, scale, false) &&
+    counts.ge10 >= scaledNeed(t.ge10, scale, false) &&
     counts.total >= scaledNeed(t.total, scale, false)
   );
 }
@@ -91,7 +101,7 @@ export function buildBoard(
   topology: GridTopology = "square",
 ): Board {
   const size = letters.length as GridSize;
-  // allWords = popular-only (via findAllWords) ≥ minWordLength
+  // allWords = ENABLE play lexicon (via findAllWords) ≥ minWordLength
   const allWords = findAllWords(letters, dict, topology).filter((w) => w.length >= minWordLength);
   const maxScore = allWords.reduce((s, w) => s + scoreWord(w.length), 0);
   const targets = computeTargets(maxScore);
@@ -137,14 +147,20 @@ export function generateBoard(opts: GenerateOptions): Board {
     const letters = randomBoard(opts.size, rng, difficulty);
     const board = buildBoard(letters, opts.dict, minWordLength, topology);
     const counts = countByLength(board.allWords);
-    // allWords is popular-only; ratio stays as a sanity signal for gen quality
+    // Prefer boards with more everyday (popular) words among ENABLE finds.
     const popular = popularRatio(board.allWords, opts.dict);
     const hardOk = board.targets.hard <= board.maxScore && board.maxScore > 0;
     const floorOk = board.maxScore >= HARD_TARGET_FLOOR || minWordLength > 3;
-    // Prefer ≥1 word of length ≥6 (6–7 challenge) when picking best-effort fallback.
-    const longWordBonus = counts.ge6 > 0 ? 50 : 0;
+    // Prefer meatier hauls when picking best-effort fallback — weight rare
+    // 8+/10+ finds hard so boards that can land them win the ranking.
+    const longWordBonus =
+      counts.ge5 * 2 +
+      counts.ge6 * 8 +
+      counts.ge7 * 20 +
+      counts.ge8 * 45 +
+      counts.ge10 * 120;
     const quality =
-      board.allWords.length * 0.5 + popular * 100 + (hardOk && floorOk ? 20 : 0) + longWordBonus;
+      board.allWords.length * 0.4 + popular * 100 + (hardOk && floorOk ? 20 : 0) + longWordBonus;
 
     if (quality > bestScore) {
       bestScore = quality;
@@ -152,12 +168,7 @@ export function generateBoard(opts: GenerateOptions): Board {
     }
 
     const scale = attempt < cap / 2 ? 1 : 0.75;
-    if (
-      hardOk &&
-      meetsThresholds(counts, thresholds, scale) &&
-      (floorOk || attempt > cap * 0.6) &&
-      popular >= 0.99
-    ) {
+    if (hardOk && meetsThresholds(counts, thresholds, scale) && (floorOk || attempt > cap * 0.6)) {
       return board;
     }
   }
