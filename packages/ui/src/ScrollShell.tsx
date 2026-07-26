@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import type { ReactNode } from "react";
-import { Shell } from "@couch-potato/ui";
+import { Shell } from "./Shell";
 
 /**
  * Full-width viewport scroll with narrow (or widened `cp-shell-*`) content

@@ -20,9 +20,11 @@ import { MusicOff } from "@/icons/MusicOff";
 import {
   ConfettiBurst,
   LetterGrid,
+  PrefChoiceGroup,
   ProgressBar,
   ScoreBubble,
   Shell,
+  TimerRing,
   type Cell,
 } from "@couch-potato/ui";
 import { dictionaryWithoutWords, getDictionary } from "@couch-potato/dictionary";
@@ -38,8 +40,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { IconTooltip } from "@/components/ui/tooltip";
-import { PrefChoiceGroup } from "@/components/PrefChoiceGroup";
-import { TimerRing } from "@/components/TimerRing";
 import {
   createGame,
   generateBoard,

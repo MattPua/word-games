@@ -1,9 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
-import { EmptyState, PotatoSprite } from "@couch-potato/ui";
+import { BrandHeader, EmptyState, PotatoSprite, ScrollShell } from "@couch-potato/ui";
 import { Sofa } from "lucide-react";
-import { BrandHeader } from "@/components/BrandHeader";
 import { Button } from "@/components/ui/button";
-import { ScrollShell } from "@/components/ScrollShell";
 
 /** Unknown route — potato took a wrong turn off the couch. */
 export function NotFoundPage() {

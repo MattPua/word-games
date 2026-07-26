@@ -26,11 +26,16 @@
     "optimize-sprites": "bun ./scripts/optimize-sprites.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
+  "dependencies": {
+    "@couch-potato/game-engine": "workspace:*"
+  },
   "devDependencies": {
     "@types/react": "catalog:",
+    "lucide-react": "^1.26.0",
     "typescript": "catalog:"
   },
   "peerDependencies": {
+    "lucide-react": "*",
     "react": "*",
     "react-native": "*"
   }

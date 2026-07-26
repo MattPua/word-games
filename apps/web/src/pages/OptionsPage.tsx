@@ -12,7 +12,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { LogoOptions } from "@couch-potato/ui";
+import { BrandHeader, LogoOptions, PrefChoiceGroup, ScrollShell } from "@couch-potato/ui";
 import { setEnabled } from "cuelume";
 import {
   loadDevicePrefs,
@@ -24,11 +24,8 @@ import {
 } from "../storage";
 import { applyMenuMusicEnabled } from "../menuMusic";
 import { applyFontPreference, applyTheme, resolveTheme } from "../theme";
-import { BrandHeader } from "@/components/BrandHeader";
 import { Button } from "@/components/ui/button";
 import { ChromeNav } from "@/components/ChromeNav";
-import { PrefChoiceGroup } from "@/components/PrefChoiceGroup";
-import { ScrollShell } from "@/components/ScrollShell";
 import { MusicOff } from "@/icons/MusicOff";
 
 /** Device prefs — choice cards; widens + multi-col on desktop like other chrome. */

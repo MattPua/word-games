@@ -11,6 +11,12 @@ import { PotatoSprite } from "./PotatoSprite";
 import { LoadingPotato } from "./LoadingPotato";
 import { EmptyState } from "./EmptyState";
 import { ConfettiBurst } from "./ConfettiBurst";
+import { BrandHeader } from "./BrandHeader";
+import { PrefChoiceGroup } from "./PrefChoiceGroup";
+import { ScrollShell } from "./ScrollShell";
+import { TimerRing } from "./TimerRing";
+import { WordGroups } from "./WordGroups";
+import { cn } from "./cn";
 import { HEX_CLIP, hexAspect, hexRowStyle } from "./hexLayout";
 
 export {
@@ -27,10 +33,20 @@ export {
   LoadingPotato,
   EmptyState,
   ConfettiBurst,
+  BrandHeader,
+  PrefChoiceGroup,
+  ScrollShell,
+  TimerRing,
+  WordGroups,
+  cn,
   applyPathCell,
   HEX_CLIP,
   hexAspect,
   hexRowStyle,
 };
 export type { Cell };
+export type { BrandHeaderProps } from "./BrandHeader";
+export type { PrefChoiceOption } from "./PrefChoiceGroup";
+export type { TimerRingProps } from "./TimerRing";
+export type { WordGroupsVariant } from "./WordGroups";
 export type { MedalsCategoryFrame, PotatoSpriteFrame } from "./spriteAtlas";

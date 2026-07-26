@@ -89,11 +89,16 @@
     "packages/ui": {
       "name": "@couch-potato/ui",
       "version": "0.0.1",
+      "dependencies": {
+        "@couch-potato/game-engine": "workspace:*",
+      },
       "devDependencies": {
         "@types/react": "catalog:",
+        "lucide-react": "^1.26.0",
         "typescript": "catalog:",
       },
       "peerDependencies": {
+        "lucide-react": "*",
         "react": "*",
         "react-native": "*",
       },

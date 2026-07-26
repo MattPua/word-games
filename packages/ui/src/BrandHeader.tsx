@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Logo } from "@couch-potato/ui";
-import { cn } from "@/lib/utils";
+import { Logo } from "./Logo";
+import { cn } from "./cn";
 
 export type BrandHeaderProps = {
   /** Mascot mark — default chill `Logo`. Page-specific poses welcome (Options gear, medals, etc.). */

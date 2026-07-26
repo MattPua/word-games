@@ -1,14 +1,17 @@
 import { Text, View } from "react-native";
 import { useNavigate } from "@tanstack/react-router";
 import { Sofa } from "lucide-react";
-import { MedalsCategorySprite, type MedalsCategoryFrame } from "@couch-potato/ui";
+import {
+  BrandHeader,
+  MedalsCategorySprite,
+  ScrollShell,
+  type MedalsCategoryFrame,
+} from "@couch-potato/ui";
 import { allTrackProgress, withGamesPlayed, type TrackId } from "../achievements";
 import { getActiveProfile } from "../storage";
 import { AchievementTrackRow } from "@/components/achievementUi";
-import { BrandHeader } from "@/components/BrandHeader";
 import { Button } from "@/components/ui/button";
 import { ChromeNav } from "@/components/ChromeNav";
-import { ScrollShell } from "@/components/ScrollShell";
 
 const SECTIONS: {
   title: string;

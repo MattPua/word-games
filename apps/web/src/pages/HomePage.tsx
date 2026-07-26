@@ -1,4 +1,4 @@
-import { PotatoSprite, Shell } from "@couch-potato/ui";
+import { BrandHeader, PotatoSprite, Shell } from "@couch-potato/ui";
 import {
   getActiveProfile,
   loadDevicePrefs,
@@ -11,7 +11,6 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { track } from "../analytics";
-import { BrandHeader } from "@/components/BrandHeader";
 import { ChromeNav } from "@/components/ChromeNav";
 import { HomePlayBar, HomeSetup } from "@/components/HomeSetup";
 import { prefetchPlayPage } from "../playPrefetch";

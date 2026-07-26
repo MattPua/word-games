@@ -3,11 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown, CirclePlay, Sofa, Sparkles } from "lucide-react";
 import {
+  BrandHeader,
   ConfettiBurst,
   EmptyState,
   LetterGrid,
   Logo,
   LogoCelebrate,
+  ScrollShell,
+  WordGroups,
   type Cell,
 } from "@couch-potato/ui";
 import {
@@ -16,11 +19,8 @@ import {
   type GridTopology,
 } from "@couch-potato/game-engine";
 import { loadLastRun, saveLaunch, type PlayLaunch } from "../storage";
-import { BrandHeader } from "@/components/BrandHeader";
 import { Button } from "@/components/ui/button";
-import { WordGroups } from "../components/WordGroups";
 import { ResultsMedals } from "../components/ResultsMedals";
-import { ScrollShell } from "../components/ScrollShell";
 import { formatRunMeta } from "../runMeta";
 import { playSearchFromLaunch } from "../playLaunchSearch";
 

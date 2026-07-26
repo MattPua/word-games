@@ -14,7 +14,7 @@ export type ShellProps = ViewProps & {
  * Long pages that scroll Shell itself: `overflow-y-auto cp-shell-scroll`
  * (gutter in `theme.css`). Full-width viewport scroll with the scrollbar at
  * the true edge (not mid-column once widened): `ScrollShell` in web
- * `apps/web/src/components/ScrollShell.tsx` (used by Results, Couch crew).
+ * `ScrollShell` in this package (used by Results, Couch crew).
  */
 export function Shell({ className = "", children, ...rest }: ShellProps) {
   return (

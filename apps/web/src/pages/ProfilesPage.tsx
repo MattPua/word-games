@@ -2,9 +2,8 @@ import { Text, View } from "react-native";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Check, ChevronRight, Medal, Pencil, Sofa, UserPlus, UserRound } from "lucide-react";
-import { EmptyState, Logo } from "@couch-potato/ui";
+import { BrandHeader, EmptyState, Logo, ScrollShell } from "@couch-potato/ui";
 import { PotatoBoard } from "../components/PotatoBoard";
-import { ScrollShell } from "../components/ScrollShell";
 import { allTrackProgress, withGamesPlayed } from "../achievements";
 import {
   createProfile,
@@ -14,7 +13,6 @@ import {
   setActiveProfile,
 } from "../storage";
 import { cn } from "@/lib/utils";
-import { BrandHeader } from "@/components/BrandHeader";
 import { Button } from "@/components/ui/button";
 import { ChromeNav } from "@/components/ChromeNav";
 import { Input } from "@/components/ui/input";

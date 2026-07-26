@@ -1,11 +1,11 @@
-import { cn } from "@/lib/utils";
+import { cn } from "./cn";
 
 const SIZE = 44;
 const STROKE = 3.5;
 const R = (SIZE - STROKE) / 2;
 const C = 2 * Math.PI * R;
 
-type TimerRingProps = {
+export type TimerRingProps = {
   /** Milliseconds left on the clock. */
   remainingMs: number;
   /** Full-ring baseline (timed sprint length, or survival budget so far). */
@@ -28,8 +28,7 @@ export function TimerRing({
   className,
 }: TimerRingProps) {
   const secs = Math.max(0, Math.ceil(remainingMs / 1000));
-  const progress =
-    totalMs > 0 ? Math.max(0, Math.min(1, remainingMs / totalMs)) : 0;
+  const progress = totalMs > 0 ? Math.max(0, Math.min(1, remainingMs / totalMs)) : 0;
   const offset = C * (1 - progress);
 
   return (

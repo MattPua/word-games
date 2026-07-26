@@ -1,9 +1,7 @@
 import { Text } from "react-native";
 import { useNavigate, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
-import { EmptyState, PotatoSprite } from "@couch-potato/ui";
-import { BrandHeader } from "@/components/BrandHeader";
+import { BrandHeader, EmptyState, PotatoSprite, ScrollShell } from "@couch-potato/ui";
 import { Button } from "@/components/ui/button";
-import { ScrollShell } from "@/components/ScrollShell";
 
 /** Unexpected failure — potato spilled the snacks. */
 export function ErrorPage({ error, reset }: ErrorComponentProps) {
