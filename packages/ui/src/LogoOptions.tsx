@@ -7,7 +7,7 @@ export type LogoOptionsProps = Omit<ImageProps, "source"> & {
 /**
  * Options header mascot — potato on couch holding a gear (device prefs).
  * Web serves `apps/web/public/logo-options.webp` (from
- * `packages/ui/src/logo-options.png` via optimize-sprites) — see AGENTS.md Brand / potato-sprites.
+ * `packages/ui/src/assets/logo-options.png` via optimize-sprites) — see AGENTS.md Brand / potato-sprites.
  */
 export function LogoOptions({ size = 96, style, ...rest }: LogoOptionsProps) {
   return (

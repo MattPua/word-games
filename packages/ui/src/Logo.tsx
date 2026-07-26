@@ -6,7 +6,7 @@ export type LogoProps = Omit<ImageProps, "source"> & {
 
 /**
  * Pixel potato-on-couch mark. Web serves `apps/web/public/logo.webp`
- * (from `packages/ui/src/logo.png` via optimize-sprites). PWA manifest still uses `logo.png`.
+ * (from `packages/ui/src/assets/logo.png` via optimize-sprites). PWA manifest still uses `logo.png`.
  */
 export function Logo({ size = 96, style, ...rest }: LogoProps) {
   return (

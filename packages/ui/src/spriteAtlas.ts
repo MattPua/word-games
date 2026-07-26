@@ -18,7 +18,7 @@ export interface SpriteRect {
  * Frame map for `logo-sprite.webp` — equal 506x512 cells: idle (chill),
  * cheer (arms up + sparkles), bored (slumped / empty-board wait), transparent
  * bg (see AGENTS.md Brand). This is the source of truth consumed by
- * `PotatoSprite`; `logo-sprite.json` mirrors the same rects as a plain-data
+ * `PotatoSprite`; `assets/logo-sprite.json` mirrors the same rects as a plain-data
  * companion for non-TS/tooling consumers. Keep both in sync if the sheet is
  * ever redone in PixelLab.
  */
@@ -42,7 +42,7 @@ export const LOGO_SPRITE_FRAMES: Record<PotatoSpriteFrame, SpriteRect> = {
  * Frame map for `medals-sprite.webp` — equal 402×420 cells (4×1):
  * bigPicture (overview sparkles) | personalBests (cheer) | lengthHauls (reach)
  * | survival (sweat / hang on). Separate sheet so logo-sprite idle/cheer/bored
- * interactive offsets stay untouched. Mirror in `medals-sprite.json`.
+ * interactive offsets stay untouched. Mirror in `assets/medals-sprite.json`.
  */
 export const MEDALS_SPRITE_SHEET = {
   url: "/medals-sprite.webp",

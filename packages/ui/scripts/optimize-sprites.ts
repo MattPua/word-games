@@ -12,10 +12,10 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 const root = resolve(fileURLToPath(new URL(".", import.meta.url)), "../../..");
-const uiSrc = join(root, "packages/ui/src");
+const uiAssets = join(root, "packages/ui/src/assets");
 const webPublic = join(root, "apps/web/public");
 
-/** Basename without extension — PNG master must exist in `packages/ui/src`. */
+/** Basename without extension — PNG master must exist in `packages/ui/src/assets`. */
 const SHIP_WEBP = [
   "logo-sprite",
   "medals-sprite",
@@ -41,8 +41,8 @@ function kb(n: number) {
 }
 
 async function convertOne(base: (typeof SHIP_WEBP)[number]) {
-  const pngPath = join(uiSrc, `${base}.png`);
-  const webpPath = join(uiSrc, `${base}.webp`);
+  const pngPath = join(uiAssets, `${base}.png`);
+  const webpPath = join(uiAssets, `${base}.webp`);
   const publicWebp = join(webPublic, `${base}.webp`);
   const publicPng = join(webPublic, `${base}.png`);
 
@@ -93,4 +93,4 @@ for (const base of SHIP_WEBP) {
   await convertOne(base);
 }
 
-console.log("Done. Point atlas / Logo* src at .webp; keep PNG masters in packages/ui/src.");
+console.log("Done. Point atlas / Logo* src at .webp; keep PNG masters in packages/ui/src/assets.");

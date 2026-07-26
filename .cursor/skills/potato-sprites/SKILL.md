@@ -14,15 +14,15 @@ grid-sheet prompting discipline, atlas-over-loose-PNGs, and pre-accept QC gates.
 
 | File                                                                      | Size                                    | Use                                                                                                                    |
 | ------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `packages/ui/src/logo.png` (+ `.webp` ship)                               | 256×256                                 | Chill mascot — brand mark; web `Logo` uses `/logo.webp`; PWA icon keeps `/logo.png`                                    |
-| `packages/ui/src/logo-celebrate.png` (+ `.webp`)                          | 256×256                                 | Results celebrate hero — arms up + letter-tile confetti (`LogoCelebrate`); win / high score only                       |
-| `packages/ui/src/logo-options.png` (+ `.webp`)                            | 256×256                                 | Options header — potato on couch holding a gear (`LogoOptions`)                                                        |
-| `packages/ui/src/logo-sprite.png` (+ `.webp`) + `logo-sprite.json` + `spriteAtlas.ts` | 1518×512, 3 cols × 1 row, 506×512 cells | idle/cheer/bored atlas — `PotatoSprite` for EmptyState `bored`, `lobbyYawn` (CSS-stepped idle↔bored sleep), interactive 404 poke (cheer nudge). Results does **not** use this sheet — see `logo-celebrate` / chill `logo` |
-| `packages/ui/src/medals-sprite.png` (+ `.webp`) + `medals-sprite.json` (+ atlas map in `spriteAtlas.ts`) | 1608×420, 4 cols × 1 row, 402×420 cells | Couch medals categories — `MedalsCategorySprite` (`bigPicture` / `personalBests` / `lengthHauls` / `survival`) on `/achievements` |
+| `packages/ui/src/assets/logo.png` (+ `.webp` ship)                               | 256×256                                 | Chill mascot — brand mark; web `Logo` uses `/logo.webp`; PWA icon keeps `/logo.png`                                    |
+| `packages/ui/src/assets/logo-celebrate.png` (+ `.webp`)                          | 256×256                                 | Results celebrate hero — arms up + letter-tile confetti (`LogoCelebrate`); win / high score only                       |
+| `packages/ui/src/assets/logo-options.png` (+ `.webp`)                            | 256×256                                 | Options header — potato on couch holding a gear (`LogoOptions`)                                                        |
+| `packages/ui/src/assets/logo-sprite.png` (+ `.webp`) + `logo-sprite.json` + `spriteAtlas.ts` | 1518×512, 3 cols × 1 row, 506×512 cells | idle/cheer/bored atlas — `PotatoSprite` for EmptyState `bored`, `lobbyYawn` (CSS-stepped idle↔bored sleep), interactive 404 poke (cheer nudge). Results does **not** use this sheet — see `logo-celebrate` / chill `logo` |
+| `packages/ui/src/assets/medals-sprite.png` (+ `.webp`) + `medals-sprite.json` (+ atlas map in `spriteAtlas.ts`) | 1608×420, 4 cols × 1 row, 402×420 cells | Couch medals categories — `MedalsCategorySprite` (`bigPicture` / `personalBests` / `lengthHauls` / `survival`) on `/achievements` |
 
-All web-served copies live in `apps/web/public/` as **`.webp`** (same basename) — run `bun run sprites:optimize` after every PixelLab regen. Keep PNG masters in `packages/ui/src` for re-edit; don’t leave large sprite PNGs in `public/`.
+All web-served copies live in `apps/web/public/` as **`.webp`** (same basename) — run `bun run sprites:optimize` after every PixelLab regen. Keep PNG masters in `packages/ui/src/assets/` for re-edit; don’t leave large sprite PNGs in `public/`.
 **Prefer WebP over PNG** for anything shipped to web (`AGENTS.md` Image formats): sharp **lossless + exact** WebP (pixel-identical; PNG recompress via sharp mutates pixels — don’t).
-`spriteAtlas.ts` is the TS source of truth for frame rects; `logo-sprite.json` / `medals-sprite.json` are plain-data mirrors for
+`spriteAtlas.ts` is the TS source of truth for frame rects; `assets/logo-sprite.json` / `assets/medals-sprite.json` are plain-data mirrors for
 non-TS tooling. Keep both in sync — never let the JSON drift from the TS map.
 
 ## When to add a frame vs a new standalone mark

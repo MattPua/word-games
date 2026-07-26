@@ -10,7 +10,7 @@ export type LogoCelebrateProps = Omit<
 /**
  * Results celebrate mark (web) — arms-up potato + letter-tile confetti.
  * Plain `<img>` + pixelated scale; art in `/logo-celebrate.webp` (from
- * `packages/ui/src/logo-celebrate.png` via `optimize-sprites`). Same DOM contract as `Logo.web`.
+ * `packages/ui/src/assets/logo-celebrate.png` via `optimize-sprites`). Same DOM contract as `Logo.web`.
  */
 export function LogoCelebrate({ size = 96, style, className = "", ...rest }: LogoCelebrateProps) {
   return (
