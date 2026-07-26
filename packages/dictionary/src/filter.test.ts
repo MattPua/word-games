@@ -2,7 +2,15 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { applyBlocklist, isValidWordToken, normalizeWord, parseWordList } from "./filter";
+import {
+  applyBlocklist,
+  buildNameBlocklist,
+  isValidWordToken,
+  mergeBlocklists,
+  normalizeWord,
+  parseBabyNameMass,
+  parseWordList,
+} from "./filter";
 import { createDictionary } from "./index";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -41,17 +49,49 @@ describe("dictionary filter", () => {
     expect(dict.has("potato") || dict.has("cat")).toBe(true);
   });
 
-  it("v1 accepts popular only — obscure enable1-only words rejected", async () => {
-    const { default: enable } = await import("./generated/enable.json");
-    const { default: popular } = await import("./generated/popular.json");
-    const dict = createDictionary(enable as string[], popular as string[]);
-    // enable1 Scrabble oddities that are not in dolph popular.txt
-    expect(dict.enable.has("aalii")).toBe(true);
+  it("play accepts ENABLE − blocklist (incl. words outside popular)", () => {
+    const dict = createDictionary();
+    // Legitimate ENABLE words that miss the TV/movie popular frequency cut
+    expect(dict.has("deter")).toBe(true);
+    expect(dict.isPopular("deter")).toBe(false);
+    expect(dict.has("aalii")).toBe(true);
     expect(dict.isPopular("aalii")).toBe(false);
-    expect(dict.has("aalii")).toBe(false);
-    expect(dict.enable.has("aahed")).toBe(true);
-    expect(dict.has("aahed")).toBe(false);
     expect(dict.has("potato")).toBe(true);
+    expect(dict.isPopular("potato")).toBe(true);
     expect(dict.has("cat")).toBe(true);
+  });
+
+  it("buildNameBlocklist drops given names but keeps dual-use allowlist", () => {
+    const csv = [
+      '1880,"John",0.08,"boy"',
+      '1880,"Peter",0.06,"boy"',
+      '1880,"Mark",0.05,"boy"',
+      '1880,"Grace",0.05,"girl"',
+      '1880,"Zorp",0.001,"boy"', // below mass floor
+    ].join("\n");
+    const block = buildNameBlocklist(csv, ["mark", "grace"], 0.05);
+    expect(block.has("john")).toBe(true);
+    expect(block.has("peter")).toBe(true);
+    expect(block.has("mark")).toBe(false);
+    expect(block.has("grace")).toBe(false);
+    expect(block.has("zorp")).toBe(false);
+    expect(parseBabyNameMass(csv, 0.05).has("peter")).toBe(true);
+  });
+
+  it("mergeBlocklists unions NSFW + names", () => {
+    const merged = mergeBlocklists(["fuck"], ["peter", "JOHN"]);
+    expect(merged.has("fuck")).toBe(true);
+    expect(merged.has("peter")).toBe(true);
+    expect(merged.has("john")).toBe(true);
+  });
+
+  it("built artifact rejects common given names, keeps dual-use English", () => {
+    const dict = createDictionary();
+    for (const name of ["peter", "john", "james", "jennifer", "michael", "sarah"]) {
+      expect(dict.has(name), `name still playable: ${name}`).toBe(false);
+    }
+    for (const word of ["mark", "hope", "grace", "will", "heather", "rose", "potato", "deter"]) {
+      expect(dict.has(word), `dual-use/English missing: ${word}`).toBe(true);
+    }
   });
 });

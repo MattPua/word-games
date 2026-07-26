@@ -1,8 +1,10 @@
 {
-  "enableCount": 172563,
-  "popularCount": 25107,
+  "enableCount": 172463,
+  "popularCount": 25012,
+  "nameBlockCount": 666,
   "source": "https://github.com/dolph/dictionary",
   "attribution": "ENABLE word list is public domain",
   "popularProvenance": "popular.txt = enable1 ∩ Wiktionary TV/movie script frequency lists (~25k common words). Not a CSV of scores — membership is the commonness signal.",
-  "playPolicy": "v1 accepts and scores popular only; enable kept for a future full-dictionary mode"
+  "nameFilter": "SSA baby-name cumulative mass (hadley/data-baby-names, minMass 0.05) minus data/name-allowlist.txt dual-use English; applied with NSFW blocklist at build",
+  "playPolicy": "accept / allWords / targets / Words left = ENABLE − NSFW − given-name filter; popular ranks gen quality and filters Results Long ones left"
 }
