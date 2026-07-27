@@ -14,15 +14,15 @@ Casual word game for short sessions: swipe paths on a square or honeycomb board,
 
 ## Play
 
-- **Goal** — Bring points left to zero (Easy / Medium / Hard targets).
+- **Goal** — Bring points to zero (Easy / Medium / Hard).
 - **Timed** — Fixed board; pick **How hard?** (letter mix) and **How long?** (30–120s); find as many words in the time limit.
 - **Survival** — Countdown clock; every accepted word refills time (difficulty sets how stingy the start/refills are).
 
-Boards are 4×4 / 5×5 / 6×6 on **Square** (8-way) or **Honeycomb** (hex). Spin the board for a new view of the same letters. Score is `length − 2` per word. Min length floor is 3+ (lobby can raise to 4+ / 5+).
+Boards are 4×4 / 5×5 / 6×6 on **Square** (8-way) or **Honeycomb** (hex; taller column layout). Spin the board for a new view of the same letters. Min length floor is 3+ (lobby can raise to 4+ / 5+).
 
 First visit gets a short interactive coach (`/how-to` — **How to play in 30 seconds**); Skip or finish once, reopen anytime from Options (**View Tutorial**).
 
-Extras on the web build: local **Couch crew** profiles, **Potato Board** personal stats, **Couch medals** achievements, device **Options** (Look, Type Clean/Pixel, Words left, SFX, Background music), optional lobby **Ban list**, and a ⌘K / Ctrl+K command palette. Lobby setup is shareable via `/play` query params (e.g. `/play?mode=goal&grid=5&board=hex&diff=hard&min=4`).
+Extras on the web build: local **Couch crew** profiles, **Potato Board** personal stats, **Couch medals** achievements, device **Options** (Look, Type Clean/Pixel, Words left, SFX, Background music), **About** (credits + feedback), optional lobby **Ban list**, and a ⌘K / Ctrl+K command palette. Lobby setup is shareable via `/play` query params (e.g. `/play?mode=goal&grid=5&board=hex&diff=hard&min=4`).
 
 ## Stack
 
@@ -32,7 +32,7 @@ Bun workspaces monorepo:
 | --- | --- |
 | `apps/web` | Vite + React + TanStack Router (ships to Vercel) |
 | `apps/mobile` | Expo shell (play still lands on web first) |
-| `packages/game-engine` | Pure TS rules, board gen, scoring |
+| `packages/game-engine` | Pure TS rules, board gen, accept/reject |
 | `packages/dictionary` | Popular play lexicon + ENABLE artifact + NSFW / given-name filters |
 | `packages/ui` | Board, mascots, shared presentational UI |
 
@@ -79,7 +79,7 @@ Couch Potato is built to stay playable on slow (3G-class) links and after the fi
 - **Lean cold path** — lobby does not download the Play dictionary, Background music MP3, heavy medal marks, or PostHog unless needed.
 - **Latin-only fonts** by default (Pixel type / Jersey loads on demand; Type pref flips display + body together).
 - **Service worker (production)** — precaches a small shell (~fonts + CSS + tiny brand marks). Hashed route **JS uses NetworkFirst** so a new deploy isn’t stuck behind an old CacheFirst main that imports deleted chunks; sprites, audio, and the Play dictionary stay **CacheFirst** after first use for offline. `ErrorPage` / `NotFoundPage` ship in the main bundle (eager) so crash reporting never depends on a second fetch; stale chunk loads report then reload once.
-- Profiles, scores, and medals stay in **localStorage** (no account / no sync).
+- Profiles and medals stay in **localStorage** (no account / no sync).
 
 First open still needs a network; after that, revisit offline for screens you’ve already loaded. Background music only fetches when music is turned on. Play warms the dictionary on hover/focus/click — never idle-prefetch from the lobby.
 
