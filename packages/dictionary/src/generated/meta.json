@@ -1,13 +1,14 @@
 {
   "enableCount": 172463,
-  "popularCount": 27465,
+  "popularCount": 36118,
   "nameBlockCount": 666,
-  "freqZipfMin": 2.8,
-  "playAllowCount": 4,
+  "freqZipfMin": 2.5,
+  "playAllowCount": 9,
   "source": "https://github.com/dolph/dictionary",
   "attribution": "ENABLE word list is public domain",
   "frequencySource": "https://github.com/rspeer/wordfreq",
-  "popularProvenance": "play = ENABLE ∩ (wordfreq en/large zipf >= 2.8 ∪ data/play-allowlist.txt) − NSFW − given-name filter. freq-gate.txt is committed; regen with bun run --filter @couch-potato/dictionary freq-gate",
+  "popularProvenance": "play = ENABLE ∩ (wordfreq en/large zipf >= 2.5 ∪ data/play-allowlist.txt) − NSFW − names − play-blocklist. freq-gate.txt is committed; regen with bun run --filter @couch-potato/dictionary freq-gate",
   "nameFilter": "data/name-blocklist.txt = SSA baby-name mass − name-allowlist.txt dual-use English; unioned with NSFW blocklist at build",
-  "playPolicy": "accept / allWords / targets / Words left = popular (ENABLE ∩ wordfreq zipf gate ∪ play-allowlist) − NSFW − names; full ENABLE kept for a future dictionary mode"
+  "playPolicy": "accept / allWords / targets / Words left = popular (ENABLE ∩ wordfreq zipf gate ∪ play-allowlist) − NSFW − names − play-blocklist; full ENABLE kept for a future dictionary mode",
+  "playBlockCount": 3
 }

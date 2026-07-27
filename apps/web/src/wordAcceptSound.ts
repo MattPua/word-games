@@ -11,27 +11,29 @@ import { play } from "./sfx";
  * | Length | Sound |
  * |--------|--------|
  * | 3      | `success` (first word: `sparkle`) |
- * | 4      | `sparkle` |
+ * | 4      | brighter `sparkle` |
  * | 5      | `sparkle` + delayed `tick` |
- * | 6+     | `sparkle` + delayed `bloom` afterglow |
+ * | 6+     | `sparkle` + delayed `bloom` afterglow (+ UI micro confetti) |
  */
 export function playAcceptedWordSound(length: number, options: { firstWord?: boolean } = {}): void {
   const { firstWord = false } = options;
 
   if (length >= 6) {
     play("sparkle");
-    window.setTimeout(() => play("bloom"), 160);
+    window.setTimeout(() => play("bloom"), 140);
+    window.setTimeout(() => play("tick"), 280);
     return;
   }
 
   if (length >= 5) {
     play("sparkle");
-    window.setTimeout(() => play("tick"), 140);
+    window.setTimeout(() => play("tick"), 120);
     return;
   }
 
   if (length >= 4) {
     play("sparkle");
+    window.setTimeout(() => play("tick"), 100);
     return;
   }
 

@@ -1,6 +1,8 @@
 @import "@fontsource/lexend/latin-400.css";
 @import "@fontsource/lexend/latin-700.css";
-/* Skip latin-500/600 on cold path — medium→400, semibold→700 (no extra woff2). */
+@import "@fontsource/lexend/latin-800.css";
+/* Skip latin-500/600 on cold path — medium→400, semibold→700 (no extra woff2).
+   latin-800 = board tile letters only (thicker glyphs). */
 /* Jersey 15 (pixel Titles) loads on demand in theme.ts — latin only, off lobby cold path. */
 @import "@couch-potato/ui/theme.css";
 
@@ -504,12 +506,17 @@
     z-index: 1;
     pointer-events: none;
     font-family: var(--font-body);
-    font-weight: 700;
+    font-weight: 800;
     /* Size to the board (cqi), not the viewport — vw kept glyphs oversized on
        mini Results / 6×6 and forced the bottom row to clip. */
     font-size: clamp(1.05rem, 9cqi, 1.85rem);
     line-height: 1;
     letter-spacing: 0.02em;
+  }
+
+  /* Jersey 15 is single-weight — don't faux-bold pixel tiles. */
+  html[data-font="pixel"] .cp-tile-letter {
+    font-weight: 400;
   }
 
   .cp-board-play[data-size="5"] .cp-tile-letter {
@@ -557,6 +564,30 @@
       drop-shadow(0 0 2px var(--tile-select-ring));
   }
 
+  /* Nab accept — potato gold wash over sage select while path is held. */
+  .cp-tile-active.cp-tile-accept {
+    background: color-mix(in srgb, var(--secondary) 42%, var(--tile));
+    border-color: var(--secondary);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--secondary) 55%, transparent),
+      0 2px 0 color-mix(in srgb, var(--secondary) 65%, #5a4420);
+  }
+
+  .cp-tile-active.cp-tile-accept::before {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--secondary) 55%, #fff) 0%,
+      color-mix(in srgb, var(--secondary) 40%, var(--tile)) 100%
+    );
+  }
+
+  .cp-tile-hex.cp-tile-active.cp-tile-accept {
+    border-color: var(--secondary);
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--secondary) 65%, #5a4420);
+    filter: drop-shadow(0 0 1px var(--secondary)) drop-shadow(0 0 1px var(--secondary))
+      drop-shadow(0 0 2px color-mix(in srgb, var(--secondary) 55%, transparent));
+  }
+
   .cp-word-pill {
     position: relative;
     display: flex;
@@ -575,6 +606,44 @@
     box-shadow:
       0 4px 0 color-mix(in srgb, var(--primary) 65%, #2c322e),
       0 10px 20px color-mix(in srgb, var(--primary) 25%, transparent);
+  }
+
+  @keyframes cp-word-pill-pop {
+    0% {
+      transform: scale(0.94);
+    }
+    55% {
+      transform: scale(1.06);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .cp-word-pill-pop {
+    animation: cp-word-pill-pop 0.38s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+  }
+
+  .cp-word-pill-warm {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--secondary) 72%, #fff),
+      color-mix(in srgb, var(--secondary) 88%, var(--primary))
+    );
+    box-shadow:
+      0 4px 0 color-mix(in srgb, var(--secondary) 55%, #5a4420),
+      0 10px 20px color-mix(in srgb, var(--secondary) 28%, transparent);
+  }
+
+  .cp-word-pill-hot {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--secondary) 85%, #fff),
+      var(--secondary)
+    );
+    box-shadow:
+      0 5px 0 color-mix(in srgb, var(--secondary) 60%, #5a4420),
+      0 12px 22px color-mix(in srgb, var(--secondary) 35%, transparent);
   }
 
   .cp-word-pill-empty {
@@ -810,6 +879,16 @@
     box-shadow: none;
   }
 
+  .cp-last-found-mid {
+    background: color-mix(in srgb, var(--primary) 12%, var(--muted));
+    border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  }
+
+  .cp-last-found-long {
+    background: color-mix(in srgb, var(--secondary) 22%, var(--card));
+    border-color: color-mix(in srgb, var(--secondary) 55%, var(--border));
+  }
+
   .cp-last-found-label {
     font-family: var(--font-display);
     font-size: 0.6rem;
@@ -849,6 +928,37 @@
     font-weight: 700;
     line-height: 1;
     flex-shrink: 0;
+  }
+
+  @keyframes cp-last-found-pts-pop {
+    0% {
+      transform: scale(0.7);
+    }
+    55% {
+      transform: scale(1.22);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .cp-last-found .cp-last-found-pts {
+    animation: cp-last-found-pts-pop 0.36s cubic-bezier(0.34, 1.5, 0.64, 1) both;
+  }
+
+  @keyframes cp-catch-in-strong {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.88);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .cp-last-found.cp-catch-in {
+    animation: cp-catch-in-strong 0.38s cubic-bezier(0.34, 1.4, 0.64, 1) both;
   }
 
   /*
@@ -1739,6 +1849,8 @@
     .cp-catch-in,
     .cp-chip-drop-in,
     .cp-word-group-label-in,
+    .cp-word-pill-pop,
+    .cp-last-found .cp-last-found-pts,
     .cp-icon-btn[aria-pressed="true"],
     .cp-icon-btn[aria-current="page"],
     .cp-icon-anim-note,
@@ -2509,8 +2621,9 @@ html.dark .cp-medals-section-mascot {
 
 /*
  * Play column — spins need clear air above the fold + home-indicator.
- * Short viewports: shrink board width (aspect keeps tiles square) so Last catch
+ * Short viewports: shrink board width (aspect keeps tile shape) so Last catch
  * + Spin pair + safe-area fit — not clipped by Shell `overflow-hidden`.
+ * Honeycomb is taller-than-wide (~1.38×) so hex width = square budget / 1.38.
  */
 .cp-shell.cp-shell-play {
   /* Beat Shell `pb-6`; keep spins clear of the home indicator */
@@ -2522,11 +2635,19 @@ html.dark .cp-medals-section-mascot {
     width: min(100%, calc(100dvh - 19.5rem));
     align-self: center;
   }
+
+  .cp-shell-play[data-topology="hex"] .cp-board-frame {
+    width: min(100%, calc((100dvh - 19.5rem) / 1.38));
+  }
 }
 
 @media (max-height: 640px) {
   .cp-shell-play .cp-board-frame {
     width: min(100%, calc(100dvh - 18rem));
+  }
+
+  .cp-shell-play[data-topology="hex"] .cp-board-frame {
+    width: min(100%, calc((100dvh - 18rem) / 1.38));
   }
 
   .cp-shell-play .cp-play-hud {

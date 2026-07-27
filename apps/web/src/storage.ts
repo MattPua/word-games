@@ -79,7 +79,7 @@ export type DevicePrefs = {
    * Options “View Tutorial” clears this.
    */
   howToSeen: boolean;
-  /** Default system; explicit light/dark once the player picks via the toggle. */
+  /** Default light; explicit dark once the player picks via Options / Couch break. */
   themePreference: ThemePreference;
   /** Default clean (Lexend); pixel = Jersey 15 everywhere (one face — not titles-only). */
   fontPreference: FontPreference;
@@ -118,7 +118,7 @@ function normalizePrefs(prefs: Partial<DevicePrefs> & { activeProfileId?: string
     showWordsLeft: prefs.showWordsLeft ?? false,
     // Missing key = legacy install — don't force the coach on existing players.
     howToSeen: typeof prefs.howToSeen === "boolean" ? prefs.howToSeen : true,
-    themePreference: prefs.themePreference ?? "system",
+    themePreference: prefs.themePreference ?? "light",
     fontPreference: prefs.fontPreference === "pixel" ? "pixel" : "clean",
     customBlockedWords: normalizeCustomBlockedWords(prefs.customBlockedWords),
     activeProfileId: prefs.activeProfileId ?? "",
@@ -131,12 +131,15 @@ export type StoredBlob = {
   /**
    * Bitflags for one-shot prefs migrations already applied.
    * `1` = Type face is full-UI (was titles-only); sticky Pixel reset → Clean.
+   * `2` = Look default light (was system); lingering `system` → light.
    */
   migrations?: number;
 };
 
 /** Titles-only Pixel → full-face Type; force Clean so Pixel is opt-in again. */
 const MIG_TYPE_FACE_FULL = 1;
+/** Old default followed OS; force Light so dark OS installs don't start dark. */
+const MIG_LOOK_DEFAULT_LIGHT = 2;
 
 const KEY = "couch-potato:v1";
 const HISTORY_CAP = 20;
@@ -205,12 +208,12 @@ export function defaultBlob(): StoredBlob {
       lobbyJamInviteDismissed: false,
       showWordsLeft: false,
       howToSeen: false,
-      themePreference: "system",
+      themePreference: "light",
       fontPreference: "clean",
       customBlockedWords: [],
       activeProfileId: id,
     },
-    migrations: MIG_TYPE_FACE_FULL,
+    migrations: MIG_TYPE_FACE_FULL | MIG_LOOK_DEFAULT_LIGHT,
   };
 }
 
@@ -234,6 +237,12 @@ export function loadStore(): StoredBlob {
     if ((migrations & MIG_TYPE_FACE_FULL) === 0) {
       prefs.fontPreference = "clean";
       migrations |= MIG_TYPE_FACE_FULL;
+      dirty = true;
+    }
+    // Look used to follow OS (`system`); default is Light — anyone still on system never picked.
+    if ((migrations & MIG_LOOK_DEFAULT_LIGHT) === 0) {
+      if (prefs.themePreference === "system") prefs.themePreference = "light";
+      migrations |= MIG_LOOK_DEFAULT_LIGHT;
       dirty = true;
     }
     const blob: StoredBlob = { prefs, profiles, migrations };

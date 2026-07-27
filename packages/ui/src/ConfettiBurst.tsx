@@ -18,11 +18,18 @@ type Particle = {
 export type ConfettiBurstProps = {
   active: boolean;
   durationMs?: number;
+  /** Particle count (default 48; use ~16–20 for micro nab sparks). */
+  count?: number;
   className?: string;
 };
 
 /** Lightweight brand-colored confetti — sage, potato gold, cream. */
-export function ConfettiBurst({ active, durationMs = 1400, className = "" }: ConfettiBurstProps) {
+export function ConfettiBurst({
+  active,
+  durationMs = 1400,
+  count = 48,
+  className = "",
+}: ConfettiBurstProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -43,17 +50,19 @@ export function ConfettiBurst({ active, durationMs = 1400, className = "" }: Con
 
     const w = () => canvas.clientWidth;
     const h = () => canvas.clientHeight;
+    const n = Math.max(1, Math.floor(count));
+    const micro = n <= 24;
     const particles: Particle[] = [];
-    for (let i = 0; i < 48; i++) {
+    for (let i = 0; i < n; i++) {
       particles.push({
-        x: w() * 0.5 + (Math.random() - 0.5) * w() * 0.35,
-        y: h() * 0.28 + (Math.random() - 0.5) * 40,
-        vx: (Math.random() - 0.5) * 9,
-        vy: -4 - Math.random() * 7,
+        x: w() * 0.5 + (Math.random() - 0.5) * w() * (micro ? 0.22 : 0.35),
+        y: h() * (micro ? 0.42 : 0.28) + (Math.random() - 0.5) * 40,
+        vx: (Math.random() - 0.5) * (micro ? 5.5 : 9),
+        vy: -(micro ? 2.5 : 4) - Math.random() * (micro ? 4 : 7),
         rot: Math.random() * Math.PI,
-        vr: (Math.random() - 0.5) * 0.35,
-        w: 5 + Math.random() * 6,
-        h: 3 + Math.random() * 4,
+        vr: (Math.random() - 0.5) * (micro ? 0.28 : 0.35),
+        w: (micro ? 3 : 5) + Math.random() * (micro ? 4 : 6),
+        h: (micro ? 2 : 3) + Math.random() * (micro ? 3 : 4),
         color: COLORS[i % COLORS.length]!,
         life: 1,
       });
@@ -65,7 +74,7 @@ export function ConfettiBurst({ active, durationMs = 1400, className = "" }: Con
       const t = (now - start) / durationMs;
       ctx.clearRect(0, 0, w(), h());
       for (const p of particles) {
-        p.vy += 0.22;
+        p.vy += micro ? 0.18 : 0.22;
         p.x += p.vx;
         p.y += p.vy;
         p.rot += p.vr;
@@ -82,7 +91,7 @@ export function ConfettiBurst({ active, durationMs = 1400, className = "" }: Con
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [active, durationMs]);
+  }, [active, durationMs, count]);
 
   if (!active) return null;
 

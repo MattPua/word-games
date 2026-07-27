@@ -10,7 +10,7 @@ import {
 } from "./pathCells";
 
 describe("hexLayout", () => {
-  it("places (0,0) center at half cell pitch (even row, no odd-r shift)", () => {
+  it("places (0,0) center at half cell pitch (even column, no odd-r shove)", () => {
     const n = 4;
     const { w, h } = hexAspect(n);
     const c = cellCenter(0, 0, n, "hex");
@@ -18,22 +18,27 @@ describe("hexLayout", () => {
     expect(c.y).toBeCloseTo((0.5 / h) * 100);
   });
 
-  it("shifts odd rows by half pitch", () => {
+  it("shifts odd data-rows down by half pitch (vertical columns)", () => {
     const n = 4;
-    const { w } = hexAspect(n);
+    const { h } = hexAspect(n);
     const even = cellCenter(0, 0, n, "hex");
     const odd = cellCenter(1, 0, n, "hex");
-    expect(odd.x - even.x).toBeCloseTo((0.5 / w) * 100);
+    expect(odd.y - even.y).toBeCloseTo((0.5 / h) * 100);
   });
 
-  it("row style top/height match cellCenter vertical pitch", () => {
+  it("column style left/width match cellCenter horizontal pitch", () => {
     const n = 5;
-    const { h } = hexAspect(n);
-    const row = hexRowStyle(2, n);
-    expect(parseFloat(row.top)).toBeCloseTo(((2 * 0.75) / h) * 100);
-    expect(parseFloat(row.height)).toBeCloseTo((1 / h) * 100);
+    const { w } = hexAspect(n);
+    const col = hexRowStyle(2, n);
+    expect(parseFloat(col.left)).toBeCloseTo(((2 * 0.75) / w) * 100);
+    expect(parseFloat(col.width)).toBeCloseTo((1 / w) * 100);
     const c = cellCenter(2, 1, n, "hex");
-    expect(c.y).toBeCloseTo(parseFloat(row.top) + parseFloat(row.height) / 2);
+    expect(c.x).toBeCloseTo(parseFloat(col.left) + parseFloat(col.width) / 2);
+  });
+
+  it("board is taller than wide (vertical focus)", () => {
+    const { w, h } = hexAspect(5);
+    expect(h).toBeGreaterThan(w);
   });
 });
 

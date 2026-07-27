@@ -8,10 +8,14 @@ export const MIN_WORD_LENGTH = 3;
 export const MIN_WORD_LENGTH_OPTIONS = [3, 4, 5] as const;
 export type MinWordLength = (typeof MIN_WORD_LENGTH_OPTIONS)[number];
 
-/** points = length - 2 (only for accepted words ≥ active min). */
+/**
+ * Escalating length curve (only for accepted words ≥ active min):
+ * 3→1, 4→3, 5→7, 6→13, 7→21… — each extra letter adds +2 more than the last
+ * (deltas 2, 4, 6, 8, 10…). Closed form: `1 + (L-3)*(L-2)`.
+ */
 export function scoreWord(length: number): number {
   if (length < MIN_WORD_LENGTH) return 0;
-  return length - 2;
+  return 1 + (length - 3) * (length - 2);
 }
 
 /**
@@ -22,7 +26,8 @@ export function scoreWord(length: number): number {
  * toward longer finds (`thresholdsForDifficulty`) — fewer short crumbs, more
  * mid/long paths — while targets stay a modest Easy < Med < Hard ladder.
  * Ratios **0.25 / 0.30 / 0.38** (short clears); caps bite on crumb-dense
- * leftovers. Scoring stays `length − 2`.
+ * leftovers. Caps sit higher than the old `length − 2` era so they still
+ * reflect potential haul under the escalating curve.
  */
 export const TARGET_RATIOS = {
   easy: 0.25,
@@ -32,12 +37,13 @@ export const TARGET_RATIOS = {
 
 /**
  * Absolute Goal target ceilings (points). Applied after ratio × maxScore.
- * Keep these tight — challenge lives in word length mix, not point grind.
+ * Tuned for escalating `scoreWord` — challenge still lives in word length
+ * mix, not a point grind, but dense boards need room for longer finds.
  */
 export const TARGET_CAPS = {
-  easy: 36,
-  medium: 48,
-  hard: 60,
+  easy: 90,
+  medium: 120,
+  hard: 150,
 } as const;
 
 export type Difficulty = keyof typeof TARGET_RATIOS;
@@ -55,8 +61,12 @@ export const SURVIVAL_START_SECONDS: Record<Difficulty, number> = {
   hard: 20,
 };
 
-/** Seconds of clock refilled per point, before difficulty scaling. */
-export const SURVIVAL_SECONDS_PER_POINT = 3;
+/**
+ * Seconds of clock refilled per point, before difficulty scaling.
+ * Lower than the old `length − 2` era so escalating long-word points don’t
+ * flood the Survival clock (mid finds stay in the same ballpark).
+ */
+export const SURVIVAL_SECONDS_PER_POINT = 1.5;
 
 /** Refill multiplier by difficulty — Hard is stingier with time back. */
 export const SURVIVAL_BONUS_MULTIPLIER: Record<Difficulty, number> = {
@@ -69,7 +79,7 @@ export const SURVIVAL_BONUS_MULTIPLIER: Record<Difficulty, number> = {
 export const SURVIVAL_MIN_BONUS_SECONDS = 1;
 
 /**
- * Bonus seconds for an accepted word: points (length - 2) scaled by
+ * Bonus seconds for an accepted word: `scoreWord` points scaled by
  * `SURVIVAL_SECONDS_PER_POINT` and the difficulty multiplier, rounded,
  * floored at `SURVIVAL_MIN_BONUS_SECONDS` so nothing ever refills for 0.
  */

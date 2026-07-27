@@ -11,7 +11,7 @@ from pathlib import Path
 
 from wordfreq import iter_wordlist, zipf_frequency
 
-ZIPF_MIN = 2.8
+ZIPF_MIN = 2.5
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "freq-gate.txt"
 
@@ -26,7 +26,7 @@ def main() -> None:
     words = sorted(gate)
     header = f"""# Frequency gate for the play lexicon (build-time).
 # Words with wordfreq (en, large) zipf_frequency >= {ZIPF_MIN}.
-# Play = ENABLE ∩ (this set ∪ play-allowlist.txt) − NSFW − names.
+# Play = ENABLE ∩ (this set ∪ play-allowlist.txt) − NSFW − names − play-blocklist.
 # Regenerate: bun run --filter @couch-potato/dictionary freq-gate
 # Source: https://github.com/rspeer/wordfreq
 """

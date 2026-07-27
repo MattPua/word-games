@@ -18,7 +18,7 @@ const BABY_NAMES_URL =
   "https://raw.githubusercontent.com/hadley/data-baby-names/master/baby-names.csv";
 
 /** wordfreq (en, large) zipf floor baked into `data/freq-gate.txt`. */
-const FREQ_ZIPF_MIN = 2.8;
+const FREQ_ZIPF_MIN = 2.5;
 
 async function fetchText(url: string): Promise<string> {
   const res = await fetch(url);
@@ -66,10 +66,11 @@ async function main() {
   const enableRaw = await loadOrFetch("enable1.txt", ENABLE_URL);
   const freqGate = parseWordList(readFileSync(join(dataDir, "freq-gate.txt"), "utf8"));
   const playAllow = parseWordList(readFileSync(join(dataDir, "play-allowlist.txt"), "utf8"));
+  const playBlock = new Set(parseWordList(readFileSync(join(dataDir, "play-blocklist.txt"), "utf8")));
 
   const enable = applyBlocklist(parseWordList(enableRaw), blocklist);
   const freqSet = new Set([...freqGate, ...playAllow]);
-  const popular = enable.filter((w) => freqSet.has(w));
+  const popular = enable.filter((w) => freqSet.has(w) && !playBlock.has(w));
 
   const artifact = {
     enable,
@@ -91,11 +92,12 @@ async function main() {
         source: "https://github.com/dolph/dictionary",
         attribution: "ENABLE word list is public domain",
         frequencySource: "https://github.com/rspeer/wordfreq",
-        popularProvenance: `play = ENABLE ∩ (wordfreq en/large zipf >= ${FREQ_ZIPF_MIN} ∪ data/play-allowlist.txt) − NSFW − given-name filter. freq-gate.txt is committed; regen with bun run --filter @couch-potato/dictionary freq-gate`,
+        popularProvenance: `play = ENABLE ∩ (wordfreq en/large zipf >= ${FREQ_ZIPF_MIN} ∪ data/play-allowlist.txt) − NSFW − names − play-blocklist. freq-gate.txt is committed; regen with bun run --filter @couch-potato/dictionary freq-gate`,
         nameFilter:
           "data/name-blocklist.txt = SSA baby-name mass − name-allowlist.txt dual-use English; unioned with NSFW blocklist at build",
         playPolicy:
-          "accept / allWords / targets / Words left = popular (ENABLE ∩ wordfreq zipf gate ∪ play-allowlist) − NSFW − names; full ENABLE kept for a future dictionary mode",
+          "accept / allWords / targets / Words left = popular (ENABLE ∩ wordfreq zipf gate ∪ play-allowlist) − NSFW − names − play-blocklist; full ENABLE kept for a future dictionary mode",
+        playBlockCount: playBlock.size,
       },
       null,
       2,

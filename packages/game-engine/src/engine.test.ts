@@ -210,12 +210,13 @@ describe("highScoreKey", () => {
 
 describe("survivalBonusSeconds", () => {
   it("scales with points and rounds", () => {
-    expect(survivalBonusSeconds(1, "medium")).toBe(3); // 1 * 3 * 1
-    expect(survivalBonusSeconds(3, "medium")).toBe(9); // 3 * 3 * 1
+    expect(survivalBonusSeconds(1, "medium")).toBe(2); // 1 * 1.5 * 1 → 2
+    expect(survivalBonusSeconds(3, "medium")).toBe(5); // 3 * 1.5 * 1 → 4.5 → 5
   });
 
   it("easy is more generous than medium, hard is stingier", () => {
-    const points = 3;
+    // Mid haul (e.g. a 5-letter word) — enough points that rounding doesn't collapse Easy/Med.
+    const points = 7;
     expect(survivalBonusSeconds(points, "easy")).toBeGreaterThan(
       survivalBonusSeconds(points, "medium"),
     );
@@ -294,11 +295,14 @@ describe("survival mode", () => {
 });
 
 describe("scoring", () => {
-  it("uses length - 2", () => {
+  it("escalates +2 more per extra letter (1, 3, 7, 13…)", () => {
     expect(scoreWord(3)).toBe(1);
-    expect(scoreWord(5)).toBe(3);
-    expect(scoreWord(7)).toBe(5);
-    expect(scoreWord(8)).toBe(6);
+    expect(scoreWord(4)).toBe(3);
+    expect(scoreWord(5)).toBe(7);
+    expect(scoreWord(6)).toBe(13);
+    expect(scoreWord(7)).toBe(21);
+    expect(scoreWord(8)).toBe(31);
+    expect(scoreWord(10)).toBe(57);
     expect(scoreWord(2)).toBe(0);
   });
 });
@@ -367,7 +371,7 @@ describe("long words (no max length)", () => {
       minWordLength: 3,
     });
     const sub = submitPath(state, kitchenPath, dict);
-    expect(sub.result).toMatchObject({ ok: true, word: "kitchen", points: 5 });
+    expect(sub.result).toMatchObject({ ok: true, word: "kitchen", points: 21 });
     expect(sub.state.found).toEqual(["kitchen"]);
   });
 
@@ -382,7 +386,7 @@ describe("long words (no max length)", () => {
       minWordLength: 3,
     });
     const sub = submitPath(state, chainsawPath, dict);
-    expect(sub.result).toMatchObject({ ok: true, word: "chainsaw", points: 6 });
+    expect(sub.result).toMatchObject({ ok: true, word: "chainsaw", points: 31 });
     expect(sub.state.found).toEqual(["chainsaw"]);
   });
 
@@ -510,7 +514,8 @@ describe("computeTargets", () => {
   });
 
   it("caps targets on crumb-dense boards so Goal pts stay casual", () => {
-    const maxScore = 300; // typical fat 5×5 / 6×6 from short crumbs
+    // Fat boards under escalating scoreWord — caps must still bite.
+    const maxScore = 800;
     const t = computeTargets(maxScore);
     expect(t.easy).toBe(TARGET_CAPS.easy);
     expect(t.medium).toBe(TARGET_CAPS.medium);

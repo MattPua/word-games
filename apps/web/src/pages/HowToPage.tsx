@@ -11,10 +11,11 @@ import {
 } from "@couch-potato/ui";
 import { isAdjacentCells, scoreWord, wordFromPath } from "@couch-potato/game-engine";
 import { Button } from "@/components/ui/button";
-import { ChromeTopBar, PageHeading } from "@/components/ChromeTopBar";
+import { ChromeTopBar } from "@/components/ChromeTopBar";
 import { setPlayVia, track } from "../analytics";
 import { setHowToSeen, loadLaunch } from "../storage";
 import { playSearchFromLaunch } from "../playLaunchSearch";
+import { pathSelectOnChange } from "../pathSelectSound";
 
 /**
  * Fixed 4×4 demo board — CAT (row), DOG (turn), LONG (any direction), LONGEST (haul).
@@ -112,6 +113,7 @@ export function HowToPage() {
   const navigate = useNavigate();
   const [stepIndex, setStepIndex] = useState(0);
   const [path, setPath] = useState<Cell[]>([]);
+  const pathLenRef = useRef(0);
   const [flash, setFlash] = useState("");
   const [demoing, setDemoing] = useState(true);
   const [catching, setCatching] = useState(false);
@@ -162,6 +164,7 @@ export function HowToPage() {
     setFlash("");
     setCatching(false);
     setDemoing(true);
+    pathLenRef.current = 0;
 
     let intervalId: number | null = null;
     let holdId: number | null = null;
@@ -177,6 +180,7 @@ export function HowToPage() {
           // Keep the full path lit so the demo word can sink in.
           holdId = window.setTimeout(() => {
             if (gen !== demoGen.current) return;
+            pathLenRef.current = 0;
             setPath([]);
             setDemoing(false);
           }, DEMO_HOLD_MS);
@@ -215,6 +219,7 @@ export function HowToPage() {
         holdTimer.current = null;
         setFlash("");
         setCatching(false);
+        pathLenRef.current = 0;
         setPath([]);
         if (stepIndex >= STEPS.length - 1) {
           track("howto_completed", { via: "done" });
@@ -225,6 +230,7 @@ export function HowToPage() {
       }, SUCCESS_HOLD_MS);
       return;
     }
+    pathLenRef.current = 0;
     setPath([]);
     if (word.length >= 3) {
       void import("../wordRejectSound").then((m) => m.playRejectedWordSound());
@@ -283,9 +289,9 @@ export function HowToPage() {
           ) : (
             <>
               <ChromeTopBar hideNav className="cp-chrome-top-inline" />
-              <PageHeading title="How to play in 30 seconds" />
+              {/* No page title — step coach owns the headline; saves fold on short phones. */}
               <div
-                className="cp-howto-progress mb-4"
+                className="cp-howto-progress mb-3"
                 role="progressbar"
                 aria-valuemin={1}
                 aria-valuemax={STEPS.length}
@@ -333,20 +339,17 @@ export function HowToPage() {
                   topology="square"
                   isAdjacent={(a, b) => isAdjacentCells(a, b, "square")}
                   interactive={!demoing && !catching}
-                  onPathChange={setPath}
+                  onPathChange={(next) => {
+                    // Ghost demo sets path directly — only chirp on player swipes.
+                    if (!demoing) pathSelectOnChange(next.length, pathLenRef.current);
+                    pathLenRef.current = next.length;
+                    setPath(next);
+                  }}
                   onPathEnd={onPathEnd}
                 />
               </div>
-            </>
-          )}
-        </Shell>
-      </div>
-
-      {!done ? (
-        <div className="w-full shrink-0">
-          <Shell className="cp-shell-howto !h-auto !flex-none max-w-md pb-0 pt-0">
-            <div className="cp-lobby-play shrink-0">
-              <div className="cp-lobby-play-inner flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+              {/* In-flow (not sticky) so Skip never covers the board on short phones. */}
+              <div className="mt-4 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                 <Button
                   size="lg"
                   variant="outline"
@@ -365,10 +368,10 @@ export function HowToPage() {
                       : "Your turn. Swipe the word."}
                 </p>
               </div>
-            </div>
-          </Shell>
-        </div>
-      ) : null}
+            </>
+          )}
+        </Shell>
+      </div>
     </div>
   );
 }

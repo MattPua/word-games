@@ -59,7 +59,6 @@ import {
   type MinWordLength,
 } from "@couch-potato/game-engine";
 import { play, setEnabled } from "../sfx";
-import { playPauseSound, playResumeSound } from "../pauseSound";
 import { isRejectedWordSubmit, playRejectedWordSound } from "../wordRejectSound";
 import { toast } from "sonner";
 import {
@@ -89,6 +88,8 @@ import {
 import { applyMenuMusicEnabled } from "../menuMusic";
 import { applyTheme, resolveTheme } from "../theme";
 import { playAcceptedWordSound } from "../wordAcceptSound";
+import { pathSelectOnChange } from "../pathSelectSound";
+import { playPauseSound, playResumeSound } from "../pauseSound";
 import { formatElapsedClock, formatRunChallengeBadge, formatRunMeta } from "../runMeta";
 import { ModeGlyph } from "../modeGlyph";
 import { playLaunchFromSearch } from "../playLaunchSearch";
@@ -99,6 +100,13 @@ const playRouteApi = getRouteApi("/play");
 /** Board tile-drop + confetti hold before Results (won / timeout / quit). */
 const END_FLOURISH_MS = 1300;
 const BOARD_CLEAR_FLASH_MS = 1400;
+/** Keep accepted path lit briefly so the nab reads on the board (shorter than how-to). */
+const ACCEPT_HOLD_MS = 650;
+/** Pill flash duration for WORD +N / reject messages. */
+const ACCEPT_FLASH_MS = 1000;
+/** Tiny spark burst for 6+ letter nabs (not board-clear / end curtain). */
+const MICRO_CONFETTI_MS = 650;
+const MICRO_CONFETTI_COUNT = 18;
 /** Must match `.cp-board-spin.is-turning` in `apps/web/src/index.css`. */
 const BOARD_SPIN_MS = 300;
 /** End/Leave within this window after board ready → lobby, no haul recorded. */
@@ -152,7 +160,19 @@ export function PlayPage() {
   const topology = (launch.topology ?? "square") as GridTopology;
   const [state, setState] = useState<GameState | null>(null);
   const [path, setPath] = useState<Cell[]>([]);
+  /** Tracks path length for ascending select tones (grow only). */
+  const pathLenRef = useRef(0);
   const [flash, setFlash] = useState("");
+  /** Potato-gold accept flash on held path tiles. */
+  const [accepting, setAccepting] = useState(false);
+  /** Pill nab pop + heat while flashing WORD +N. */
+  const [nabPop, setNabPop] = useState(false);
+  const [nabLength, setNabLength] = useState(0);
+  /** Micro confetti for 6+ (id remounts ConfettiBurst). */
+  const [microSpark, setMicroSpark] = useState<{ id: number } | null>(null);
+  const microSparkIdRef = useRef(0);
+  const acceptHoldTimerRef = useRef<number | null>(null);
+  const acceptFlashTimerRef = useRef<number | null>(null);
   const [lastFound, setLastFound] = useState<{ id: number; word: string; points: number } | null>(
     null,
   );
@@ -223,6 +243,7 @@ export function PlayPage() {
     finished.current = true;
     runStartedAtRef.current = 0;
     runActiveRef.current = false;
+    clearAcceptJuice();
     setPaused(false);
     setState(null);
     leaveBlocker.reset?.();
@@ -236,8 +257,24 @@ export function PlayPage() {
   const [goalElapsedMs, setGoalElapsedMs] = useState(0);
   const [survivalBump, setSurvivalBump] = useState<{ id: number; seconds: number } | null>(null);
 
+  const clearAcceptJuice = useCallback(() => {
+    if (acceptHoldTimerRef.current != null) {
+      window.clearTimeout(acceptHoldTimerRef.current);
+      acceptHoldTimerRef.current = null;
+    }
+    if (acceptFlashTimerRef.current != null) {
+      window.clearTimeout(acceptFlashTimerRef.current);
+      acceptFlashTimerRef.current = null;
+    }
+    setAccepting(false);
+    setNabPop(false);
+    setNabLength(0);
+  }, []);
+
   const openPause = () => {
     pauseOpensRef.current += 1;
+    pathLenRef.current = 0;
+    clearAcceptJuice();
     setPath([]);
     playPauseSound();
     setPaused(true);
@@ -378,9 +415,12 @@ export function PlayPage() {
     }
     rotatingRef.current = false;
     setPaused(false);
+    pathLenRef.current = 0;
+    clearAcceptJuice();
     setPath([]);
     setFlash("");
     setLastFound(null);
+    setMicroSpark(null);
     setFirstWord(true);
     setEndBeat(null);
     setBoardTurnDeg(0);
@@ -393,6 +433,12 @@ export function PlayPage() {
       void beginFreshRun();
     }, 0);
   };
+
+  useEffect(() => {
+    if (!microSpark) return;
+    const id = window.setTimeout(() => setMicroSpark(null), MICRO_CONFETTI_MS);
+    return () => window.clearTimeout(id);
+  }, [microSpark]);
 
   useEffect(() => {
     setEnabled(loadDevicePrefs().soundEnabled);
@@ -767,6 +813,7 @@ export function PlayPage() {
   const rotate = (dir: 1 | -1) => {
     if (celebrate || paused || leavePromptOpen || rotatingRef.current) return;
     rotatesRef.current += 1;
+    pathLenRef.current = 0;
     setPath([]);
     const reduceMotion =
       typeof window !== "undefined" &&
@@ -793,8 +840,19 @@ export function PlayPage() {
   };
 
   return (
-    <Shell className="relative overflow-hidden cp-shell-play cp-fade-up">
+    <Shell
+      className="relative overflow-hidden cp-shell-play cp-fade-up"
+      data-topology={topology}
+    >
       <ConfettiBurst active={celebrate} durationMs={END_FLOURISH_MS} />
+      {microSpark ? (
+        <ConfettiBurst
+          key={microSpark.id}
+          active
+          durationMs={MICRO_CONFETTI_MS}
+          count={MICRO_CONFETTI_COUNT}
+        />
+      ) : null}
 
       {/* HUD: never cram Goal remaining + Easy + pause on one narrow row (pill was wrapping into a
           circle under Absolute Easy). Score | pause on top; mode badge centered below. */}
@@ -881,8 +939,16 @@ export function PlayPage() {
       )}
 
       <ScoreBubble
-        word={endBeat ? runEndPill(endBeat, state.config.mode) : currentWord || flash}
+        word={
+          endBeat
+            ? runEndPill(endBeat, state.config.mode)
+            : nabPop && flash
+              ? flash
+              : currentWord || flash
+        }
         hint={`Start swiping · ${state.config.minWordLength}+`}
+        nabPop={nabPop && !endBeat}
+        nabLength={nabLength}
         className="mb-3"
       />
 
@@ -892,11 +958,22 @@ export function PlayPage() {
         isAdjacent={adjacent}
         selected={boardLocked ? [] : path}
         dropping={celebrate}
+        accepting={accepting && !boardLocked}
         boardTurnDeg={boardTurnDeg}
         boardTurning={boardTurning}
         interactive={!boardLocked}
         onBoardTurnEnd={finishBoardTurn}
-        onPathChange={boardLocked ? undefined : setPath}
+        onPathChange={
+          boardLocked
+            ? undefined
+            : (next) => {
+                // New swipe cancels nab hold on the previous path.
+                if (accepting) clearAcceptJuice();
+                pathSelectOnChange(next.length, pathLenRef.current);
+                pathLenRef.current = next.length;
+                setPath(next);
+              }
+        }
         onPathEnd={
           boardLocked
             ? undefined
@@ -905,7 +982,7 @@ export function PlayPage() {
                 const dict = dictRef.current;
                 if (!dict) return;
                 const { state: next, result } = submitPath(state, p, dict);
-                setPath([]);
+                pathLenRef.current = 0;
                 if (result.ok) {
                   const first = firstWord;
                   if (first && runStartedAtRef.current > 0) {
@@ -936,20 +1013,54 @@ export function PlayPage() {
                   const boardCleared =
                     next.board.allWords.length > 0 &&
                     next.found.length === next.board.allWords.length;
+                  clearAcceptJuice();
                   if (boardCleared) {
+                    setPath([]);
                     celebrateBoardClear(next.found.length);
                   } else {
+                    // Hold lit path so the nab reads on the board, not just the pill.
+                    setPath(p);
+                    setAccepting(true);
                     playAcceptedWordSound(result.word.length, { firstWord });
-                    setFlash(result.word.toUpperCase());
-                    window.setTimeout(() => setFlash(""), 700);
+                    const pts = result.points;
+                    const flashWord =
+                      pts > 0
+                        ? `${result.word.toUpperCase()} +${pts}`
+                        : result.word.toUpperCase();
+                    setFlash(flashWord);
+                    setNabPop(true);
+                    setNabLength(result.word.length);
+                    if (result.word.length >= 6) {
+                      microSparkIdRef.current += 1;
+                      setMicroSpark({ id: microSparkIdRef.current });
+                    }
+                    acceptHoldTimerRef.current = window.setTimeout(() => {
+                      acceptHoldTimerRef.current = null;
+                      setPath([]);
+                      setAccepting(false);
+                    }, ACCEPT_HOLD_MS);
+                    acceptFlashTimerRef.current = window.setTimeout(() => {
+                      acceptFlashTimerRef.current = null;
+                      setFlash("");
+                      setNabPop(false);
+                      setNabLength(0);
+                    }, ACCEPT_FLASH_MS);
                   }
                   setFirstWord(false);
                   setState(next);
                 } else if (isRejectedWordSubmit(result.reason)) {
+                  setPath([]);
+                  clearAcceptJuice();
                   trackWordRejected(result.reason);
                   playRejectedWordSound();
                   setFlash(REJECT_FLASH[result.reason] ?? result.reason);
-                  window.setTimeout(() => setFlash(""), 700);
+                  acceptFlashTimerRef.current = window.setTimeout(() => {
+                    acceptFlashTimerRef.current = null;
+                    setFlash("");
+                  }, ACCEPT_FLASH_MS);
+                } else {
+                  setPath([]);
+                  clearAcceptJuice();
                 }
               }
         }
@@ -964,7 +1075,18 @@ export function PlayPage() {
         )}
       >
         {lastFound ? (
-          <div key={lastFound.id} className="cp-last-found cp-catch-in max-w-full" role="status">
+          <div
+            key={lastFound.id}
+            className={cn(
+              "cp-last-found cp-catch-in max-w-full",
+              lastFound.word.length >= 6
+                ? "cp-last-found-long"
+                : lastFound.word.length >= 5
+                  ? "cp-last-found-mid"
+                  : "",
+            )}
+            role="status"
+          >
             <span className="cp-last-found-label">Last catch</span>
             <span className="cp-last-found-word">{lastFound.word}</span>
             {lastFound.points > 0 ? (

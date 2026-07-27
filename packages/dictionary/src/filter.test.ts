@@ -56,6 +56,10 @@ describe("dictionary filter", () => {
     expect(dict.has("thro")).toBe(false);
     expect(dict.has("aalii")).toBe(false);
     expect(dict.enable.has("leu")).toBe(true);
+    expect(dict.enable.has("mut")).toBe(true);
+    // Everyday verb just under the old 2.8 gate — must stay playable
+    expect(dict.has("ripen")).toBe(true);
+    expect(dict.has("ripening")).toBe(true);
   });
 
   it("play keeps the must-include regression set", () => {

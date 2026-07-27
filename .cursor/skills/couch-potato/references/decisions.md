@@ -17,7 +17,8 @@ Soft prefs and rejected paths. **Not** game rules (those stay in `AGENTS.md` / `
 - **Score copy:** spell **points** (HUD `N points left`, Results haul, Potato Board) — never **`pts`**, never shouting **`POINTS`**.
 - **SEO OG blurb:** plain swipe loop + **free, no ads, play as much as you want** — not mode jargon or “No hints”. Source: `apps/web/src/seo.ts`.
 - **How hard? active state:** Easy / Medium / Hard share one selected recipe (cream + sage border + potato icon). No Hard-only potato-gold card exception.
-- **Play short phones:** `.cp-shell-play` reserves bottom safe-area; short `max-height` caps board **width** so Spin clears the fold (see `ui.mdc`).
+- **Play short phones:** `.cp-shell-play` reserves bottom safe-area; short `max-height` caps board **width** so Spin clears the fold (see `ui.mdc`). Honeycomb taller board: `[data-topology=hex]` uses a tighter width budget (`/ 1.38`).
+- **Honeycomb display:** flat-top hexes, each data-row as a **vertical column** (taller board) — not classic pointy-top horizontal rows. Engine adjacency stays odd-r.
 - **Secondary buttons:** soft pale potato wash (not solid `#d8b05b`) + dark ink — light and dark. Solid gold slabs read too heavy (Spin chips).
 - **Page transitions:** View Transitions settle on `.cp-page-body` (`cp-settle` / back) — site bar is outside that group so it stays put between chrome pages.
 - **Results word chips:** stagger drop-in (length row → chips L→R via `.cp-chip-drop-in`); remount when a collapse opens so the beat isn’t wasted while clipped.
@@ -34,9 +35,14 @@ Soft prefs and rejected paths. **Not** game rules (those stay in `AGENTS.md` / `
 - Whimsical difficulty blurbs that don’t explain the mechanic (Soft couch / Warm seat / Spud sweat) — use mode-aware literal hints.
 - UA blue focus rings on lobby choice cards — brand potato wash `focus-visible` only (`outline: none` on tile/chip/challenge).
 - Full ENABLE as v1 play lexicon (obscure scraps). Prefer **wordfreq zipf gate ∪ curated play-allowlist** (not dolph TV/movie `popular.txt`) if everyday words are missing — don’t flip play to ENABLE without a plan.
+- Adopting [benhoyt/boggle `word-list.txt`](https://github.com/benhoyt/boggle/blob/master/word-list.txt) as play (~93k / ~57k ∩ ENABLE) — too many crossword scraps; also missing everyday verbs like `ripen`. Widen via **lower zipf** + allowlist instead.
+- “Boring finds” feel → amp **accept juice** (path hold, `WORD +N` pill, Last catch / HUD / SFX / 6+ micro confetti) before widening lexicon or board-gen crumb cuts.
+
+## Locked
+
+- Play lexicon widen (2026-07): zipf floor **2.8 → 2.5** (~27k → ~36k) after `ripen` (zipf 2.64) bounced; `play-blocklist.txt` keeps `leu`/`mut`/`thro` out of play while ENABLE retains them.
 
 ## Open / deferred
 
 - Full Expo play + NativeWind on native.
-- Play lexicon widen (popular allowlist vs broader frequency cut) — discuss before shipping.
 - App-knowledge `references/` grows only when chat would otherwise re-teach the same soft preference.

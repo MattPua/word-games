@@ -40,7 +40,7 @@ Write-back: [sync-agent-docs](../sync-agent-docs/SKILL.md) + always-on [agent-do
 | Routes, lazy pages, head/SEO, preload | skill `tanstack-router` (+ `reference.md`) · rule `tanstack-router.mdc` · canonical `https://www.acouchpotato.com` (`seo.ts`) |
 | Mascot / sprites / WebP crops / BrandMark | skill `potato-sprites` · `AGENTS.md` Brand |
 | Play short-viewport / Spin clearance | `ui.mdc` (board size + `.cp-shell-play`) · [references/decisions.md](references/decisions.md) |
-| Lexicon widen / missing everyday words | `AGENTS.md` Dictionary · [references/decisions.md](references/decisions.md) (prefer allowlist over full ENABLE) |
+| Lexicon widen / missing everyday words | `AGENTS.md` Dictionary · [references/decisions.md](references/decisions.md) (zipf≥2.5 + allowlist; not full ENABLE / not Boggle list) |
 | SFX / Background music | skill `sfx` · `AGENTS.md` Sounds |
 | PostHog / game-loop analytics | skill `posthog-analytics` · `apps/web/src/analytics.ts` |
 | Lighthouse / CWV / cold path | skill `lighthouse` (+ `history.json`) |

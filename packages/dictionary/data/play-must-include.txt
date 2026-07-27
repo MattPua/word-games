@@ -9,6 +9,11 @@ deter
 throng
 rend
 rends
+ripen
+ripening
+ripened
+ripens
+unripe
 #
 # Brand / lobby basics
 potato

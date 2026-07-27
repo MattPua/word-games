@@ -10,7 +10,7 @@ export type Dictionary = {
   enable: Set<string>;
   /**
    * Casual play lexicon: ENABLE ∩ wordfreq zipf gate ∪ play-allowlist
-   * (− NSFW − names). **v1 accept** — board `allWords`, targets, Words left.
+   * (− NSFW − names − play-blocklist). **v1 accept** — board `allWords`, targets, Words left.
    */
   popular: Set<string>;
   /** Play accept: true for popular − blocklist. */

@@ -244,6 +244,23 @@
   animation: cp-tile-select 0.28s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
+@keyframes cp-tile-accept {
+  0% {
+    transform: scale(1.02);
+  }
+  45% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1.04);
+  }
+}
+
+/** Potato-gold nab pulse — pairs with `.cp-tile-active` wash in web index.css. */
+.cp-tile-accept {
+  animation: cp-tile-accept 0.42s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+
 /*
  * Potato marks — raster PixelLab body + optional SVG motion overlay
  * (`PotatoMark` / `Logo*` / `PotatoSnoreSvg` / cropped `PotatoSprite`).
@@ -379,6 +396,7 @@
   .cp-fade-up,
   .cp-pop-in,
   .cp-tile-selected,
+  .cp-tile-accept,
   .cp-tile-drop,
   .cp-potato-sprite-interactive {
     animation: none;

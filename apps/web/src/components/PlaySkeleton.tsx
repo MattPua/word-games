@@ -23,6 +23,7 @@ export function PlaySkeleton() {
   return (
     <Shell
       className="relative overflow-hidden cp-shell-play"
+      data-topology={hex ? "hex" : "square"}
       aria-busy="true"
       aria-label="Spinning up the board"
     >
@@ -70,7 +71,7 @@ export function PlaySkeleton() {
             >
               {Array.from({ length: grid }, (_, row) =>
                 hex ? (
-                  <div key={row} className="absolute flex" style={hexRowStyle(row, grid)}>
+                  <div key={row} className="absolute flex flex-col" style={hexRowStyle(row, grid)}>
                     {Array.from({ length: grid }, (_, col) => (
                       <TileBone key={`${row}-${col}`} hex />
                     ))}

@@ -13,8 +13,9 @@ export function isAdjacent8(a: Cell, b: Cell): boolean {
 }
 
 /**
- * Pointy-top odd-r offset neighbors (Red Blob Games).
- * Even rows: NW/NE share col-1/col with row-1; odd rows shift east.
+ * Odd-r offset neighbors (Red Blob Games). UI draws flat-top vertical columns
+ * (90° from classic pointy horizontal rows) — adjacency here is unchanged.
+ * Even rows: NW/NE share col-1/col with row±1; odd rows shift east.
  */
 export function isAdjacentHex(a: Cell, b: Cell): boolean {
   const dr = b.row - a.row;

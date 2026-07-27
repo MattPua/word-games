@@ -1,0 +1,6 @@
+# Play-only denylist — ENABLE keeps these for a future dictionary mode;
+# casual play still rejects them even when they clear the wordfreq gate.
+# Scrabble scraps / crosswordese that feel like cheats on the board.
+leu
+mut
+thro

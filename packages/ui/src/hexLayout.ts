@@ -1,11 +1,17 @@
-/** Shared odd-r pointy-top hex board metrics (web LetterGrid + tests). */
+/**
+ * Shared hex board metrics (web LetterGrid + tests).
+ * Engine adjacency stays odd-r; display is flat-top with each data-row as a
+ * vertical column (90° from classic pointy-top horizontal rows) so the board
+ * reads taller than wide.
+ */
 
-/** CSS clip-path for cream tiles — select is the tile face itself when active. */
-export const HEX_CLIP = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
+/** CSS clip-path for cream tiles — flat-top hex; select is the tile face when active. */
+export const HEX_CLIP =
+  "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)";
 
-/** Board aspect width / height units for an n×n odd-r hex grid. */
+/** Board aspect width / height units for an n×n flat-top vertical-column hex grid. */
 export function hexAspect(n: number): { w: number; h: number } {
-  return { w: n + 0.5, h: 0.75 * (n - 1) + 1 };
+  return { w: 0.75 * (n - 1) + 1, h: n + 0.5 };
 }
 
 /** Cell center in 0–100 play-surface coords (path stroke). Margins are symmetric so centers stay put when `--cp-tile-gap` grows. */
@@ -24,13 +30,14 @@ export function cellCenter(
   const { w, h } = hexAspect(n);
   const xPitch = 100 / w;
   const yPitch = 100 / h;
+  // Data rows run vertically: row → x (0.75 pitch), col → y; odd rows shove down.
   return {
-    x: (col + 0.5 + (row % 2 === 1 ? 0.5 : 0)) * xPitch,
-    y: (row * 0.75 + 0.5) * yPitch,
+    x: (row * 0.75 + 0.5) * xPitch,
+    y: (col + 0.5 + (row % 2 === 1 ? 0.5 : 0)) * yPitch,
   };
 }
 
-/** Absolute row box % for odd-r hex (same space as cellCenter). */
+/** Absolute vertical-column box % for one data-row (same space as cellCenter). */
 export function hexRowStyle(
   rowIndex: number,
   n: number,
@@ -42,9 +49,9 @@ export function hexRowStyle(
 } {
   const { w, h } = hexAspect(n);
   return {
-    top: `${((rowIndex * 0.75) / h) * 100}%`,
-    left: rowIndex % 2 === 1 ? `${(0.5 / w) * 100}%` : "0",
-    width: `${(n / w) * 100}%`,
-    height: `${(1 / h) * 100}%`,
+    left: `${((rowIndex * 0.75) / w) * 100}%`,
+    top: rowIndex % 2 === 1 ? `${(0.5 / h) * 100}%` : "0",
+    width: `${(1 / w) * 100}%`,
+    height: `${(n / h) * 100}%`,
   };
 }

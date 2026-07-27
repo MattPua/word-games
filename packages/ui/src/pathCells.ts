@@ -9,6 +9,8 @@ export type LetterGridProps = {
   onPathEnd?: (path: Cell[]) => void;
   /** Staggered tile drop when round is won. */
   dropping?: boolean;
+  /** Potato-gold accept flash on selected tiles (brief nab hold). */
+  accepting?: boolean;
   className?: string;
   topology?: GridTopology;
   /** Prefer engine `isAdjacentCells` bound to topology. Defaults to square 8-way. */

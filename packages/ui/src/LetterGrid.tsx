@@ -38,6 +38,7 @@ export function LetterGrid({
   onPathChange,
   onPathEnd,
   dropping = false,
+  accepting = false,
   className = "",
   topology = "square",
   isAdjacent: adjacentFn = isAdjacent,
@@ -281,12 +282,13 @@ export function LetterGrid({
                 hex ? (
                   <div
                     key={rowIndex}
-                    className="absolute flex"
+                    className="absolute flex flex-col"
                     role="row"
                     style={hexRowStyle(rowIndex, n)}
                   >
                     {row.map((letter, colIndex) => {
                       const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
+                      const acceptFlash = active && accepting;
                       return (
                         <div
                           key={`${rowIndex}-${colIndex}`}
@@ -297,7 +299,7 @@ export function LetterGrid({
                           data-testid={`tile-${rowIndex}-${colIndex}`}
                           className={`cp-tile cp-tile-hex ${
                             active ? "cp-tile-active cp-tile-selected" : ""
-                          } ${dropping ? "cp-tile-drop" : ""}`}
+                          } ${acceptFlash ? "cp-tile-accept" : ""} ${dropping ? "cp-tile-drop" : ""}`}
                           style={{
                             clipPath: HEX_CLIP,
                             borderRadius: 0,
@@ -316,6 +318,7 @@ export function LetterGrid({
                   <div key={rowIndex} role="row" style={{ display: "contents" }}>
                     {row.map((letter, colIndex) => {
                       const active = selectedSet.has(cellKey({ row: rowIndex, col: colIndex }));
+                      const acceptFlash = active && accepting;
                       return (
                         <div
                           key={`${rowIndex}-${colIndex}`}
@@ -326,7 +329,7 @@ export function LetterGrid({
                           data-testid={`tile-${rowIndex}-${colIndex}`}
                           className={`cp-tile cp-tile-square ${
                             active ? "cp-tile-active cp-tile-selected" : ""
-                          } ${dropping ? "cp-tile-drop" : ""}`}
+                          } ${acceptFlash ? "cp-tile-accept" : ""} ${dropping ? "cp-tile-drop" : ""}`}
                           style={{
                             ...(dropping
                               ? { animationDelay: `${(rowIndex * n + colIndex) * 28}ms` }

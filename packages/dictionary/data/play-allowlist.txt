@@ -1,7 +1,13 @@
 # Curated play extras — real words under the wordfreq zipf floor that still
 # belong in casual Couch Potato (ENABLE-validated at build).
-# One word per line. Keep this short — prefer raising the freq gate only with evidence.
+# One word per line. Keep this short — prefer lowering the freq gate only with evidence.
 rend
 rends
 rended
 rending
+# ripe → verb/adj forms just under zipf 2.5
+ripened
+ripens
+unripe
+riper
+ripest

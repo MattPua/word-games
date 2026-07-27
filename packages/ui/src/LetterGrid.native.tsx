@@ -30,6 +30,7 @@ export function LetterGrid({
   onPathChange,
   onPathEnd,
   dropping = false,
+  accepting = false,
   className = "",
   topology = "square",
   isAdjacent: adjacentFn = isAdjacent,
@@ -140,7 +141,7 @@ export function LetterGrid({
                 <View
                   key={`${rowIndex}-${colIndex}`}
                   testID={`tile-${rowIndex}-${colIndex}`}
-                  className={`cp-tile ${hex ? "cp-tile-hex" : ""} ${active ? "cp-tile-active" : ""}`}
+                  className={`cp-tile ${hex ? "cp-tile-hex" : ""} ${active ? "cp-tile-active" : ""} ${active && accepting ? "cp-tile-accept" : ""}`}
                   style={
                     {
                       margin: 5,
