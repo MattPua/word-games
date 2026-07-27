@@ -156,8 +156,7 @@ function prefActions(): PrefAction[] {
         const next = !sfxOn;
         setSoundEnabled(next);
         trackOptionsPrefChanged("sfx", next ? "on" : "off");
-        void import("cuelume").then(({ bind, setEnabled }) => {
-          bind();
+        void import("../sfx").then(({ setEnabled }) => {
           setEnabled(next);
         });
       },

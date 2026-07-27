@@ -46,7 +46,7 @@ Aim for category scores **≥ 95**, stretch **100**. Soft resource budgets for t
 | Image             | ≤ 300 KB (cropped **display-sized** cell WebPs ~160px logo / ~128px medals — never full sheets; prefer **WebP** — `AGENTS.md`)                         |
 | Third-party count | ≤ 5                                                                                                                                                    |
 
-**Offline / 3G:** production SW precache stays lean (shell CSS + latin fonts + tiny logos — not Play JS, medals, or BGM). Runtime `CacheFirst` for `/assets/*.js`, images, mp3 after first use. Don’t “fix” Lighthouse by precaching the whole app into install. Keep `menu-bgm.mp3` ~128 kb/s stereo without cover art (see `AGENTS.md` Sounds / cuelume).
+**Offline / 3G:** production SW precache stays lean (shell CSS + latin fonts + tiny logos — not Play JS, medals, or BGM). Runtime `CacheFirst` for `/assets/*.js`, images, mp3 after first use. Don’t “fix” Lighthouse by precaching the whole app into install. Keep `menu-bgm.mp3` ~128 kb/s stereo without cover art (see `AGENTS.md` Sounds / skill `sfx`).
 
 Timing (mobile, default Lighthouse throttling):
 

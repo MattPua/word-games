@@ -80,8 +80,7 @@ export function OptionsPage() {
     setSound(enabled);
     setSoundEnabled(enabled);
     trackOptionsPrefChanged("sfx", next);
-    void import("cuelume").then(({ bind, setEnabled }) => {
-      bind();
+    void import("../sfx").then(({ setEnabled }) => {
       setEnabled(enabled);
     });
   };

@@ -1,4 +1,4 @@
-import { play } from "cuelume";
+import { play } from "./sfx";
 import type { SubmitResult } from "@couch-potato/game-engine";
 
 /** Reject reasons that get feedback (flash + SFX). Empty/cancel paths stay silent. */
@@ -10,7 +10,7 @@ export function isRejectedWordSubmit(
   return reason !== "bad_path" && reason !== "ended";
 }
 
-/** Soft cuelume refusal on invalid word submit — respects global mute via `setEnabled`. */
+/** Soft refusal on invalid word submit — respects global mute via `setEnabled`. */
 export function playRejectedWordSound(): void {
   play("error");
 }

@@ -1,4 +1,4 @@
-/** Lobby / crew / play background music — separate from cuelume SFX. */
+/** Lobby / crew / play background music — separate from Web Audio SFX. */
 
 const SRC = "/audio/menu-bgm.mp3";
 const VOLUME_LOBBY = 0.35;

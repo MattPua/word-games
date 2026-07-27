@@ -1,4 +1,4 @@
-import { play } from "cuelume";
+import { play } from "./sfx";
 
 export type RunEndReason = "won" | "timeout" | "quit";
 export type RunEndMode = "target" | "timed" | "survival";

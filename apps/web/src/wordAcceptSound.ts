@@ -1,7 +1,7 @@
-import { play } from "cuelume";
+import { play } from "./sfx";
 
 /**
- * Escalating cuelume celebration by accepted word length.
+ * Escalating celebration by accepted word length.
  * Keep thresholds here — don’t scatter length magic numbers at call sites.
  *
  * Ladder stays in the ascending sine-arp family (`success` / `sparkle` share

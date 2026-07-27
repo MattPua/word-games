@@ -1,4 +1,4 @@
-import { play } from "cuelume";
+import { play } from "./sfx";
 
 /**
  * Full-board clear: every solvable word found (`found.length === allWords.length`).

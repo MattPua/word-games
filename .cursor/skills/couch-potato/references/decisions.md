@@ -13,7 +13,7 @@ Soft prefs and rejected paths. **Not** game rules (those stay in `AGENTS.md` / `
 - **Medals section potatoes:** soft corner watermark in each track card (`.cp-medals-section-mascot`), not a tiny header pip.
 - **Chrome header:** site bar on lobby + chrome pages (not play/how-to). Lobby = **nav-only** bar + hero `BrandHeader` (no double logo). Other chrome = brand lockup + `PageHeading`. Prefer shared persistent chrome when it removes layout drift (see `ui.mdc` Layout stability).
 - **Lobby welcome mark:** chill `Logo`, never bored snore / Zzz (wrong first impression). Snore stays EmptyState / flourishes only.
-- **Cold path:** eager `/how-to` (first-visit redirect); lazy lobby/chrome; Lexend 400+700 only; cuelume not on root boot. Keep sync `TooltipProvider` (IconTooltip requires it).
+- **Cold path:** eager `/how-to` (first-visit redirect); lazy lobby/chrome; Lexend 400+700 only; SFX engine not on root boot. Keep sync `TooltipProvider` (IconTooltip requires it).
 - **Score copy:** spell **points** (HUD `N points left`, Results haul, Potato Board) — never **`pts`**, never shouting **`POINTS`**.
 - **SEO OG blurb:** plain swipe loop + **free, no ads, play as much as you want** — not mode jargon or “No hints”. Source: `apps/web/src/seo.ts`.
 - **How hard? active state:** Easy / Medium / Hard share one selected recipe (cream + sage border + potato icon). No Hard-only potato-gold card exception.

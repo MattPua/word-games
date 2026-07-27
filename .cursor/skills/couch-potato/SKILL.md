@@ -41,7 +41,7 @@ Write-back: [sync-agent-docs](../sync-agent-docs/SKILL.md) + always-on [agent-do
 | Mascot / sprites / WebP crops / BrandMark | skill `potato-sprites` · `AGENTS.md` Brand |
 | Play short-viewport / Spin clearance | `ui.mdc` (board size + `.cp-shell-play`) · [references/decisions.md](references/decisions.md) |
 | Lexicon widen / missing everyday words | `AGENTS.md` Dictionary · [references/decisions.md](references/decisions.md) (prefer allowlist over full ENABLE) |
-| SFX / Background music | skill `cuelume` · `AGENTS.md` Sounds |
+| SFX / Background music | skill `sfx` · `AGENTS.md` Sounds |
 | PostHog / game-loop analytics | skill `posthog-analytics` · `apps/web/src/analytics.ts` |
 | Lighthouse / CWV / cold path | skill `lighthouse` (+ `history.json`) |
 | Verify play UI (swipe) | skill `verify-ui` |

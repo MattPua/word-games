@@ -58,7 +58,8 @@ import {
   type GridTopology,
   type MinWordLength,
 } from "@couch-potato/game-engine";
-import { bind, play, setEnabled } from "cuelume";
+import { play, setEnabled } from "../sfx";
+import { playPauseSound, playResumeSound } from "../pauseSound";
 import { isRejectedWordSubmit, playRejectedWordSound } from "../wordRejectSound";
 import { toast } from "sonner";
 import {
@@ -238,10 +239,13 @@ export function PlayPage() {
   const openPause = () => {
     pauseOpensRef.current += 1;
     setPath([]);
+    playPauseSound();
     setPaused(true);
   };
 
+  /** Resume / Escape — wake SFX. End run / Restart use silent `setPaused(false)`. */
   const closePause = () => {
+    playResumeSound();
     setPaused(false);
   };
 
@@ -391,7 +395,6 @@ export function PlayPage() {
   };
 
   useEffect(() => {
-    bind();
     setEnabled(loadDevicePrefs().soundEnabled);
   }, []);
 
@@ -1130,7 +1133,7 @@ export function PlayPage() {
                     bailToLobby();
                     return;
                   }
-                  closePause();
+                  setPaused(false);
                   setState(quitGame(state));
                 }}
               >
